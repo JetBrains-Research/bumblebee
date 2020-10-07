@@ -3,10 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.jetbrains.intellij") version "0.4.10"
     java
-    kotlin("jvm") version "1.3.41"
+    kotlin("jvm") version "1.4.0"
+    id("com.github.johnrengelman.shadow") version "5.1.0"
 }
 
-group = "io.github.nbirillo.coding.assistant"
+group = "io.github.nbirillo.ast.transformations"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -18,9 +19,8 @@ dependencies {
     testCompile("junit", "junit", "4.12")
 }
 
-// See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version = "2019.2.2"
+    version = "2020.2"
 }
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_1_8

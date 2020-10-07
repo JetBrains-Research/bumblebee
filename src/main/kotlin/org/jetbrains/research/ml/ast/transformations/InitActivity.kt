@@ -1,4 +1,4 @@
-package org.jetbrains.research.ml.coding.assistant
+package org.jetbrains.research.ml.ast.transformations
 
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
