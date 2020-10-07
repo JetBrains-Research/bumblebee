@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020.  Anastasiia Birillo, Elena Lyulina
+ */
+
 package org.jetbrains.research.ml.ast.transformations
 
 import com.intellij.openapi.diagnostic.Logger

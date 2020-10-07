@@ -1,4 +1,4 @@
-# Ast-transformations
+# AST-transformations
 
 An IntelliJ-based IDE plugin for Python AST transformations
 
