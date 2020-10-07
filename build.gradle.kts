@@ -5,6 +5,7 @@ plugins {
     java
     kotlin("jvm") version "1.4.0"
     id("com.github.johnrengelman.shadow") version "5.1.0"
+    id("org.jetbrains.dokka") version "1.4.0-rc"
 }
 
 group = "io.github.nbirillo.ast.transformations"
