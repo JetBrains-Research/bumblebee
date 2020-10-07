@@ -6,7 +6,7 @@ plugins {
     kotlin("jvm") version "1.3.41"
 }
 
-group = "io.github.nbirillo.codingassistant"
+group = "io.github.nbirillo.coding.assistant"
 version = "1.0-SNAPSHOT"
 
 repositories {

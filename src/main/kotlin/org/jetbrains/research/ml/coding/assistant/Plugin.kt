@@ -1,4 +1,4 @@
-package org.jetbrains.research.ml.codingassistant
+package org.jetbrains.research.ml.coding.assistant
 
 import com.intellij.openapi.diagnostic.Logger
 
