@@ -2,7 +2,7 @@
 
 # AST-transformations
 
-An IntelliJ-based IDE plugin for Python AST transformations
+An IntelliJ-based IDE plugin for performing Python AST transformations using PSI elements
 
 ## Installation
 
