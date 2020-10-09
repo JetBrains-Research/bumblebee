@@ -8,6 +8,6 @@
     ]]></description>
 
     <extensions defaultExtensionNs="com.intellij">
-        <postStartupActivity implementation="org.jetbrains.research.ml.ast.transformations.InitActivity"/>
+<!--        <postStartupActivity implementation="org.jetbrains.research.ml.ast.transformations.InitActivity"/>-->
     </extensions>
 </idea-plugin>
