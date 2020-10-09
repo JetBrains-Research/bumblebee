@@ -1,8 +1,8 @@
 [![nbirillo](https://circleci.com/gh/nbirillo/ast-transformations/tree/master.svg?style=shield)](https://app.circleci.com/pipelines/github/nbirillo/ast-transformations?branch=master)
 
-# Ast-transformations
+# AST-transformations
 
-An IntelliJ-based IDE plugin for Python AST transformations
+An IntelliJ-based IDE plugin for performing Python AST transformations using PSI elements
 
 ## Installation
 
