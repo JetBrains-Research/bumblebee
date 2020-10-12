@@ -1,13 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.4.10"
-    id("org.jetbrains.intellij") version "0.5.0"
-    id("org.jetbrains.changelog") version "0.6.1"
-    id("io.gitlab.arturbosch.detekt") version "1.14.1"
-    id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
-    id("org.jetbrains.dokka") version "0.11.0-dev-59"
+    id("org.jetbrains.intellij") version "0.4.22"
+    java
+    kotlin("jvm") version "1.4.0"
+    id("com.github.johnrengelman.shadow") version "5.1.0"
+    id("org.jetbrains.dokka") version "0.10.1"
 }
 
 group = "io.github.nbirillo.ast.transformations"
