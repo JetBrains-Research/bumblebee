@@ -36,22 +36,21 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
         fun getInAndOutArray(
             cls: KFunction<TransformationsTest>,
             resourcesRootName: String = resourcesRoot,
-        ): List<Array<Any>> {
+        ): List<Array<File>> {
             val inAndOutFilesMap = Util.getInAndOutFilesMap(getResourcesRootPath(cls, resourcesRootName))
             return inAndOutFilesMap.entries.map { (inFile, outFile) -> arrayOf(inFile, outFile) }
         }
 
         fun getResourcesRootPath(
             cls: KFunction<TransformationsTest>,
-            resourcesRootName: String = resourcesRoot): String {
-            return cls.javaClass.getResource(resourcesRootName).path
-        }
+            resourcesRootName: String = resourcesRoot
+        ): String = cls.javaClass.getResource(resourcesRootName).path
     }
 
     /*
     *  TODO: can we do it better?
-    *  The parametrized tests does not run the setUp method from BasePlatformTestCase and the myFixture variable
-    *  is NULL. But we should init it
+    *   The parametrized tests does not run the setUp method from BasePlatformTestCase and the myFixture variable
+    *   is NULL. But we should init it
     * */
     @Before
     fun mySetUp() {
@@ -68,7 +67,7 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
         val expectedSrc = Util.getContentFromFile(outFile)
         LOG.info("The expected code is:\n$expectedSrc")
         val psiInFile = myFixture.configureByFile(inFile.name)
-        // Todo: should we do return the new psiInFile after the transformation ot it will be changed?
+        // Todo: should we return the new psiInFile after the transformation or it will be changed?
         transformation(psiInFile, true)
         val actualSrc = psiInFile.text
         LOG.info("The actual code is:\n$actualSrc")
