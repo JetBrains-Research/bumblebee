@@ -7,12 +7,14 @@ package org.jetbrains.research.ml.ast.transformations.util
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.jupiter.api.Assertions
 import org.junit.runners.Parameterized
 import java.io.File
 import java.util.logging.Logger
 import kotlin.reflect.KFunction
 
+@Ignore
 open class TransformationsTest(private val testDataRoot: String) : BasePlatformTestCase() {
     protected val LOG = Logger.getLogger(javaClass.name)
 
