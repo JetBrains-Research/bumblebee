@@ -8,7 +8,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.junit.Before
 import org.junit.Ignore
-import org.junit.jupiter.api.Assertions
 import org.junit.runners.Parameterized
 import java.io.File
 import java.util.logging.Logger
@@ -48,9 +47,8 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
     }
 
     /*
-    *  TODO: can we do it better?
-    *   The parametrized tests does not run the setUp method from BasePlatformTestCase and the myFixture variable
-    *   is NULL. But we should init it
+    *  Older JUnit was calling this setUp method automatically, and newer one stopped to do that, and now requires
+    *  an explicit @Before annotation.
     * */
     @Before
     fun mySetUp() {
@@ -71,6 +69,6 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
         transformation(psiInFile, true)
         val actualSrc = psiInFile.text
         LOG.info("The actual code is:\n$actualSrc")
-        Assertions.assertEquals(expectedSrc, actualSrc)
+        assertEquals(expectedSrc, actualSrc)
     }
 }
