@@ -74,13 +74,15 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
         LOG.info("The current output file is: ${outFile.path}")
         val expectedSrc = Util.getContentFromFile(outFile)
         LOG.info("The expected code is:\n$expectedSrc")
-        ApplicationManager.getApplication().invokeLater {
-            val psiInFile = myFixture.configureByFile(inFile.name)
-            // Todo: should we return the new psiInFile after the transformation or it will be changed?
+        val psiInFile = myFixture.configureByFile(inFile.name)
+        ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
+        }
+        val actualSrc = ApplicationManager.getApplication().runReadAction<String> {
             val actualSrc = psiInFile.text
             LOG.info("The actual code is:\n$actualSrc")
-            assertEquals(expectedSrc, actualSrc)
+            actualSrc
         }
+        assertEquals(expectedSrc, actualSrc)
     }
 }
