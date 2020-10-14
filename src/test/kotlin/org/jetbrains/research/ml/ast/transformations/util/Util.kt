@@ -15,7 +15,7 @@ object Util {
         val inFileRegEx = "in_\\d*.py".toRegex()
         val inOutFileRegEx = "(in|out)_\\d*.py".toRegex()
         val (inFiles, outFiles) = getNestedFiles(folder).toList().filter { inOutFileRegEx.containsMatchIn(it.name) }
-                .partition { inFileRegEx.containsMatchIn(it.name) }
+            .partition { inFileRegEx.containsMatchIn(it.name) }
         if (inFiles.size != outFiles.size) {
             throw IllegalArgumentException("Size of the list of in files does not equal size of the list of out files if the folder: $folder")
         }
@@ -30,13 +30,11 @@ object Util {
 
     private fun getNestedFiles(directoryName: String, files: MutableList<File> = ArrayList()): Sequence<File> {
         val root = File(directoryName)
-        root.listFiles()?.let { fList ->
-            for (file in fList) {
-                if (file.isFile) {
-                    files.add(file)
-                } else if (file.isDirectory) {
-                    getNestedFiles(file.absolutePath, files)
-                }
+        root.listFiles()?.forEach {
+            if (it.isFile) {
+                files.add(it)
+            } else if (it.isDirectory) {
+                getNestedFiles(it.absolutePath, files)
             }
         }
         return files.asSequence()
