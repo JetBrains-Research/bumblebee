@@ -21,6 +21,6 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
       - name: Check code style
-        run: ./gradlew ktlintFormat
+        run: ./gradlew ktlintCheck
       - name: Run tests
         run: ./gradlew test
