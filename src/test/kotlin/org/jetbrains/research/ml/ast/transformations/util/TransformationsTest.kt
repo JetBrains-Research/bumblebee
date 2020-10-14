@@ -10,6 +10,7 @@ import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.apache.log4j.PropertyConfigurator
 import org.junit.After
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.runners.Parameterized
 import java.io.File
@@ -47,6 +48,13 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
             cls: KFunction<TransformationsTest>,
             resourcesRootName: String = resourcesRoot
         ): String = cls.javaClass.getResource(resourcesRootName).path
+
+        @JvmStatic
+        @BeforeClass
+        fun setupLog() {
+            // Configure log4j
+            PropertyConfigurator.configure(getResourcesRootPath(::TransformationsTest, "log4j.properties"))
+        }
     }
 
     /*
@@ -55,8 +63,6 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
     * */
     @Before
     fun mySetUp() {
-        // Configure log4j
-        PropertyConfigurator.configure(getResourcesRootPath(::TransformationsTest, "log4j.properties"))
         super.setUp()
     }
 
