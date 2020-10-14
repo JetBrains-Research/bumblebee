@@ -18,6 +18,7 @@ class TransformationsSettingTest : TransformationsTest(getResourcesRootPath(::Tr
         // TODO: how can we use only short name from file? Because I can use only the {index} parameter or the index
         //  of the parameter like {0} or {1}
         //  See: https://github.com/junit-team/junit4/wiki/Parameterized-tests
+        //  Also see the issue: https://github.com/junit-team/junit5/issues/1309
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
         fun getTestData() = getInAndOutArray(::TransformationsSettingTest)
     }
