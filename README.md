@@ -1,4 +1,5 @@
-[![nbirillo](https://circleci.com/gh/nbirillo/ast-transformations/tree/master.svg?style=shield)](https://app.circleci.com/pipelines/github/nbirillo/ast-transformations?branch=master)
+[![Actions Status](https://github.com/nbirillo/ast-transformations/workflows/build/badge.svg)](https://github.com/nbirillo/ast-transformations/actions)
+
 
 # AST-transformations
 
