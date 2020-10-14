@@ -84,11 +84,8 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
         }
-        val actualSrc = ApplicationManager.getApplication().runReadAction<String> {
-            val actualSrc = psiInFile.text
-            LOG.info("The actual code is:\n$actualSrc")
-            actualSrc
-        }
+        val actualSrc = psiInFile.text
+        LOG.info("The actual code is:\n$actualSrc")
         assertEquals(expectedSrc, actualSrc)
     }
 }
