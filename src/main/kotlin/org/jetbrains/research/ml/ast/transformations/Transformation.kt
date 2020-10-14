@@ -21,8 +21,8 @@ interface Transformation {
     fun apply(psiTree: PsiElement, toStoreMetadata: Boolean)
 
     /**
-    * Applying reverse transformation.
-    * @param [psiTree] - a hierarchy of PSI elements
-    */
+     * Applying reverse transformation.
+     * @param [psiTree] - a hierarchy of PSI elements
+     */
     fun inverseApply(psiTree: PsiElement)
 }

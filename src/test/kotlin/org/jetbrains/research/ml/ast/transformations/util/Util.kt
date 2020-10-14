@@ -17,7 +17,9 @@ object Util {
         val (inFiles, outFiles) = getNestedFiles(folder).toList().filter { inOutFileRegEx.containsMatchIn(it.name) }
             .partition { inFileRegEx.containsMatchIn(it.name) }
         if (inFiles.size != outFiles.size) {
-            throw IllegalArgumentException("Size of the list of in files does not equal size of the list of out files if the folder: $folder")
+            throw IllegalArgumentException(
+                "Size of the list of in files does not equal size of the list of out files if the folder: $folder"
+            )
         }
         return inFiles.associateWith { inFile ->
             val outFile = File("${inFile.parent}/${inFile.name.replace("in", "out")}")
@@ -40,4 +42,3 @@ object Util {
         return files.asSequence()
     }
 }
-
