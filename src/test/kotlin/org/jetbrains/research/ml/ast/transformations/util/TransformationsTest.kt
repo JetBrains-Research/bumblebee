@@ -4,9 +4,13 @@
 
 package org.jetbrains.research.ml.ast.transformations.util
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import org.apache.log4j.PropertyConfigurator
+import org.junit.After
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.runners.Parameterized
 import java.io.File
@@ -44,6 +48,13 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
             cls: KFunction<TransformationsTest>,
             resourcesRootName: String = resourcesRoot
         ): String = cls.javaClass.getResource(resourcesRootName).path
+
+        @JvmStatic
+        @BeforeClass
+        fun setupLog() {
+            // Configure log4j
+            PropertyConfigurator.configure(getResourcesRootPath(::TransformationsTest, "log4j.properties"))
+        }
     }
 
     /*
@@ -53,6 +64,11 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
     @Before
     fun mySetUp() {
         super.setUp()
+    }
+
+    @After
+    fun myDispose() {
+        super.tearDown()
     }
 
     protected fun assertCodeTransformation(
@@ -65,8 +81,9 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
         val expectedSrc = Util.getContentFromFile(outFile)
         LOG.info("The expected code is:\n$expectedSrc")
         val psiInFile = myFixture.configureByFile(inFile.name)
-        // Todo: should we return the new psiInFile after the transformation or it will be changed?
-        transformation(psiInFile, true)
+        ApplicationManager.getApplication().invokeAndWait {
+            transformation(psiInFile, true)
+        }
         val actualSrc = psiInFile.text
         LOG.info("The actual code is:\n$actualSrc")
         assertEquals(expectedSrc, actualSrc)
