@@ -1,5 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations.util
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.psi.PyElementGenerator
 import org.jetbrains.research.ml.ast.transformations.DeadCodeRemovalTransformation
