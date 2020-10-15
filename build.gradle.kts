@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm") version "1.4.0"
     id("com.github.johnrengelman.shadow") version "5.1.0"
     id("org.jetbrains.dokka") version "0.10.1"
+    id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
 }
 
 group = "io.github.nbirillo.ast.transformations"
@@ -25,9 +26,15 @@ intellij {
     downloadSources = false
     setPlugins("PythonCore:202.7660.27")
 }
+
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_1_8
 }
+
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+ktlint {
+    enableExperimentalRules.set(true)
 }
