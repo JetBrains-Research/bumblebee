@@ -11,5 +11,9 @@ Just clone the repo by `git clone https://github.com/nbirillo/ast-transformation
 The .zip is located in `build/distributions/coding-assistant-1.0-SNAPSHOT.zip`. Then __install the plugin from disk__ into an IntelliJ-based IDE of your choice
 (see [this guide](https://www.jetbrains.com/help/idea/managing-plugins.html#install_plugin_from_disk) for example). 
 
+## Getting started
+
+To run the plugin run `runIde` Gradle task provided by [gradle-intellij-plugin](https://github.com/JetBrains/gradle-intellij-plugin).
+
 To add `git hook` for auto-formatting the project according to the code style guide before each commit 
 run `./gradlew addKtlintFormatGitPreCommitHook`. As the result, the `.git` folder will contain the necessary hook.
