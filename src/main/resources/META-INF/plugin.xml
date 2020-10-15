@@ -1,13 +1,9 @@
 <idea-plugin>
     <id>io.github.nbirillo.ast.transformations</id>
-    <name>Coding Assistant</name>
+    <name>Ast Transformations</name>
     <vendor url="https://research.jetbrains.org/">JetBrains Research</vendor>
 
     <description><![CDATA[
-    An IntelliJ-based IDE plugin for getting the personalized hints
+    An IntelliJ-based IDE plugin for performing Python AST transformations using PSI elements.
     ]]></description>
-
-    <extensions defaultExtensionNs="com.intellij">
-<!--        <postStartupActivity implementation="org.jetbrains.research.ml.ast.transformations.InitActivity"/>-->
-    </extensions>
 </idea-plugin>
