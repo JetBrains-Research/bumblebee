@@ -3,28 +3,20 @@ package org.jetbrains.research.ml.ast.transformations
 import com.intellij.codeInsight.controlflow.ControlFlowUtil
 import com.intellij.codeInsight.controlflow.Instruction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.codeInsight.controlflow.ControlFlowCache
 import com.jetbrains.python.codeInsight.controlflow.ScopeOwner
-import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyRecursiveElementVisitor
 
-class DeadCodeRemovalTransformation(
-    private val project: Project,
-    private val generator: PyElementGenerator
-) : Transformation {
-    private val unreachableElements = mutableListOf<PsiElement>()
-
+class DeadCodeRemovalTransformation : Transformation {
     override val metadataKey: String = "DeadCodeRemoval"
 
     override fun apply(psiTree: PsiElement, toStoreMetadata: Boolean) {
         val visitor = Visitor()
         psiTree.accept(visitor)
-        for (unreachable in unreachableElements) {
-            val comment = PyUtils.commentElement(generator, unreachable)
-            WriteCommandAction.runWriteCommandAction(project) {
-                unreachable.replace(comment)
+        for (unreachable in visitor.unreachableElements) {
+            WriteCommandAction.runWriteCommandAction(psiTree.project) {
+                unreachable.delete()
             }
         }
     }
@@ -33,40 +25,47 @@ class DeadCodeRemovalTransformation(
         TODO("Not yet implemented")
     }
 
-    private inner class Visitor : PyRecursiveElementVisitor() {
+    private class Visitor : PyRecursiveElementVisitor() {
+        val unreachableElements = mutableListOf<PsiElement>()
+
         override fun visitElement(element: PsiElement) {
             if (element is ScopeOwner) {
                 val flow = ControlFlowCache.getControlFlow(element)
                 val instructions = flow.instructions
-                val unreachable = mutableListOf<PsiElement>()
+                val unreachableInstructions = mutableListOf<Instruction>()
+                val unreachableInstructionsNums = mutableSetOf<Int>()
                 if (instructions.isNotEmpty()) {
                     ControlFlowUtil.iteratePrev(instructions.size - 1, instructions) { instruction ->
-                        val isFirstInstruction = instruction.num() == 0
-                        val instructionElement = instruction.element
-                        if (instruction.allPred().isEmpty() && instructionElement != null && !isFirstInstruction) {
-                            unreachable.add(instructionElement)
-                            // FIXME: change
-                            val nextInstructions = collectAllNextInstructions(instruction)
-                            unreachable.addAll(nextInstructions.mapNotNull { it.element })
-
-                            return@iteratePrev ControlFlowUtil.Operation.CONTINUE
+                        if (isUnreachable(instruction, unreachableInstructionsNums)) {
+                            val newUnreachable =
+                                collectAllUnreachableInstructionsFrom(instruction, unreachableInstructionsNums)
+                            unreachableInstructions.addAll(newUnreachable)
                         }
                         ControlFlowUtil.Operation.NEXT
                     }
                 }
-                unreachableElements.addAll(unreachable)
+                unreachableElements.addAll(unreachableInstructions.mapNotNull { it.element })
             }
             super.visitElement(element)
         }
-    }
 
-    private fun collectAllNextInstructions(instruction: Instruction): List<Instruction> {
-        val nextInstructions = mutableListOf<Instruction>()
-        for (next in instruction.allSucc()) {
-            val newNextInstructions = collectAllNextInstructions(next)
-            nextInstructions.add(next)
-            nextInstructions.addAll(newNextInstructions)
+        private fun collectAllUnreachableInstructionsFrom(
+            instruction: Instruction,
+            unreachableInstructionsNums: MutableSet<Int>
+        ): List<Instruction> {
+            unreachableInstructionsNums.add(instruction.num())
+            val succUnreachable = instruction.allSucc()
+                .filter { isUnreachable(it, unreachableInstructionsNums) }
+                .flatMap { collectAllUnreachableInstructionsFrom(it, unreachableInstructionsNums) }
+            return listOf(instruction) + succUnreachable
         }
-        return nextInstructions
+
+        companion object {
+            fun isUnreachable(instruction: Instruction, alreadyUnreachable: MutableSet<Int>): Boolean {
+                val isFirstInstruction = instruction.num() == 0
+                return instruction.allPred().filterNot { alreadyUnreachable.contains(it.num()) }
+                    .isEmpty() && !isFirstInstruction
+            }
+        }
     }
 }
