@@ -25,8 +25,10 @@ class DeadCodeRemovalTransformation(private val storage: MetaDataStorage) : Tran
         val visitor = ForwardVisitor()
         psiTree.accept(visitor)
         for (unreachable in visitor.unreachableElements) {
-            val neighbors = storage.getMetaData(unreachable.parent, StorageKeys.NODE) ?: listOf()
-            storage.setMetaData(unreachable.parent, StorageKeys.NODE, neighbors.plus(unreachable.text))
+            if (toStoreMetadata) {
+                val neighbors = storage.getMetaData(unreachable.parent, StorageKeys.NODE) ?: listOf()
+                storage.setMetaData(unreachable.parent, StorageKeys.NODE, neighbors.plus(unreachable.text))
+            }
             WriteCommandAction.runWriteCommandAction(psiTree.project) {
                 unreachable.delete()
             }
