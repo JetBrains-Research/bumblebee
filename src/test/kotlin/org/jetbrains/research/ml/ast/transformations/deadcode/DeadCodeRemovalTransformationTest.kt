@@ -1,6 +1,5 @@
 package org.jetbrains.research.ml.ast.transformations.deadcode
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.research.ml.ast.storage.InMemoryStorage
 import org.jetbrains.research.ml.ast.transformations.DeadCodeRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest

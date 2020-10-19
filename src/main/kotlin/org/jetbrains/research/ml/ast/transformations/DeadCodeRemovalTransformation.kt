@@ -2,7 +2,9 @@ package org.jetbrains.research.ml.ast.transformations
 
 import com.intellij.codeInsight.controlflow.ControlFlowUtil
 import com.intellij.codeInsight.controlflow.Instruction
+import com.intellij.openapi.actionSystem.CommonDataKeys.PSI_FILE
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.UserDataHolder
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.codeInsight.controlflow.ControlFlowCache
 import com.jetbrains.python.codeInsight.controlflow.ScopeOwner
@@ -10,10 +12,11 @@ import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyRecursiveElementVisitor
 import org.jetbrains.research.ml.ast.storage.MetaDataStorage
+import org.jetbrains.research.ml.ast.storage.StorageKey
 
 class DeadCodeRemovalTransformation(private val storage: MetaDataStorage) : Transformation {
-    private enum class StorageKey {
-        NODE
+    private object StorageKeys {
+        val NODE = StorageKey<List<String>>("Node")
     }
 
     override val metadataKey: String = "DeadCodeRemoval"
@@ -22,8 +25,8 @@ class DeadCodeRemovalTransformation(private val storage: MetaDataStorage) : Tran
         val visitor = ForwardVisitor()
         psiTree.accept(visitor)
         for (unreachable in visitor.unreachableElements) {
-            val neighbors = storage.getMetaData<List<String>>(unreachable.parent, StorageKey.NODE.name) ?: listOf()
-            storage.setMetaData<List<String>>(unreachable.parent, StorageKey.NODE.name, neighbors.plus(unreachable.text))
+            val neighbors = storage.getMetaData(unreachable.parent, StorageKeys.NODE) ?: listOf()
+            storage.setMetaData(unreachable.parent, StorageKeys.NODE, neighbors.plus(unreachable.text))
             WriteCommandAction.runWriteCommandAction(psiTree.project) {
                 unreachable.delete()
             }
@@ -85,8 +88,8 @@ class DeadCodeRemovalTransformation(private val storage: MetaDataStorage) : Tran
     private class InverseVisitor(private val pyGenerator: PyElementGenerator, private val storage: MetaDataStorage) :
         PyRecursiveElementVisitor() {
         override fun visitElement(element: PsiElement) {
-            val unreachableElementTexts = storage.getMetaData<List<String>>(element, StorageKey.NODE.name)
-            val unreachableElements: List<PsiElement>? = unreachableElementTexts?.map {
+            val unreachableElementTexts = storage.getMetaData(element, StorageKeys.NODE)
+            val unreachableElements = unreachableElementTexts?.map {
                 pyGenerator.createFromText(
                     LanguageLevel.PYTHON36,
                     PsiElement::class.java,

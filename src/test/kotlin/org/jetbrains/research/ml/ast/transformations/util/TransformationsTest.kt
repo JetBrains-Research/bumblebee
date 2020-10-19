@@ -27,6 +27,8 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
     // We should define the root resources folder
     override fun getTestDataPath() = testDataRoot
 
+    lateinit var codeStyleManager: CodeStyleManager
+
     @JvmField
     @Parameterized.Parameter(0)
     var inFile: File? = null
@@ -67,6 +69,7 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
     @Before
     fun mySetUp() {
         super.setUp()
+        codeStyleManager = CodeStyleManager.getInstance(project)
     }
 
     @After
@@ -81,7 +84,6 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
     ) {
         LOG.info("The current input file is: ${inFile.path}")
         LOG.info("The current output file is: ${outFile.path}")
-        val codeStyleManager = CodeStyleManager.getInstance(project)
         val psiInFile = myFixture.configureByFile(inFile.name)
         val expectedPsiInFile = myFixture.configureByFile(outFile.name)
         WriteCommandAction.runWriteCommandAction(project) {
