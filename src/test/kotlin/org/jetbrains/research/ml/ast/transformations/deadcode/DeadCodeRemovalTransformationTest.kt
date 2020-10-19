@@ -12,7 +12,7 @@ class DeadCodeRemovalTransformationTest : TransformationsTest(getResourcesRootPa
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
-        fun getTestData() = getInAndOutArray(::DeadCodeRemovalTransformationTest).filter { it[0].name.contains("5") }
+        fun getTestData() = getInAndOutArray(::DeadCodeRemovalTransformationTest)
     }
 
     private fun runTransformation(element: PsiElement, toStoreMetadata: Boolean) {
