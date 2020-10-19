@@ -1,6 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.deadcode
 
 import com.intellij.psi.PsiElement
+import org.jetbrains.research.ml.ast.storage.InMemoryStorage
 import org.jetbrains.research.ml.ast.transformations.DeadCodeRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.junit.Test
@@ -15,13 +16,20 @@ class DeadCodeRemovalTransformationTest : TransformationsTest(getResourcesRootPa
         fun getTestData() = getInAndOutArray(::DeadCodeRemovalTransformationTest)
     }
 
-    private fun runTransformation(element: PsiElement, toStoreMetadata: Boolean) {
-        val transformation = DeadCodeRemovalTransformation()
-        transformation.apply(element, toStoreMetadata)
+    @Test
+    fun testForwardTransformation() {
+        assertCodeTransformation(inFile!!, outFile!!) { psiTree, toStoreMetadata ->
+            val transformation = DeadCodeRemovalTransformation(InMemoryStorage)
+            transformation.apply(psiTree, toStoreMetadata)
+        }
     }
 
     @Test
-    fun testTransformation() {
-        assertCodeTransformation(inFile!!, outFile!!, this::runTransformation)
+    fun testInverseTransformation() {
+        assertCodeTransformation(inFile!!, inFile!!) { psiTree, toStoreMetadata ->
+            val transformation = DeadCodeRemovalTransformation(InMemoryStorage)
+            transformation.apply(psiTree, toStoreMetadata)
+            transformation.inverseApply(psiTree)
+        }
     }
 }

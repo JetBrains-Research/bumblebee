@@ -6,15 +6,24 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.codeInsight.controlflow.ControlFlowCache
 import com.jetbrains.python.codeInsight.controlflow.ScopeOwner
+import com.jetbrains.python.psi.LanguageLevel
+import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyRecursiveElementVisitor
+import org.jetbrains.research.ml.ast.storage.MetaDataStorage
 
-class DeadCodeRemovalTransformation : Transformation {
+class DeadCodeRemovalTransformation(private val storage: MetaDataStorage) : Transformation {
+    private enum class StorageKey {
+        NODE
+    }
+
     override val metadataKey: String = "DeadCodeRemoval"
 
     override fun apply(psiTree: PsiElement, toStoreMetadata: Boolean) {
-        val visitor = Visitor()
+        val visitor = ForwardVisitor()
         psiTree.accept(visitor)
         for (unreachable in visitor.unreachableElements) {
+            val neighbors = storage.getMetaData<List<String>>(unreachable.parent, StorageKey.NODE.name) ?: listOf()
+            storage.setMetaData<List<String>>(unreachable.parent, StorageKey.NODE.name, neighbors.plus(unreachable.text))
             WriteCommandAction.runWriteCommandAction(psiTree.project) {
                 unreachable.delete()
             }
@@ -22,10 +31,14 @@ class DeadCodeRemovalTransformation : Transformation {
     }
 
     override fun inverseApply(psiTree: PsiElement) {
-        TODO("Not yet implemented")
+        val pyGenerator = PyElementGenerator.getInstance(psiTree.project)
+        val visitor = InverseVisitor(pyGenerator, storage)
+        WriteCommandAction.runWriteCommandAction(psiTree.project) {
+            psiTree.accept(visitor)
+        }
     }
 
-    private class Visitor : PyRecursiveElementVisitor() {
+    private class ForwardVisitor : PyRecursiveElementVisitor() {
         val unreachableElements = mutableListOf<PsiElement>()
 
         override fun visitElement(element: PsiElement) {
@@ -66,6 +79,26 @@ class DeadCodeRemovalTransformation : Transformation {
                 return instruction.allPred().filterNot { alreadyUnreachable.contains(it.num()) }
                     .isEmpty() && !isFirstInstruction
             }
+        }
+    }
+
+    private class InverseVisitor(private val pyGenerator: PyElementGenerator, private val storage: MetaDataStorage) :
+        PyRecursiveElementVisitor() {
+        override fun visitElement(element: PsiElement) {
+            val unreachableElementTexts = storage.getMetaData<List<String>>(element, StorageKey.NODE.name)
+            val unreachableElements: List<PsiElement>? = unreachableElementTexts?.map {
+                pyGenerator.createFromText(
+                    LanguageLevel.PYTHON36,
+                    PsiElement::class.java,
+                    it
+                )
+            }
+            if (unreachableElements != null) {
+                for (unreachable in unreachableElements) {
+                    element.add(unreachable)
+                }
+            }
+            super.visitElement(element)
         }
     }
 }

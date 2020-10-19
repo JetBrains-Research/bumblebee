@@ -5,7 +5,10 @@
 package org.jetbrains.research.ml.ast.transformations.util
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
+import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.apache.log4j.PropertyConfigurator
 import org.junit.After
@@ -78,9 +81,15 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
     ) {
         LOG.info("The current input file is: ${inFile.path}")
         LOG.info("The current output file is: ${outFile.path}")
-        val expectedSrc = Util.getContentFromFile(outFile)
-        LOG.info("The expected code is:\n$expectedSrc")
+        val codeStyleManager = CodeStyleManager.getInstance(project)
         val psiInFile = myFixture.configureByFile(inFile.name)
+        val expectedPsiInFile = myFixture.configureByFile(outFile.name)
+        WriteCommandAction.runWriteCommandAction(project) {
+            codeStyleManager.reformat(psiInFile)
+            codeStyleManager.reformat(expectedPsiInFile)
+        }
+        val expectedSrc = expectedPsiInFile.text
+        LOG.info("The expected code is:\n${expectedSrc}")
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
         }
