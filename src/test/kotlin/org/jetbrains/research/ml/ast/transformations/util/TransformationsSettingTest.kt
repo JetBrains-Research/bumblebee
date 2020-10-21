@@ -11,7 +11,7 @@ import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
 class TransformationsSettingTest : TransformationsTest(getResourcesRootPath(::TransformationsSettingTest)) {
-  
+
     companion object {
         @JvmStatic
         // TODO: how can we use only short name from file? Because I can use only the {index} parameter or the index

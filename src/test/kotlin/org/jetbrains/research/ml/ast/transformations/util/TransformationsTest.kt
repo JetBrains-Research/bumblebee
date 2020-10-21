@@ -5,7 +5,6 @@
 package org.jetbrains.research.ml.ast.transformations.util
 
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.codeStyle.CodeStyleManager
@@ -91,7 +90,7 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
             codeStyleManager.reformat(expectedPsiInFile)
         }
         val expectedSrc = expectedPsiInFile.text
-        LOG.info("The expected code is:\n${expectedSrc}")
+        LOG.info("The expected code is:\n$expectedSrc")
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
         }
