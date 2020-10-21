@@ -2,7 +2,7 @@ package org.jetbrains.research.ml.ast.storage
 
 import com.intellij.psi.PsiElement
 
-object InMemoryStorage: MetaDataStorage {
+object InMemoryStorage : MetaDataStorage {
     private val storage = mutableMapOf<Pair<PsiElement, StorageKey<*>>, Any>()
 
     override fun <T> setMetaData(psiTree: PsiElement, key: StorageKey<T>, metaData: T) {
