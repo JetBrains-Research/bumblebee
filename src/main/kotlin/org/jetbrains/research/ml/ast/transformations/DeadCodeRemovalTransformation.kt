@@ -2,9 +2,7 @@ package org.jetbrains.research.ml.ast.transformations
 
 import com.intellij.codeInsight.controlflow.ControlFlowUtil
 import com.intellij.codeInsight.controlflow.Instruction
-import com.intellij.openapi.actionSystem.CommonDataKeys.PSI_FILE
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.util.UserDataHolder
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.codeInsight.controlflow.ControlFlowCache
 import com.jetbrains.python.codeInsight.controlflow.ScopeOwner
