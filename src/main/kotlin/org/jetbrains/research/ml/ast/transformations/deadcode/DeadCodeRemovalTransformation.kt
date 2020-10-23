@@ -30,7 +30,6 @@ class DeadCodeRemovalTransformation(private val storage: MetaDataStorage) : Tran
             }
         }
 
-
         val recoverVisitor = RecoverEmptyStatementListVisitor(PyElementGenerator.getInstance(psiTree.project))
         WriteCommandAction.runWriteCommandAction(psiTree.project) {
             psiTree.accept(recoverVisitor)
@@ -44,7 +43,6 @@ class DeadCodeRemovalTransformation(private val storage: MetaDataStorage) : Tran
             psiTree.accept(visitor)
         }
     }
-
 
     private fun storeMetaDataForElement(element: PsiElement) {
         val neighbors = storage.getMetaData(element.parent, DeadCodeRemovalStorageKeys.NODE) ?: listOf()
@@ -60,6 +58,5 @@ class DeadCodeRemovalTransformation(private val storage: MetaDataStorage) : Tran
             }
             super.visitPyStatementList(node)
         }
-
     }
 }
