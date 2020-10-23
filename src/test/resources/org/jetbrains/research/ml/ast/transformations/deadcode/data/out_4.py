@@ -6,9 +6,3 @@ def main():
             raise ArithmeticError()
     print("Hello")
     return None
-
-
-if __name__ == '__main__':
-    main()
-
-

@@ -85,14 +85,17 @@ open class TransformationsTest(private val testDataRoot: String) : BasePlatformT
         LOG.info("The current output file is: ${outFile.path}")
         val psiInFile = myFixture.configureByFile(inFile.name)
         val expectedPsiInFile = myFixture.configureByFile(outFile.name)
-        WriteCommandAction.runWriteCommandAction(project) {
-            codeStyleManager.reformat(psiInFile)
+        WriteCommandAction.runWriteCommandAction(project) { // reformat the expected file
             codeStyleManager.reformat(expectedPsiInFile)
         }
         val expectedSrc = expectedPsiInFile.text
         LOG.info("The expected code is:\n$expectedSrc")
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
+        }
+
+        WriteCommandAction.runWriteCommandAction(project) { // reformat the transformed file
+            codeStyleManager.reformat(psiInFile)
         }
         val actualSrc = psiInFile.text
         LOG.info("The actual code is:\n$actualSrc")

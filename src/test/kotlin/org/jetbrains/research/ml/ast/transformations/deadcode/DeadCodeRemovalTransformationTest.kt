@@ -1,7 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations.deadcode
 
 import org.jetbrains.research.ml.ast.storage.InMemoryStorage
-import org.jetbrains.research.ml.ast.transformations.DeadCodeRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -23,6 +22,7 @@ class DeadCodeRemovalTransformationTest : TransformationsTest(getResourcesRootPa
         }
     }
 
+    /* TODO: Unsupported for now. Wait for storage format changes.
     @Test
     fun testInverseTransformation() {
         assertCodeTransformation(inFile!!, inFile!!) { psiTree, toStoreMetadata ->
@@ -31,4 +31,5 @@ class DeadCodeRemovalTransformationTest : TransformationsTest(getResourcesRootPa
             transformation.inverseApply(psiTree)
         }
     }
+     */
 }

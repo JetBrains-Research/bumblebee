@@ -14,8 +14,3 @@ def main():
     print("Hello")
     return None
     print("World")
-
-
-if __name__ == '__main__':
-    main()
-

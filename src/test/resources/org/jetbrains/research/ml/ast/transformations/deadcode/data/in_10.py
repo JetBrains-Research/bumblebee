@@ -1,4 +1,6 @@
-def main(x):
+def main():
+    x = 4
+    print("statement")
     if x == 5:
         print(x)
         return
