@@ -1,9 +1,8 @@
-package org.jetbrains.research.ml.ast.transformations.multiple_target_assignment
+package org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment
 
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import org.jetbrains.research.ml.ast.transformations.Transformation
-
 
 class MultipleTargetAssignmentTransformation : Transformation {
     override val metadataKey: String = "MultipleTargetAssigment"

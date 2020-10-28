@@ -1,4 +1,4 @@
-package org.jetbrains.research.ml.ast.transformations.multiple_target_assignment
+package org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.junit.Test
