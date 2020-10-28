@@ -1,7 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations
 
 import com.intellij.psi.PsiElement
-import com.jetbrains.python.psi.*
 
 object PyUtils {
     fun createPyIfElsePart(ifElsePart: PyIfPart): PyIfPart {
