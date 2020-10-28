@@ -21,4 +21,3 @@ class MultipleTargetAssignmentTransformationTest : TransformationsTest(getResour
         }
     }
 }
-
