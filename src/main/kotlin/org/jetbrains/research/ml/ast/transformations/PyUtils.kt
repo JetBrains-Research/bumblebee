@@ -1,6 +1,9 @@
 package org.jetbrains.research.ml.ast.transformations
 
 import com.intellij.psi.PsiElement
+import com.jetbrains.python.psi.LanguageLevel
+import com.jetbrains.python.psi.PyAssignmentStatement
+import com.jetbrains.python.psi.PyElementGenerator
 
 object PyUtils {
     fun createAssignment(target: PsiElement, value: PsiElement): PyAssignmentStatement {
