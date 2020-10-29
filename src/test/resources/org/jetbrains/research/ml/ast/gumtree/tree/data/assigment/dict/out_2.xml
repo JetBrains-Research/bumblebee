@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="117375758" typeLabel="Py:ASSIGNMENT_STATEMENT">
+      <tree type="236480245" label="a" typeLabel="Py:TARGET_EXPRESSION"></tree>
+      <tree type="-1823174368" typeLabel="Py:DICT_LITERAL_EXPRESSION">
+        <tree type="220777719" typeLabel="Py:KEY_VALUE_EXPRESSION">
+          <tree type="-1839676123" label="&quot;test&quot;" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+          <tree type="698675450" label="5" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
+        </tree>
+      </tree>
+    </tree>
+    <tree type="-1800911568" label="
+" typeLabel="WHITE_SPACE"></tree>
+    <tree type="117375758" typeLabel="Py:ASSIGNMENT_STATEMENT">
+      <tree type="1248095401" typeLabel="Py:SUBSCRIPTION_EXPRESSION">
+        <tree type="2049746141" label="a" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+        <tree type="-1839676123" label="&quot;test2&quot;" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+      </tree>
+      <tree type="698675450" label="7" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
+    </tree>
+  </tree>
+</root>

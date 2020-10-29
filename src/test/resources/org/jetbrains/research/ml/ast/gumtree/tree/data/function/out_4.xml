@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="624590884" label="d" typeLabel="Py:FUNCTION_DECLARATION">
+      <tree type="-233915131" typeLabel="Py:PARAMETER_LIST">
+        <tree type="-2114376046" label="func" typeLabel="Py:NAMED_PARAMETER"></tree>
+      </tree>
+      <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
+        <tree type="-383795182" label="pass" typeLabel="Py:PASS_STATEMENT"></tree>
+      </tree>
+    </tree>
+    <tree type="-1800911568" label="
+
+" typeLabel="WHITE_SPACE"></tree>
+    <tree type="624590884" label="f" typeLabel="Py:FUNCTION_DECLARATION">
+      <tree type="1277838259" typeLabel="Py:DECORATOR_LIST">
+        <tree type="1277562227" typeLabel="Py:DECORATOR_CALL">
+          <tree type="2049746141" label="d" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+        </tree>
+      </tree>
+      <tree type="-233915131" label="()" typeLabel="Py:PARAMETER_LIST"></tree>
+      <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
+        <tree type="-383795182" label="pass" typeLabel="Py:PASS_STATEMENT"></tree>
+      </tree>
+    </tree>
+  </tree>
+</root>

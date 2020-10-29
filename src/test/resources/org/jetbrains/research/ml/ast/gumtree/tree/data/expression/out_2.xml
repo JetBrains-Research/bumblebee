@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="117375758" typeLabel="Py:ASSIGNMENT_STATEMENT">
+      <tree type="236480245" label="a" typeLabel="Py:TARGET_EXPRESSION"></tree>
+      <tree type="-13310331" label="Py:AND_KEYWORD" typeLabel="Py:BINARY_EXPRESSION">
+        <tree type="-13310331" label="Py:AND_KEYWORD" typeLabel="Py:BINARY_EXPRESSION">
+          <tree type="-2144301716" label="True" typeLabel="Py:BOOL_LITERAL_EXPRESSION"></tree>
+          <tree type="-2144301716" label="False" typeLabel="Py:BOOL_LITERAL_EXPRESSION"></tree>
+        </tree>
+        <tree type="754002772" label="Py:NOT_KEYWORD" typeLabel="Py:PREFIX_EXPRESSION">
+          <tree type="-2144301716" label="False" typeLabel="Py:BOOL_LITERAL_EXPRESSION"></tree>
+        </tree>
+      </tree>
+    </tree>
+  </tree>
+</root>

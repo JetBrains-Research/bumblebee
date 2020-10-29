@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="624590884" label="parent" typeLabel="Py:FUNCTION_DECLARATION">
+      <tree type="-233915131" typeLabel="Py:PARAMETER_LIST">
+        <tree type="-2114376046" label="a" typeLabel="Py:NAMED_PARAMETER"></tree>
+      </tree>
+      <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
+        <tree type="624590884" label="first" typeLabel="Py:FUNCTION_DECLARATION">
+          <tree type="-233915131" label="()" typeLabel="Py:PARAMETER_LIST"></tree>
+          <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
+            <tree type="-512204239" typeLabel="Py:RETURN_STATEMENT">
+              <tree type="-1839676123" label="&quot;first&quot;" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+            </tree>
+          </tree>
+        </tree>
+        <tree type="624590884" label="second" typeLabel="Py:FUNCTION_DECLARATION">
+          <tree type="-233915131" label="()" typeLabel="Py:PARAMETER_LIST"></tree>
+          <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
+            <tree type="-512204239" typeLabel="Py:RETURN_STATEMENT">
+              <tree type="-1839676123" label="&quot;second&quot;" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+            </tree>
+          </tree>
+        </tree>
+        <tree type="-383795182" label="pass" typeLabel="Py:PASS_STATEMENT"></tree>
+      </tree>
+    </tree>
+  </tree>
+</root>
