@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="117375758" typeLabel="Py:ASSIGNMENT_STATEMENT">
+      <tree type="236480245" label="a" typeLabel="Py:TARGET_EXPRESSION"></tree>
+      <tree type="1085749464" typeLabel="Py:LIST_COMP_EXPRESSION">
+        <tree type="2049746141" label="_" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+        <tree type="236480245" label="_" typeLabel="Py:TARGET_EXPRESSION"></tree>
+        <tree type="-1861175352" typeLabel="Py:CALL_EXPRESSION">
+          <tree type="2049746141" label="range" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+          <tree type="-609747633" typeLabel="Py:ARGUMENT_LIST">
+            <tree type="698675450" label="10" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
+          </tree>
+        </tree>
+      </tree>
+    </tree>
+  </tree>
+</root>

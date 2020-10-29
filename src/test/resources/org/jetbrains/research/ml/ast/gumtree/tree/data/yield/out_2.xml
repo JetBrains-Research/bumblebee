@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="624590884" label="f" typeLabel="Py:FUNCTION_DECLARATION">
+      <tree type="-233915131" label="()" typeLabel="Py:PARAMETER_LIST"></tree>
+      <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
+        <tree type="-1076425447" typeLabel="Py:EXPRESSION_STATEMENT">
+          <tree type="764882907" typeLabel="Py:YIELD_EXPRESSION">
+            <tree type="698675450" label="1" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
+          </tree>
+        </tree>
+        <tree type="-1076425447" typeLabel="Py:EXPRESSION_STATEMENT">
+          <tree type="764882907" typeLabel="Py:YIELD_EXPRESSION">
+            <tree type="698675450" label="2" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
+          </tree>
+        </tree>
+      </tree>
+    </tree>
+  </tree>
+</root>

@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="624590884" label="foo" typeLabel="Py:FUNCTION_DECLARATION">
+      <tree type="-233915131" typeLabel="Py:PARAMETER_LIST">
+        <tree type="-2114376046" label="*args" typeLabel="Py:NAMED_PARAMETER"></tree>
+        <tree type="-2114376046" label="**kwargs" typeLabel="Py:NAMED_PARAMETER"></tree>
+      </tree>
+      <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
+        <tree type="-383795182" label="pass" typeLabel="Py:PASS_STATEMENT"></tree>
+      </tree>
+    </tree>
+  </tree>
+</root>
