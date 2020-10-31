@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 Birillo A., Bobrov A., Lyulina E.
+ */
+
 package org.jetbrains.research.ml.ast.transformations.deadcode
 
 import com.jetbrains.python.psi.PyIfStatement

@@ -1,5 +1,13 @@
 # Dead Code Removal
 
+- [Dead Code Removal](#dead-code-removal)
+  - [Overview](#overview)
+  - [Example:](#example)
+  - [Algorithm:](#algorithm)
+    - [Using Control Flow Graph](#using-control-flow-graph)
+    - [Using Heuristics](#using-heuristics)
+  - [Examples:](#examples)
+
 ## Overview
 
 The goal of this transformation is to remove all unnecessary code which is never executed during any call of the function. 
@@ -36,6 +44,17 @@ def foo(x):
 
 * For `while`, `if` evaluate conditions and remove the statements where condition is `False`.
 
+These heuristics are for the case:
+```python
+if False:
+   print(1)
+   print(2)
+```
+After CFG algorithm:
+```python
+if False:
+```
+Because of the empty body, on the beginning we delete these cases and then process tree using CFG algorithm. 
 
 ## Examples:
 

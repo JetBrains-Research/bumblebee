@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 Birillo A., Bobrov A., Lyulina E.
+ */
+
 package org.jetbrains.research.ml.ast.transformations.deadcode
 
 import com.intellij.codeInsight.controlflow.ControlFlowUtil
@@ -18,7 +22,7 @@ internal class DeadCodeRemovalCFGVisitor : PyRecursiveElementVisitor() {
             val unreachableInstructionsNums = mutableSetOf<Int>()
             if (instructions.isNotEmpty()) {
                 ControlFlowUtil.iteratePrev(instructions.size - 1, instructions) { instruction ->
-                    if (isUnreachable(instruction, unreachableInstructionsNums)) {
+                    if (instruction.isUnreachable(unreachableInstructionsNums)) {
                         val newUnreachable =
                             collectAllUnreachableInstructionsFrom(instruction, unreachableInstructionsNums)
                         unreachableInstructions.addAll(newUnreachable)
@@ -37,16 +41,14 @@ internal class DeadCodeRemovalCFGVisitor : PyRecursiveElementVisitor() {
     ): List<Instruction> {
         unreachableInstructionsNums.add(instruction.num())
         val succUnreachable = instruction.allSucc()
-            .filter { isUnreachable(it, unreachableInstructionsNums) }
+            .filter { it.isUnreachable(unreachableInstructionsNums) }
             .flatMap { collectAllUnreachableInstructionsFrom(it, unreachableInstructionsNums) }
         return listOf(instruction) + succUnreachable
     }
+}
 
-    companion object {
-        fun isUnreachable(instruction: Instruction, alreadyUnreachable: MutableSet<Int>): Boolean {
-            val isFirstInstruction = instruction.num() == 0
-            return instruction.allPred().filterNot { alreadyUnreachable.contains(it.num()) }
-                .isEmpty() && !isFirstInstruction
-        }
-    }
+
+private fun Instruction.isUnreachable(alreadyUnreachable: Set<Int>): Boolean {
+    val isFirstInstruction = num() == 0
+    return !isFirstInstruction && allPred().all { alreadyUnreachable.contains(it.num()) }
 }
