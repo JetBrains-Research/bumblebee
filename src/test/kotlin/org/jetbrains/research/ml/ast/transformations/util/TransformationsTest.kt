@@ -48,6 +48,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
         }
+        assertTrue(psiInFile.isValid)
         val actualSrc = psiInFile.text
         LOG.info("The actual code is:\n$actualSrc")
         assertEquals(expectedSrc, actualSrc)
