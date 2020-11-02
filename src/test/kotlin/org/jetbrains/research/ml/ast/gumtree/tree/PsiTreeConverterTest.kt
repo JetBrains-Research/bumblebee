@@ -21,7 +21,7 @@ class PsiTreeConverterTest : ParametrizedBaseTest(getResourcesRootPath(::PsiTree
         @JvmStatic
         @Parameterized.Parameters(name = "{index}-{2}: ({0}, {1})")
         fun getTestData(): List<Array<Any>> {
-            val files = getInAndOutFilesMap(getResourcesRootPath(::PsiTreeConverterTest), newExtension = ".xml")
+            val files = getInAndOutFilesMap(getResourcesRootPath(::PsiTreeConverterTest), outExtension = ".xml")
             val numberings = listOf(PreOrderNumbering, PostOrderNumbering)
             return files.flatMap { f -> numberings.map { n -> arrayOf(f.key, f.value, n) } }.toList()
         }
