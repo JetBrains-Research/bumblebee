@@ -2,6 +2,10 @@ package org.jetbrains.research.ml.ast.util
 
 import java.io.File
 
+enum class Extension(val value: String) {
+    Py(".py"), Xml(".xml")
+}
+
 object FileTestUtil {
 
     val File.content: String
@@ -9,38 +13,24 @@ object FileTestUtil {
 
     fun getInAndOutFilesMap(
         folder: String,
-        inExtension: String = ".py",
-        outExtension: String = ".py"
+        inExt: Extension = Extension.Py,
+        outExt: Extension = Extension.Py
     ): Map<File, File> {
-        val inFileRegEx = "in_\\d*$inExtension".toRegex()
-        val inOutFileRegEx: Regex = "(in|out)_\\d*($inExtension|$outExtension)".toRegex()
-        val (inFiles, outFiles) = getNestedFiles(folder).toList().filter { inOutFileRegEx.containsMatchIn(it.name) }
-            .partition { inFileRegEx.containsMatchIn(it.name) }
-        if (inFiles.size != outFiles.size) {
-            throw IllegalArgumentException(
-                "Size of the list of input files does not equal size of the list of output files in the folder: $folder"
-            )
-        }
-        return inFiles.sortedBy { it.name }.associateWith { inFile ->
-            // TODO: can I do it better?
-            val outFileName = inFile.name.replace("in", "out").replace(inExtension, outExtension)
-            val outFile = File("${inFile.parent}/$outFileName")
-            if (!outFile.exists()) {
-                throw IllegalArgumentException("Out file $outFile does not exist!")
-            }
-            outFile
-        }
-    }
+        fun File.number(): Int = "(?<=(in|out)_)\\d+".toRegex().find(this.name)!!.value.toInt()
+        fun File.isInFile(): Boolean = "in_\\d+.*${inExt.value}".toRegex().containsMatchIn(this.name)
+        fun File.isOutFile(): Boolean = "out_\\d+.*${outExt.value}".toRegex().containsMatchIn(this.name)
 
-    private fun getNestedFiles(directoryName: String, files: MutableList<File> = ArrayList()): Sequence<File> {
-        val root = File(directoryName)
-        root.listFiles()?.forEach {
-            if (it.isFile) {
-                files.add(it)
-            } else if (it.isDirectory) {
-                getNestedFiles(it.absolutePath, files)
-            }
-        }
-        return files.asSequence()
+        val (files, folders) = File(folder).listFiles().orEmpty().partition { it.isFile }
+//      Process files in the given folder
+        val inAndOutFilesList = files.filter { it.isInFile() || it.isOutFile() }.groupBy { it.number() }
+        val inAndOutFilesMap = inAndOutFilesList.toSortedMap().map { (k, v) ->
+            require(v.size == 2) { "There are less or more than 2 test files with number $k" }
+            val (inFile, outFile) = v.sorted().zipWithNext().first()
+            require(inFile.isInFile() && outFile.isOutFile()) { "Test files aren't paired with each other" }
+            inFile to outFile
+        }.toMap()
+//      Process all other nested files
+        return folders.sortedBy { it.name }.map { getInAndOutFilesMap(it.absolutePath, inExt, outExt) }
+            .fold(inAndOutFilesMap, { a, e -> a.plus(e) })
     }
 }
