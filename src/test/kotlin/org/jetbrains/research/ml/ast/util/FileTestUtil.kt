@@ -21,7 +21,7 @@ object FileTestUtil {
                 "Size of the list of input files does not equal size of the list of output files if the folder: $folder"
             )
         }
-        return inFiles.associateWith { inFile ->
+        return inFiles.sortedBy { it.name }.associateWith { inFile ->
             // TODO: can I do it better?
             val outFileName = inFile.name.replace("in", "out").replace(oldExtension, newExtension)
             val outFile = File("${inFile.parent}/$outFileName")
