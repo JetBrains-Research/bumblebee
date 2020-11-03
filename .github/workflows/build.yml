@@ -15,10 +15,12 @@ jobs:
         with:
           java-version: 1.8
 
-      - name: Set up Python 3.8 and virtualenv
+      - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
+
+      - name: Install virtualenv
         run: |
           sudo apt update
           sudo apt install python3-pip
