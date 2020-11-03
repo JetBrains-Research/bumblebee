@@ -22,8 +22,8 @@ object FileTestUtil {
 
         val (files, folders) = File(folder).listFiles().orEmpty().partition { it.isFile }
 //      Process files in the given folder
-        val inAndOutFilesList = files.filter { it.isInFile() || it.isOutFile() }.groupBy { it.number() }
-        val inAndOutFilesMap = inAndOutFilesList.toSortedMap().map { (k, v) ->
+        val inAndOutFiles = files.filter { it.isInFile() || it.isOutFile() }.groupBy { it.number() }
+        val inAndOutFilesMap = inAndOutFiles.toSortedMap().map { (k, v) ->
             require(v.size == 2) { "There are less or more than 2 test files with number $k" }
             val (inFile, outFile) = v.sorted().zipWithNext().first()
             require(inFile.isInFile() && outFile.isOutFile()) { "Test files aren't paired with each other" }
