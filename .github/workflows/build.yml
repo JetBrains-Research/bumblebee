@@ -39,7 +39,12 @@ jobs:
 
   test:
     needs: build
+    runs-on: ubuntu-latest
+
     steps:
+      - name: debug
+        run: ls
+
       - name: Check Python environment
         run: ./gradlew checkPython
 
@@ -49,7 +54,12 @@ jobs:
 
   code-style:
     needs: build
+    runs-on: ubuntu-latest
+
     steps:
+      - name: debug
+        run: ls
+
       - name: Check code style
         run: ./gradlew ktlintCheck
 
