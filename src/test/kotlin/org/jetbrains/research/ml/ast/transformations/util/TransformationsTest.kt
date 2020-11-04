@@ -29,7 +29,6 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     @Parameterized.Parameter(1)
     var outFile: File? = null
 
-
     @Before
     override fun mySetUp() {
         super.mySetUp()
