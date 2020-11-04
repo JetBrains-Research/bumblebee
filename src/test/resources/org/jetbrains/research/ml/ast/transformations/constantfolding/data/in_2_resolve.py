@@ -1,0 +1,4 @@
+# No folding done
+CONSTANT1 = 1
+CONSTANT2 = 2
+x = CONSTANT1 + CONSTANT2
