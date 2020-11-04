@@ -10,6 +10,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.codeStyle.CodeStyleManager
 import org.jetbrains.research.ml.ast.util.FileTestUtil
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.runners.Parameterized
 import java.io.File
@@ -27,6 +28,13 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     @JvmField
     @Parameterized.Parameter(1)
     var outFile: File? = null
+
+
+    @Before
+    override fun mySetUp() {
+        super.mySetUp()
+        codeStyleManager = CodeStyleManager.getInstance(project)
+    }
 
     companion object {
         fun getInAndOutArray(
@@ -47,11 +55,10 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         LOG.info("The current output file is: ${outFile.path}")
         val psiInFile = myFixture.configureByFile(inFile.name)
         val expectedPsiInFile = myFixture.configureByFile(outFile.name)
-        val expectedSrc = expectedPsiInFile.text
         WriteCommandAction.runWriteCommandAction(project) { // reformat the expected file
             codeStyleManager.reformat(expectedPsiInFile)
         }
-        LOG.info("The expected code is:\n$expectedSrc")
+        val expectedSrc = expectedPsiInFile.text
         LOG.info("The expected code is:\n$expectedSrc")
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
