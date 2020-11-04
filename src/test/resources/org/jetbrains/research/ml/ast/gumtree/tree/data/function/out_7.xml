@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="624590884" label="foo" typeLabel="Py:FUNCTION_DECLARATION">
+      <tree type="-233915131" typeLabel="Py:PARAMETER_LIST">
+        <tree type="-2114376046" label="a" typeLabel="Py:NAMED_PARAMETER"></tree>
+      </tree>
+      <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
+        <tree type="-1722403234" typeLabel="Py:IF_STATEMENT">
+          <tree type="-565244178" typeLabel="Py:IF_IF">
+            <tree type="-13310331" label="__le__" typeLabel="Py:BINARY_EXPRESSION">
+              <tree type="2049746141" label="a" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+              <tree type="698675450" label="1" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
+            </tree>
+            <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
+              <tree type="-512204239" typeLabel="Py:RETURN_STATEMENT">
+                <tree type="698675450" label="1" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
+              </tree>
+            </tree>
+          </tree>
+        </tree>
+        <tree type="-512204239" typeLabel="Py:RETURN_STATEMENT">
+          <tree type="-13310331" label="__mul__" typeLabel="Py:BINARY_EXPRESSION">
+            <tree type="-1861175352" typeLabel="Py:CALL_EXPRESSION">
+              <tree type="2049746141" label="foo" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+              <tree type="-609747633" typeLabel="Py:ARGUMENT_LIST">
+                <tree type="-13310331" label="__sub__" typeLabel="Py:BINARY_EXPRESSION">
+                  <tree type="2049746141" label="a" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+                  <tree type="698675450" label="1" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
+                </tree>
+              </tree>
+            </tree>
+            <tree type="-1861175352" typeLabel="Py:CALL_EXPRESSION">
+              <tree type="2049746141" label="foo" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+              <tree type="-609747633" typeLabel="Py:ARGUMENT_LIST">
+                <tree type="2049746141" label="a" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+              </tree>
+            </tree>
+          </tree>
+        </tree>
+      </tree>
+    </tree>
+  </tree>
+</root>

@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="740716167" typeLabel="Py:WITH_STATEMENT">
+      <tree type="-25371941" typeLabel="Py:WITH_ITEM">
+        <tree type="-1861175352" typeLabel="Py:CALL_EXPRESSION">
+          <tree type="2049746141" label="open" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+          <tree type="-609747633" typeLabel="Py:ARGUMENT_LIST">
+            <tree type="-1839676123" label="'file_1'" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+            <tree type="-1839676123" label="'r'" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+          </tree>
+        </tree>
+        <tree type="236480245" label="f_1" typeLabel="Py:TARGET_EXPRESSION"></tree>
+      </tree>
+      <tree type="-25371941" typeLabel="Py:WITH_ITEM">
+        <tree type="-1861175352" typeLabel="Py:CALL_EXPRESSION">
+          <tree type="2049746141" label="open" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+          <tree type="-609747633" typeLabel="Py:ARGUMENT_LIST">
+            <tree type="-1839676123" label="'file_2'" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+            <tree type="-1839676123" label="'r'" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+          </tree>
+        </tree>
+        <tree type="236480245" label="f_2" typeLabel="Py:TARGET_EXPRESSION"></tree>
+      </tree>
+      <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
+        <tree type="-383795182" label="pass" typeLabel="Py:PASS_STATEMENT"></tree>
+      </tree>
+    </tree>
+  </tree>
+</root>

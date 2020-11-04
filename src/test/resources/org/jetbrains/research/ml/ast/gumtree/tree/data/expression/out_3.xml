@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="-1076425447" typeLabel="Py:EXPRESSION_STATEMENT">
+      <tree type="-1861175352" typeLabel="Py:CALL_EXPRESSION">
+        <tree type="2049746141" label="print" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+        <tree type="-609747633" typeLabel="Py:ARGUMENT_LIST">
+          <tree type="-1839676123" label="'hello!'" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+          <tree type="-1839676123" label="'world!'" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+          <tree type="-103373805" label="sep" typeLabel="Py:KEYWORD_ARGUMENT_EXPRESSION">
+            <tree type="-1839676123" label="' '" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+          </tree>
+          <tree type="-103373805" label="end" typeLabel="Py:KEYWORD_ARGUMENT_EXPRESSION">
+            <tree type="-1839676123" label="'\n'" typeLabel="Py:STRING_LITERAL_EXPRESSION"></tree>
+          </tree>
+        </tree>
+      </tree>
+    </tree>
+  </tree>
+</root>

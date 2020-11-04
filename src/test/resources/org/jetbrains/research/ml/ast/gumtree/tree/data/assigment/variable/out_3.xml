@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="117375758" typeLabel="Py:ASSIGNMENT_STATEMENT">
+      <tree type="236480245" label="a" typeLabel="Py:TARGET_EXPRESSION"></tree>
+      <tree type="754002772" label="Py:MINUS" typeLabel="Py:PREFIX_EXPRESSION">
+        <tree type="698675450" label="8" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
+      </tree>
+    </tree>
+  </tree>
+</root>
