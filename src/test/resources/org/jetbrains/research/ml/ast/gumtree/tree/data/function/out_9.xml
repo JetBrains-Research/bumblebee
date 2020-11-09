@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="-1076425447" typeLabel="Py:EXPRESSION_STATEMENT">
+      <tree type="-579262721" typeLabel="Py:LAMBDA_EXPRESSION">
+        <tree type="-233915131" typeLabel="Py:PARAMETER_LIST"></tree>
+        <tree type="-2144301716" label="True" typeLabel="Py:BOOL_LITERAL_EXPRESSION"></tree>
+      </tree>
+    </tree>
+  </tree>
+</root>

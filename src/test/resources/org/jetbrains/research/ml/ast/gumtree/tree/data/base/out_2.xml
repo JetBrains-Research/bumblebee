@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="-1076425447" typeLabel="Py:EXPRESSION_STATEMENT">
+      <tree type="2049746141" label="a" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+    </tree>
+  </tree>
+</root>

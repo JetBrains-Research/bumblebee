@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="117375758" typeLabel="Py:ASSIGNMENT_STATEMENT">
+      <tree type="236480245" label="i" typeLabel="Py:TARGET_EXPRESSION"></tree>
+      <tree type="698675450" label="0" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
+    </tree>
+    <tree type="-1800911568" label="
+" typeLabel="WHITE_SPACE"></tree>
+    <tree type="-139656624" typeLabel="Py:WHILE_STATEMENT">
+      <tree type="1855731282" typeLabel="Py:WHILE_PART">
+        <tree type="-13310331" label="__gt__" typeLabel="Py:BINARY_EXPRESSION">
+          <tree type="2049746141" label="i" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+          <tree type="698675450" label="5" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
+        </tree>
+        <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
+          <tree type="-383795182" label="pass" typeLabel="Py:PASS_STATEMENT"></tree>
+        </tree>
+      </tree>
+    </tree>
+  </tree>
+</root>

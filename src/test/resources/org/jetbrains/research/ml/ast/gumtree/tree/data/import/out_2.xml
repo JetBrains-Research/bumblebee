@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<root>
+  <context></context>
+  <tree type="2157948" typeLabel="FILE">
+    <tree type="582601369" typeLabel="Py:FROM_IMPORT_STATEMENT">
+      <tree type="2049746141" label="ast" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+      <tree type="-390818381" typeLabel="Py:IMPORT_ELEMENT">
+        <tree type="2049746141" label="iter_child_nodes" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
+      </tree>
+    </tree>
+  </tree>
+</root>
