@@ -47,7 +47,6 @@ internal class DeadCodeRemovalCFGVisitor : PyRecursiveElementVisitor() {
     }
 }
 
-
 private fun Instruction.isUnreachable(alreadyUnreachable: Set<Int>): Boolean {
     val isFirstInstruction = num() == 0
     return !isFirstInstruction && allPred().all { alreadyUnreachable.contains(it.num()) }
