@@ -10,7 +10,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.codeStyle.CodeStyleManager
 import org.jetbrains.research.ml.ast.util.FileTestUtil
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
-import org.junit.Before
 import org.junit.Ignore
 import org.junit.runners.Parameterized
 import java.io.File
@@ -43,7 +42,6 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         super.mySetUp()
         codeStyleManager = CodeStyleManager.getInstance(project)
     }
-
 
     protected fun assertCodeTransformation(
         inFile: File,
