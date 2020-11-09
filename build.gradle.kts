@@ -7,8 +7,6 @@ plugins {
     id("com.github.johnrengelman.shadow") version "5.1.0"
     id("org.jetbrains.dokka") version "0.10.1"
     id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
-//  https://github.com/xvik/gradle-use-python-plugin
-    id("ru.vyarus.use-python") version "2.2.0"
 }
 
 group = "io.github.nbirillo.ast.transformations"
@@ -41,8 +39,4 @@ tasks.withType<KotlinCompile> {
 
 ktlint {
     enableExperimentalRules.set(true)
-}
-
-python {
-    minPythonVersion = "3.6"
 }
