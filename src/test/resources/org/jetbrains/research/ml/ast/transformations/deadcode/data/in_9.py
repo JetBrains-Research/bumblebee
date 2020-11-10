@@ -4,6 +4,12 @@ def main(x):
     elif False:
         print("unreachable")
 
+    if False:
+        print("Unreachable")
+
+    while False:
+        print("Unreachable")
+
 
 def foo(x):
     if False:
@@ -14,4 +20,10 @@ def foo(x):
     elif x + 4 == 0:
         print(1)
     elif False:
+        print("Unreachable")
+
+    if False:
+        print("Unreachable")
+
+    if False:
         print("Unreachable")
