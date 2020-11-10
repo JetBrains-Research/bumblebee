@@ -45,11 +45,11 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         LOG.info("The current output file is: ${outFile.path}")
         val expectedSrc = outFile.content
         LOG.info("The expected code is:\n$expectedSrc")
-        val psiInFile = myFixture.configureByFile(inFile.name)
+        val psiInFile = myFixture.configureByFile(inFile.path)
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
+            PsiTestUtil.checkFileStructure(psiInFile)
         }
-        PsiTestUtil.checkFileStructure(psiInFile)
         val actualSrc = psiInFile.text
         LOG.info("The actual code is:\n$actualSrc")
         assertEquals(expectedSrc, actualSrc)

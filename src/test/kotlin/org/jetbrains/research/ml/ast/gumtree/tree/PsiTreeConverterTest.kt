@@ -10,7 +10,8 @@ import org.jetbrains.research.ml.ast.util.FileTestUtil.content
 import org.jetbrains.research.ml.ast.util.FileTestUtil.getInAndOutFilesMap
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
 import org.jetbrains.research.ml.ast.util.PsiTestUtil.equalTreeStructure
-import org.jetbrains.research.ml.ast.util.TestFile
+import org.jetbrains.research.ml.ast.util.TestFileFormat
+import org.jetbrains.research.ml.ast.util.Type
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -25,7 +26,7 @@ class PsiTreeConverterTest : ParametrizedBaseTest(getResourcesRootPath(::PsiTree
         fun getTestData(): List<Array<Any>> {
             val files = getInAndOutFilesMap(
                 getResourcesRootPath(::PsiTreeConverterTest),
-                outFile = TestFile("out", Extension.Xml, TestFile.Type.Output)
+                outFormat = TestFileFormat("out", Extension.Xml, Type.Output)
             )
             val numberings = listOf(PreOrderNumbering, PostOrderNumbering)
             return files.flatMap { f -> numberings.map { n -> arrayOf(f.key, f.value, n) } }.toList()
