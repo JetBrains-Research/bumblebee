@@ -7,7 +7,7 @@ import com.jetbrains.python.psi.PyIfStatement
 
 object PyUtils {
     fun createPyIfElsePart(ifElsePart: PyIfPart): PyIfPart {
-        assert(ifElsePart.isElif)
+        require(ifElsePart.isElif) { "Illegal if part. Only `elif` part supported." }
         val generator = PyElementGenerator.getInstance(ifElsePart.project)
         val ifStatement = generator.createFromText(
             LanguageLevel.PYTHON36,
