@@ -52,5 +52,4 @@ object PyUtils {
 
         return LeafPsiElement(newOperation, text)
     }
-
 }
