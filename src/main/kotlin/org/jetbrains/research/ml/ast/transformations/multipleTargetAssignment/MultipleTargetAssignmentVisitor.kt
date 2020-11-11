@@ -1,10 +1,10 @@
 package org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment
 
 import com.jetbrains.python.psi.PyAssignmentStatement
-import com.jetbrains.python.psi.PyRecursiveElementVisitor
+import com.jetbrains.python.psi.PyElementVisitor
 import org.jetbrains.research.ml.ast.transformations.PyUtils
 
-class MultipleTargetAssignmentVisitor : PyRecursiveElementVisitor() {
+class MultipleTargetAssignmentVisitor : PyElementVisitor() {
     override fun visitPyAssignmentStatement(node: PyAssignmentStatement?) {
         if (node != null) {
             processAssignment(node)
