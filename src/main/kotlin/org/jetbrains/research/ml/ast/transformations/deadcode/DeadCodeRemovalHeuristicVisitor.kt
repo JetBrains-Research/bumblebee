@@ -4,14 +4,11 @@
 
 package org.jetbrains.research.ml.ast.transformations.deadcode
 
-import com.jetbrains.python.psi.PyExpression
-import com.jetbrains.python.psi.PyIfStatement
-import com.jetbrains.python.psi.PyRecursiveElementVisitor
-import com.jetbrains.python.psi.PyWhileStatement
+import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyEvaluator
 import org.jetbrains.research.ml.ast.transformations.PyUtils
 
-internal class DeadCodeRemovalHeuristicVisitor : PyRecursiveElementVisitor() {
+internal class DeadCodeRemovalHeuristicVisitor : PyElementVisitor() {
     override fun visitPyIfStatement(node: PyIfStatement?) {
         if (node != null) {
             handleIfFalseStatement(node)
