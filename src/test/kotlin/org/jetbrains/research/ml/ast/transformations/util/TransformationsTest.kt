@@ -6,6 +6,7 @@ package org.jetbrains.research.ml.ast.transformations.util
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
+import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.research.ml.ast.util.FileTestUtil
 import org.jetbrains.research.ml.ast.util.FileTestUtil.content
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
@@ -44,9 +45,10 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         LOG.info("The current output file is: ${outFile.path}")
         val expectedSrc = outFile.content
         LOG.info("The expected code is:\n$expectedSrc")
-        val psiInFile = myFixture.configureByFile(inFile.name)
+        val psiInFile = myFixture.configureByFile(inFile.path)
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
+            PsiTestUtil.checkFileStructure(psiInFile)
         }
         val actualSrc = psiInFile.text
         LOG.info("The actual code is:\n$actualSrc")
