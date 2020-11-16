@@ -1,0 +1,2 @@
+def print(x):
+    pass
