@@ -45,7 +45,7 @@ class ElementAnonymizer {
         }
         if (!shouldRenameDefinition(element)) return null
         val parent = computeParentOfDefinition(element)
-        val definitionKind = NamedEntityKind.computeElementKind(element) ?: return null
+        val definitionKind = NamedEntityKind.getElementKind(element) ?: return null
         return assembleNewFullName(parent, definitionKind).also { newName ->
             for (reference in ReferencesSearch.search(element, element.useScope)) {
                 elementToNewName[reference.element] = newName

@@ -15,7 +15,7 @@ enum class NamedEntityKind(val prefix: String) {
     NamedImport("m"),
     Lambda("l");
     companion object {
-        fun computeElementKind(element: PsiElement): NamedEntityKind? = when (element) {
+        fun getElementKind(element: PsiElement): NamedEntityKind? = when (element) {
             is PyFunction -> Function
             is PyClass -> Class
             is PyNamedParameter -> Parameter
