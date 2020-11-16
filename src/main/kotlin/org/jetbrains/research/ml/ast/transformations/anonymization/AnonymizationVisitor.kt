@@ -19,5 +19,5 @@ class AnonymizationVisitor(file: PyFile) : PyRecursiveElementVisitor() {
     }
 
     private val project = file.project
-    private val anonymizer = ElementAnonymizer(file)
+    private val anonymizer = ElementAnonymizer()
 }

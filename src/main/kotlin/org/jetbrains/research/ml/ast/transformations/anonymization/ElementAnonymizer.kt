@@ -7,17 +7,15 @@ import com.intellij.psi.util.parentOfType
 import com.jetbrains.python.codeInsight.dataflow.scope.ScopeUtil
 import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyElement
-import com.jetbrains.python.psi.PyFile
 import com.jetbrains.python.psi.PyFunction
 import com.jetbrains.python.psi.PyLambdaExpression
 import com.jetbrains.python.psi.PyNamedParameter
 import com.jetbrains.python.psi.PyPossibleClassMember
 import com.jetbrains.python.psi.PyTargetExpression
-import com.jetbrains.python.psi.impl.PyBuiltinCache
 import com.jetbrains.python.psi.search.PySuperMethodsSearch
 import kotlin.test.fail
 
-class ElementAnonymizer(file: PyFile) {
+class ElementAnonymizer {
 
     fun registerElement(element: PsiElement) {
         if (isDefinition(element)) {
@@ -72,8 +70,6 @@ class ElementAnonymizer(file: PyFile) {
             // Ignore all names starting with two underscores
             if (it.startsWith("__")) return false
         }
-        // Do not rename redefinitions of builtins
-        if (isElementGlobal(definition) && builtinCache.getByName(name) != null) return false
         // Do not rename method parameters with special names
         if (definition is PyNamedParameter &&
             isMethod(definition.parentOfType()) &&
@@ -84,8 +80,6 @@ class ElementAnonymizer(file: PyFile) {
 
         return true
     }
-
-    private val builtinCache = PyBuiltinCache.getInstance(file)
 
     private fun isElementGlobal(element: PsiElement): Boolean =
         (element as? PyPossibleClassMember)?.containingClass == null &&
