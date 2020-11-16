@@ -16,8 +16,6 @@ class AnonymizationTransformationTest : TransformationsTest(getResourcesRootPath
 
     @Test
     fun testForwardTransformation() {
-        // TODO: some tests are ignored
-//        Assume.assumeTrue(!inFile!!.path.contains("builtins"))
         assertCodeTransformation(inFile!!, outFile!!, AnonymizationTransformation::apply)
     }
 }
