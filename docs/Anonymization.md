@@ -18,6 +18,7 @@ Each named entity is renamed to have the form
   
 - `kindPrefix` is one of the following, depending on what kind of entity
   is being renamed:
+
     | Prefix | Kind                    |
     | ------ | ----                    |
     | `f`    | Function                |
@@ -26,6 +27,7 @@ Each named entity is renamed to have the form
     | `p`    | Parameter               |
     | `m`    | Import alias ("module") |
     | `l`    | Lambda expression       |
+ 
   Note: lambda expressions do not have a name, thus cannot be renamed. However,
   they are assigned a "name" in case it needs to be used as an entity's
   `parentName`.
@@ -39,8 +41,8 @@ Each named entity is renamed to have the form
   (`__init__` etc.) and [name mangling](https://docs.python.org/3/reference/expressions.html#atom-identifiers).
 - Any parameters of class methods that have one of the names `self` and `cls`
   are not renamed.
-- Any entities that potentially redefine builtin variables and functions
-  (i. e. have the same name as a builtin and are global) are not renamed.
+- If any `parentName` starts with two underscores, those are trimmed. This
+  sometimes helps to avoid unwanted name mangling.
 
 ## Examples
 ```
