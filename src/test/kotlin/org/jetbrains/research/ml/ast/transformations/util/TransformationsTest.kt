@@ -8,7 +8,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.research.ml.ast.util.FileTestUtil
-import org.jetbrains.research.ml.ast.util.FileTestUtil.content
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
 import org.junit.Ignore
 import org.junit.runners.Parameterized
@@ -43,13 +42,14 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     ) {
         LOG.info("The current input file is: ${inFile.path}")
         LOG.info("The current output file is: ${outFile.path}")
-        val expectedSrc = outFile.content
+        val expectedSrc = getPsiFile(outFile).text
         LOG.info("The expected code is:\n$expectedSrc")
-        val psiInFile = myFixture.configureByFile(inFile.path)
+        val psiInFile = getPsiFile(inFile)
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
             PsiTestUtil.checkFileStructure(psiInFile)
         }
+        formatPsiFile(psiInFile)
         val actualSrc = psiInFile.text
         LOG.info("The actual code is:\n$actualSrc")
         assertEquals(expectedSrc, actualSrc)

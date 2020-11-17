@@ -4,18 +4,25 @@
 
 package org.jetbrains.research.ml.ast.util
 
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.apache.log4j.PropertyConfigurator
 import org.junit.After
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Ignore
+import java.io.File
 import java.util.logging.Logger
 import kotlin.reflect.KFunction
 
 @Ignore
 open class ParametrizedBaseTest(private val testDataRoot: String) : BasePlatformTestCase() {
     protected val LOG = Logger.getLogger(javaClass.name)
+
+    lateinit var codeStyleManager: CodeStyleManager
 
     // We should define the root resources folder
     override fun getTestDataPath() = testDataRoot
@@ -44,10 +51,25 @@ open class ParametrizedBaseTest(private val testDataRoot: String) : BasePlatform
     @Before
     fun mySetUp() {
         super.setUp()
+        codeStyleManager = CodeStyleManager.getInstance(project)
     }
 
     @After
     fun myDispose() {
         super.tearDown()
+    }
+
+    protected fun getPsiFile(file: File, toReformatCode: Boolean = true): PsiFile {
+        val psi = myFixture.configureByFile(file.name)
+        if (toReformatCode) {
+            formatPsiFile(psi)
+        }
+        return psi
+    }
+
+    protected fun formatPsiFile(psi: PsiElement) {
+        WriteCommandAction.runWriteCommandAction(project) { // reformat the expected file
+            codeStyleManager.reformat(psi)
+        }
     }
 }
