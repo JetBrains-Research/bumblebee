@@ -60,7 +60,7 @@ open class ParametrizedBaseTest(private val testDataRoot: String) : BasePlatform
     }
 
     protected fun getPsiFile(file: File, toReformatCode: Boolean = true): PsiFile {
-        val psi = myFixture.configureByFile(file.name)
+        val psi = myFixture.configureByFile(file.path)
         if (toReformatCode) {
             formatPsiFile(psi)
         }
