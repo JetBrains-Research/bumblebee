@@ -8,11 +8,11 @@ This transformation deletes all comments in the code.
 
 Find all comments and delete them. The supported comments type:
 
-[x] Single line comment (starts with the hash character `#`)
+- [x] Single line comment (starts with the hash character `#`)
 
-[x] Multi lines comment with using `'''...'''`
+- [x] Multi lines comment with using `'''...'''`
 
-[x] Multi lines comment with using `"""..."""`
+- [x] Multi lines comment with using `"""..."""`
 
 ## Examples
 
