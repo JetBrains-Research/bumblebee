@@ -5,10 +5,10 @@
 package org.jetbrains.research.ml.ast.transformations.util
 
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
-import com.intellij.psi.codeStyle.CodeStyleManager
+import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.research.ml.ast.util.FileTestUtil
+import org.jetbrains.research.ml.ast.util.FileTestUtil.content
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
 import org.junit.Ignore
 import org.junit.runners.Parameterized
@@ -17,8 +17,6 @@ import kotlin.reflect.KFunction
 
 @Ignore
 open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(testDataRoot) {
-
-    lateinit var codeStyleManager: CodeStyleManager
 
     @JvmField
     @Parameterized.Parameter(0)
@@ -38,11 +36,6 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         }
     }
 
-    override fun mySetUp() {
-        super.mySetUp()
-        codeStyleManager = CodeStyleManager.getInstance(project)
-    }
-
     protected fun assertCodeTransformation(
         inFile: File,
         outFile: File,
@@ -50,19 +43,12 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     ) {
         LOG.info("The current input file is: ${inFile.path}")
         LOG.info("The current output file is: ${outFile.path}")
-        val psiInFile = myFixture.configureByFile(inFile.name)
-        val expectedPsiInFile = myFixture.configureByFile(outFile.name)
-        WriteCommandAction.runWriteCommandAction(project) { // reformat the expected file
-            codeStyleManager.reformat(expectedPsiInFile)
-        }
-        val expectedSrc = expectedPsiInFile.text
+        val expectedSrc = outFile.content
         LOG.info("The expected code is:\n$expectedSrc")
+        val psiInFile = myFixture.configureByFile(inFile.path)
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
-        }
-
-        WriteCommandAction.runWriteCommandAction(project) { // reformat the transformed file
-            codeStyleManager.reformat(psiInFile)
+            PsiTestUtil.checkFileStructure(psiInFile)
         }
         val actualSrc = psiInFile.text
         LOG.info("The actual code is:\n$actualSrc")
