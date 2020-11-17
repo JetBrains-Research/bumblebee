@@ -21,11 +21,11 @@ object PyUtils {
     }
 
     private fun braceValueIfNeeded(operation: PyExpression): PyExpression {
-        val containsOperations = PsiTreeUtils.findChildrenByPredicate(operation) { element ->
-            val leafElement = element as? LeafPsiElement ?: return@findChildrenByPredicate false
+        val operationLeafElement = PsiTreeUtils.findFirstChildrenOrNull(operation) { element ->
+            val leafElement = element as? LeafPsiElement ?: return@findFirstChildrenOrNull false
             OPERATIONS.contains(leafElement.elementType)
         }
-        if (containsOperations) {
+        if (operationLeafElement != null) {
             val generator = PyElementGenerator.getInstance(operation.project)
             return generator.createExpressionFromText(LanguageLevel.PYTHON36, "(${operation.text})")
         }

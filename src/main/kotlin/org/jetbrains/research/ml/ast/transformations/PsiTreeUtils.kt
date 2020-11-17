@@ -3,14 +3,14 @@ package org.jetbrains.research.ml.ast.transformations
 import com.intellij.psi.PsiElement
 
 object PsiTreeUtils {
-    fun findChildrenByPredicate(element: PsiElement, predicate: (PsiElement) -> Boolean): Boolean {
+    fun findFirstChildrenOrNull(element: PsiElement, predicate: (PsiElement) -> Boolean): PsiElement? {
         var cur = element.firstChild
         while (cur != null) {
             if (predicate(cur)) {
-                return true
+                return cur
             }
             cur = cur.nextSibling
         }
-        return false
+        return null
     }
 }
