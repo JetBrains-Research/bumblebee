@@ -7,6 +7,7 @@ package org.jetbrains.research.ml.ast.transformations.util
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
+import com.intellij.testFramework.PsiTestUtil
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
 import org.jetbrains.research.ml.ast.util.FileTestUtil
@@ -58,6 +59,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         LOG.info("The expected code is:\n$expectedSrc")
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile, true)
+            PsiTestUtil.checkFileStructure(psiInFile)
         }
         val actualSrc = psiInFile.text
         LOG.info("The actual code is:\n$actualSrc")
