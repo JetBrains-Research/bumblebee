@@ -19,6 +19,7 @@ def while_unreachable2():
     else:
         print(1)
 
+
 def if_unreachable_condition():
     print("World")
     if 4 == 5 or 11 + 2 == 0:
