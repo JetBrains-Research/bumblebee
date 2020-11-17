@@ -7,7 +7,7 @@ import com.jetbrains.python.psi.PyStringLiteralExpression
 import org.jetbrains.research.ml.ast.transformations.Transformation
 import org.jetbrains.research.ml.ast.transformations.util.PsiUtil.acceptStatements
 
-class CommentsRemovalTransformation : Transformation {
+object CommentsRemovalTransformation : Transformation {
     override val metadataKey: String
         get() = TODO("Not yet implemented")
 
