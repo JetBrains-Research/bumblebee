@@ -53,8 +53,8 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     ) {
         LOG.info("The current input file is: ${inFile.path}")
         LOG.info("The current output file is: ${outFile.path}")
-        val psiInFile = getPsiFile(inFile.name)
-        val expectedPsiInFile = getPsiFile(outFile.name)
+        val psiInFile = getPsiFile(inFile)
+        val expectedPsiInFile = getPsiFile(outFile)
         val expectedSrc = expectedPsiInFile.text
         LOG.info("The expected code is:\n$expectedSrc")
         ApplicationManager.getApplication().invokeAndWait {
@@ -66,8 +66,8 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         assertEquals(expectedSrc, actualSrc)
     }
 
-    private fun getPsiFile(filename: String, toReformatFile: Boolean = true): PsiFile {
-        val psiFile = myFixture.configureByFile(filename)
+    private fun getPsiFile(file: File, toReformatFile: Boolean = true): PsiFile {
+        val psiFile = myFixture.configureByFile(file.path)
         if (toReformatFile) {
             WriteCommandAction.runWriteCommandAction(project) { // reformat the expected file
                 codeStyleManager.reformat(psiFile)
