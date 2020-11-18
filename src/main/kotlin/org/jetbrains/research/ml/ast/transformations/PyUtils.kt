@@ -1,12 +1,12 @@
 package org.jetbrains.research.ml.ast.transformations
 
+import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.jetbrains.python.PyTokenTypes.*
 import com.jetbrains.python.psi.*
-import com.intellij.psi.PsiElement
 
 object PyUtils {
-      fun createAssignment(target: PsiElement, value: PsiElement): PyAssignmentStatement {
+    fun createAssignment(target: PsiElement, value: PsiElement): PyAssignmentStatement {
         val generator = PyElementGenerator.getInstance(target.project)
         return generator.createFromText(
             LanguageLevel.PYTHON36,
@@ -14,7 +14,7 @@ object PyUtils {
             "${target.text} = ${value.text}"
         )
     }
-  
+
     fun createAssignment(assignment: PyAugAssignmentStatement): PyAssignmentStatement {
         val generator = PyElementGenerator.getInstance(assignment.project)
         val assignmentTargetText = assignment.target.text
