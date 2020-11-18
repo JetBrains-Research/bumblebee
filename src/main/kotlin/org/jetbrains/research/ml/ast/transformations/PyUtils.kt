@@ -6,6 +6,11 @@ import com.jetbrains.python.PyTokenTypes.*
 import com.jetbrains.python.psi.*
 
 object PyUtils {
+    fun braceExpression(expression: PyExpression): PyExpression {
+        val generator = PyElementGenerator.getInstance(expression.project)
+        return generator.createExpressionFromText(LanguageLevel.PYTHON36, "(${expression.text})")
+    }
+
     fun createAssignment(target: PsiElement, value: PsiElement): PyAssignmentStatement {
         val generator = PyElementGenerator.getInstance(target.project)
         return generator.createFromText(
