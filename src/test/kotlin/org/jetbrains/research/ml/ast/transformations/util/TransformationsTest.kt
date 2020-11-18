@@ -20,7 +20,7 @@ import kotlin.reflect.KFunction
 
 @Ignore
 open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(testDataRoot) {
-    private lateinit var codeStyleManager: CodeStyleManager
+    protected lateinit var codeStyleManager: CodeStyleManager
 
     @JvmField
     @Parameterized.Parameter(0)
