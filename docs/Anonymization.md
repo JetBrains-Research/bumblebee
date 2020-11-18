@@ -8,13 +8,13 @@ automatically generated names.
 ## Naming scheme
 
 Each named entity is renamed to have the form
-`parentName + kindPrefix + kindIndex`, where:
+`parentName + "_" + kindPrefix + kindIndex`, where:
 - `parentName` is the name of the entity's parent after renaming. 
   The parent is usually the
   most nested scope owner that the entity's definition resides in.
   For example, the parent of a class method is the corresponding class.
   Global entities do not have a parent and, for them, `parentName` is
-  considered to be empty.
+  considered to be empty. In this case, the separator `_` is also omitted.
   
 - `kindPrefix` is one of the following, depending on what kind of entity
   is being renamed:
@@ -57,6 +57,6 @@ is transformed to:
 v1 = 1
 v2 = 2
 
-def f1(f1p1):
-  f1v1 = v1
+def f1(f1_p1):
+  f1_v1 = v1
 ```

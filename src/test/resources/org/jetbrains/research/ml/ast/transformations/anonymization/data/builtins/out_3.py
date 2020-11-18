@@ -1,3 +1,3 @@
 class c1:
-    def c1f1(self):
+    def c1_f1(self):
         pass

@@ -57,7 +57,7 @@ class ElementAnonymizer {
     }
 
     private fun assembleNewFullName(parent: PsiElement?, kind: NamedEntityKind): String {
-        val prefix = parent?.let { getScopeName(it) } ?: ""
+        val prefix = parent?.let { getScopeName(it) + "_" } ?: ""
         val kindCount = parentToKindCounter.getOrPut(parent) { NamedEntityKindCounter() }.next(kind)
         return "$prefix${kind.prefix}$kindCount"
     }

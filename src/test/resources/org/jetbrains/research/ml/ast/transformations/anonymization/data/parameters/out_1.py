@@ -1,5 +1,5 @@
-def f1(f1p1, f1p2):
+def f1(f1_p1, f1_p2):
     pass
 
 
-f1(f1p1=1, f1p2=2)
+f1(f1_p1=1, f1_p2=2)
