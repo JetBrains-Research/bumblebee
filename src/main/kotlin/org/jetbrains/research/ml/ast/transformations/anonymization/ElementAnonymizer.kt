@@ -16,6 +16,9 @@ import com.jetbrains.python.psi.search.PySuperMethodsSearch
 import kotlin.test.fail
 
 class ElementAnonymizer {
+    private val allRenames: MutableList<Pair<PsiElement, String>> = mutableListOf()
+    private val elementToNewName: MutableMap<PsiElement, String?> = mutableMapOf()
+    private val parentToKindCounter: MutableMap<PsiElement?, NamedEntityKindCounter> = mutableMapOf()
 
     fun registerElement(element: PsiElement) {
         if (isDefinition(element)) {
@@ -58,10 +61,6 @@ class ElementAnonymizer {
         val kindCount = parentToKindCounter.getOrPut(parent) { NamedEntityKindCounter() }.next(kind)
         return "$prefix${kind.prefix}$kindCount"
     }
-
-    private val allRenames: MutableList<Pair<PsiElement, String>> = mutableListOf()
-    private val elementToNewName: MutableMap<PsiElement, String?> = mutableMapOf()
-    private val parentToKindCounter: MutableMap<PsiElement?, NamedEntityKindCounter> = mutableMapOf()
 
     private fun shouldRenameDefinition(definition: PsiElement): Boolean {
         fun isMethod(function: PyFunction?): Boolean = function?.containingClass != null

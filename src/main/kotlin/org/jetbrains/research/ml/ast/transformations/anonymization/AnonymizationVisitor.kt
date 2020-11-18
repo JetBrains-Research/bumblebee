@@ -6,6 +6,9 @@ import com.jetbrains.python.psi.PyFile
 import com.jetbrains.python.psi.PyRecursiveElementVisitor
 
 class AnonymizationVisitor(file: PyFile) : PyRecursiveElementVisitor() {
+    private val project = file.project
+    private val anonymizer = ElementAnonymizer()
+
     override fun visitElement(element: PsiElement) {
         anonymizer.registerElement(element)
         super.visitElement(element)
@@ -17,7 +20,4 @@ class AnonymizationVisitor(file: PyFile) : PyRecursiveElementVisitor() {
             renames.forEach { it() }
         }
     }
-
-    private val project = file.project
-    private val anonymizer = ElementAnonymizer()
 }
