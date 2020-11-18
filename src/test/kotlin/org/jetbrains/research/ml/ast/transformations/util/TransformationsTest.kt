@@ -12,6 +12,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.research.ml.ast.util.FileTestUtil
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.runners.Parameterized
 import java.io.File
@@ -19,7 +20,7 @@ import kotlin.reflect.KFunction
 
 @Ignore
 open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(testDataRoot) {
-    protected lateinit var codeStyleManager: CodeStyleManager
+    private lateinit var codeStyleManager: CodeStyleManager
 
     @JvmField
     @Parameterized.Parameter(0)
@@ -29,6 +30,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     @Parameterized.Parameter(1)
     var outFile: File? = null
 
+    @Before
     override fun mySetUp() {
         super.mySetUp()
         codeStyleManager = CodeStyleManager.getInstance(project)
@@ -67,7 +69,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     private fun getPsiFile(filename: String, toReformatFile: Boolean = true): PsiFile {
         val psiFile = myFixture.configureByFile(filename)
         if (toReformatFile) {
-            WriteCommandAction.runWriteCommandAction(project) {
+            WriteCommandAction.runWriteCommandAction(project) { // reformat the expected file
                 codeStyleManager.reformat(psiFile)
             }
         }
