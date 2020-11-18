@@ -29,3 +29,7 @@ gradle-app.setting
 *.iml
 *.ipr
 .idea_modules/
+/.idea/misc.xml
+/.idea/vcs.xml
+/.idea/.gitignore
+/.idea/codeStyles/
