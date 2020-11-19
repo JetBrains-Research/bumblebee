@@ -21,7 +21,6 @@ object CommentsRemovalTransformation : Transformation {
 
         val visitor = CommentsRemovalVisitor()
 
-        acceptStatements(psiTree.project, comments, visitor)
-        acceptStatements(psiTree.project, stringLiteralExpressions, visitor)
+        acceptStatements(psiTree.project, comments + stringLiteralExpressions, visitor)
     }
 }
