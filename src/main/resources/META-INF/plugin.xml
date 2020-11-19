@@ -3,6 +3,11 @@
     <name>Ast Transformations</name>
     <vendor url="https://research.jetbrains.org/">JetBrains Research</vendor>
 
+    <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.python</depends>
+
     <description><![CDATA[
     An IntelliJ-based IDE plugin for performing Python AST transformations using PSI elements.
     ]]></description>

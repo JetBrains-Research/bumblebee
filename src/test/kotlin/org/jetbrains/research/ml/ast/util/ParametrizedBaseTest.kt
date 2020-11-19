@@ -49,13 +49,13 @@ open class ParametrizedBaseTest(private val testDataRoot: String) : BasePlatform
     *  an explicit @Before annotation.
     * */
     @Before
-    fun mySetUp() {
+    open fun mySetUp() {
         super.setUp()
         codeStyleManager = CodeStyleManager.getInstance(project)
     }
 
     @After
-    fun myDispose() {
+    open fun myDispose() {
         super.tearDown()
     }
 
