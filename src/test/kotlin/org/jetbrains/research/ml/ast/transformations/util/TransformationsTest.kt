@@ -20,7 +20,7 @@ import kotlin.reflect.KFunction
 
 @Ignore
 open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(testDataRoot) {
-    protected lateinit var codeStyleManager: CodeStyleManager
+    private lateinit var codeStyleManager: CodeStyleManager
 
     @JvmField
     @Parameterized.Parameter(0)
@@ -61,6 +61,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
             transformation(psiInFile, true)
             PsiTestUtil.checkFileStructure(psiInFile)
         }
+        formatPsiFile(psiInFile)
         val actualSrc = psiInFile.text
         LOG.info("The actual code is:\n$actualSrc")
         assertEquals(expectedSrc, actualSrc)
@@ -69,10 +70,14 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     private fun getPsiFile(file: File, toReformatFile: Boolean = true): PsiFile {
         val psiFile = myFixture.configureByFile(file.path)
         if (toReformatFile) {
-            WriteCommandAction.runWriteCommandAction(project) { // reformat the expected file
-                codeStyleManager.reformat(psiFile)
-            }
+            formatPsiFile(psiFile)
         }
         return psiFile
+    }
+
+    private fun formatPsiFile(psi: PsiElement) {
+        WriteCommandAction.runWriteCommandAction(project) { // reformat the expected file
+            codeStyleManager.reformat(psi)
+        }
     }
 }
