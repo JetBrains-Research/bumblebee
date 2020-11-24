@@ -65,10 +65,10 @@ class ElementAnonymizer {
     private fun shouldRenameDefinition(definition: PsiElement): Boolean {
         fun isMethod(function: PyFunction?): Boolean = function?.containingClass != null
 
-        val name = (definition as PyElement).name!!.also {
+        val name = (definition as PyElement).name?.also {
             // Ignore all names starting with two underscores
             if (it.startsWith("__")) return false
-        }
+        } ?: return false
         // Do not rename method parameters with special names
         if (definition is PyNamedParameter &&
             isMethod(definition.parentOfType()) &&
