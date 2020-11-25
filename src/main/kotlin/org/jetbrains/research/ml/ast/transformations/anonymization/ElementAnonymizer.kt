@@ -36,7 +36,7 @@ class ElementAnonymizer {
         elementToNewName.getOrPut(element) { computeNewNameForElement(element) }
 
     private fun getScopeName(element: PsiElement): String =
-        getNewNameForElement(element) ?: (element as PyElement).name!!.removePrefix("__")
+        getNewNameForElement(element) ?: (element as? PyElement)?.name?.removePrefix("__") ?: ""
 
     private fun computeNewNameForElement(element: PsiElement): String? {
         if (!isDefinition(element)) {
