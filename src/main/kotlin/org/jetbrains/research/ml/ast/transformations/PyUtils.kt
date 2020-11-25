@@ -6,6 +6,17 @@ import com.jetbrains.python.PyTokenTypes.*
 import com.jetbrains.python.psi.*
 
 object PyUtils {
+    fun createPyIfElsePart(ifElsePart: PyIfPart): PyIfPart {
+        require(ifElsePart.isElif) { "Illegal if part. Only `elif` part supported." }
+        val generator = PyElementGenerator.getInstance(ifElsePart.project)
+        val ifStatement = generator.createFromText(
+            LanguageLevel.PYTHON36,
+            PyIfStatement::class.java,
+            "if ${ifElsePart.condition?.text ?: ""}:\n\t${ifElsePart.statementList.text}"
+        )
+        return ifStatement.ifPart
+    }
+
     fun braceExpression(expression: PyExpression): PyExpression {
         val generator = PyElementGenerator.getInstance(expression.project)
         return generator.createExpressionFromText(LanguageLevel.PYTHON36, "(${expression.text})")
