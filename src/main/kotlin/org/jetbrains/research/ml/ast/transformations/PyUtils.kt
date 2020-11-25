@@ -1,9 +1,9 @@
 package org.jetbrains.research.ml.ast.transformations
 
-import com.jetbrains.python.psi.LanguageLevel
-import com.jetbrains.python.psi.PyElementGenerator
-import com.jetbrains.python.psi.PyIfPart
-import com.jetbrains.python.psi.PyIfStatement
+import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.jetbrains.python.PyTokenTypes.*
+import com.jetbrains.python.psi.*
 
 object PyUtils {
     fun createPyIfElsePart(ifElsePart: PyIfPart): PyIfPart {
@@ -15,6 +15,8 @@ object PyUtils {
             "if ${ifElsePart.condition?.text ?: ""}:\n\t${ifElsePart.statementList.text}"
         )
         return ifStatement.ifPart
+    }
+
     fun braceExpression(expression: PyExpression): PyExpression {
         val generator = PyElementGenerator.getInstance(expression.project)
         return generator.createExpressionFromText(LanguageLevel.PYTHON36, "(${expression.text})")
