@@ -47,7 +47,7 @@ open class ParametrizedBaseTest(private val testDataRoot: String) : BasePlatform
     }
 
     @After
-    fun myDispose() {
+    open fun myDispose() {
         super.tearDown()
     }
 }
