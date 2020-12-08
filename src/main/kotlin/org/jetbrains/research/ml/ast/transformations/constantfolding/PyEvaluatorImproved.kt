@@ -2,40 +2,123 @@ package org.jetbrains.research.ml.ast.transformations.constantfolding
 
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.psi.PyBinaryExpression
+import com.jetbrains.python.psi.PyBoolLiteralExpression
 import com.jetbrains.python.psi.PyElementType
 import com.jetbrains.python.psi.PyExpression
+import com.jetbrains.python.psi.PyKeyValueExpression
+import com.jetbrains.python.psi.PyListLiteralExpression
+import com.jetbrains.python.psi.PyLiteralExpression
+import com.jetbrains.python.psi.PyNumericLiteralExpression
+import com.jetbrains.python.psi.PyParenthesizedExpression
 import com.jetbrains.python.psi.PyPrefixExpression
-import com.jetbrains.python.psi.impl.PyEvaluator
+import com.jetbrains.python.psi.PyReferenceExpression
+import com.jetbrains.python.psi.PySequenceExpression
+import com.jetbrains.python.psi.PyStringLiteralExpression
+import com.jetbrains.python.psi.PyTupleExpression
 import java.math.BigInteger
-import kotlin.reflect.full.declaredFunctions
-import kotlin.reflect.jvm.isAccessible
 
-class PyEvaluatorImproved : PyEvaluator() {
+class PyEvaluatorImproved {
     // Cache evaluation results to avoid re-evaluating the same expression twice
-    private val evaluationResults: MutableMap<PyExpression?, Any?> = mutableMapOf()
+    private val evaluationResults: MutableMap<PyExpression?, EvaluationResult?> = mutableMapOf()
 
     // Also cache whether an expression can be proven to be pure (i. e. to not have side-effects)
     private val purityResults: MutableMap<PyExpression?, Boolean> = mutableMapOf()
 
-    init {
-        enableResolve(false)
-        setEvaluateKeys(false)
-        setEvaluateCollectionItems(false)
+    interface EvaluationResult
+    data class PyInt(val value: BigInteger) : EvaluationResult
+    data class PyBool(val value: Boolean) : EvaluationResult
+    data class PyExpressionResult(val expression: PyExpression) : EvaluationResult
+    data class PyString(val string: String) : EvaluationResult
+    data class PySequence(val elements: List<PyExpression>, val kind: PySequenceKind?) : EvaluationResult {
+        enum class PySequenceKind { LIST, TUPLE }
+        companion object {
+            fun getKind(expression: PySequenceExpression): PySequenceKind? =
+                when (expression) {
+                    is PyListLiteralExpression -> PySequenceKind.LIST
+                    is PyTupleExpression -> PySequenceKind.TUPLE
+                    else -> null
+                }
+        }
     }
 
-    override fun evaluate(expression: PyExpression?): Any? =
+    fun evaluate(expression: PyExpression?): EvaluationResult? =
         evaluationResults.getOrPut(expression) { evaluateNoCache(expression) }
 
-    private fun evaluateNoCache(expression: PyExpression?): Any? =
+    private fun evaluateOrGet(expression: PyExpression?): EvaluationResult? =
+        evaluate(expression) ?: expression?.let { PyExpressionResult(it) }
+
+    private fun evaluateNoCache(expression: PyExpression?): EvaluationResult? =
         try {
             when (expression) {
-                is PyBinaryExpression -> tryEvaluateBinaryHere(expression)
-                is PyPrefixExpression -> tryEvaluatePrefixHere(expression)
+                is PyParenthesizedExpression -> evaluate(expression.containedExpression)
+                is PyLiteralExpression -> evaluateLiteral(expression)
+                is PySequenceExpression -> evaluateSequence(expression)
+                is PyBinaryExpression -> evaluateBinary(expression)
+                is PyPrefixExpression -> evaluatePrefix(expression)
                 else -> null
-            } ?: super.evaluate(expression)
+            }
         } catch (_: ArithmeticException) {
             null
         }
+
+    private fun evaluateLiteral(expression: PyLiteralExpression): EvaluationResult? =
+        when (expression) {
+            is PyBoolLiteralExpression -> PyBool(expression.value)
+            is PyNumericLiteralExpression ->
+                expression.takeIf { it.isIntegerLiteral }?.bigIntegerValue?.let { PyInt(it) }
+            is PyStringLiteralExpression -> PyString(expression.stringValue)
+            else -> null
+        }
+
+    private fun evaluateSequence(expression: PySequenceExpression): EvaluationResult =
+        PySequence(expression.elements.toList(), PySequence.getKind(expression))
+
+    private fun evaluateBinary(expression: PyBinaryExpression): EvaluationResult? {
+        val lhs = evaluateOrGet(expression.leftExpression) ?: return null
+        val rhs = evaluateOrGet(expression.rightExpression) ?: return null
+        val operator = expression.operator ?: return null
+
+        if (operator == PyTokenTypes.PLUS) {
+            tryConcatenateSequences(lhs, rhs)?.let { return it }
+        }
+
+        if (operator in listOf(PyTokenTypes.AND_KEYWORD, PyTokenTypes.OR_KEYWORD)) {
+            // True and x === x
+            // False or x === x
+            evaluateAsPureBoolean(expression.leftExpression)?.let { leftAsPureBool ->
+                if (leftAsPureBool && operator == PyTokenTypes.AND_KEYWORD ||
+                    !leftAsPureBool && operator == PyTokenTypes.OR_KEYWORD
+                ) {
+                    return rhs
+                }
+            }
+            // truthy_value and x === truthy_value
+            // falsy_value  or  x === falsy_value
+            evaluateAsImpureBoolean(expression.leftExpression)?.let { leftAsImpureBool ->
+                if (leftAsImpureBool && operator == PyTokenTypes.OR_KEYWORD ||
+                    !leftAsImpureBool && operator == PyTokenTypes.AND_KEYWORD
+                ) {
+                    return lhs
+                }
+            }
+        }
+
+        val lhsValue = asBigInteger(lhs) ?: return null
+        val rhsValue = asBigInteger(rhs) ?: return null
+        return tryEvaluateBinaryAsNumber(lhsValue, rhsValue, operator)?.let { PyInt(it) }
+            ?: tryEvaluateBinaryAsBoolean(lhsValue, rhsValue, operator)?.let { PyBool(it) }
+    }
+
+    private fun tryConcatenateSequences(lhs: EvaluationResult, rhs: EvaluationResult): EvaluationResult? {
+        if (lhs is PyString && rhs is PyString) {
+            return PyString(lhs.string + rhs.string)
+        }
+        if (lhs is PySequence && rhs is PySequence) {
+            val kind = lhs.kind?.takeIf { it == rhs.kind } ?: return null
+            return PySequence(lhs.elements + rhs.elements, kind)
+        }
+        return null
+    }
 
     private fun evaluateAsPureBoolean(expression: PyExpression?): Boolean? =
         asBoolean(evaluate(expression))?.takeIf { canBeProvenPure(expression) }
@@ -47,88 +130,79 @@ class PyEvaluatorImproved : PyEvaluator() {
 
     private fun canBeProvenPureNoCache(expression: PyExpression?): Boolean =
         when (val result = evaluate(expression)) {
-            is Boolean, is Number, is String -> true
-            is PyExpression -> canBeProvenPure(result)
-            is Collection<*> -> result.all { canBeProvenPure(it as? PyExpression) }
-            is Map<*, *> -> result.all {
-                canBeProvenPure(it.key as? PyExpression) && canBeProvenPure(it.value as? PyExpression)
-            }
-            else -> false
-        }
-
-    private fun tryEvaluateBinaryHere(expression: PyBinaryExpression): Any? {
-        val lhs = expression.leftExpression ?: return null
-        val rhs = expression.rightExpression ?: return null
-        val operator = expression.operator ?: return null
-
-        if (operator in listOf(PyTokenTypes.AND_KEYWORD, PyTokenTypes.OR_KEYWORD)) {
-            // True and x === x
-            // False or x === x
-            evaluateAsPureBoolean(expression.leftExpression)?.let { leftAsPureBool ->
-                if (leftAsPureBool && operator == PyTokenTypes.AND_KEYWORD ||
-                    !leftAsPureBool && operator == PyTokenTypes.OR_KEYWORD
-                ) {
-                    return evaluate(expression.rightExpression) ?: expression.rightExpression
-                }
-            }
-            // truthy_value and x === truthy_value
-            // falsy_value  or  x === falsy_value
-            evaluateAsImpureBoolean(expression.leftExpression)?.let { leftAsImpureBool ->
-                if (leftAsImpureBool && operator == PyTokenTypes.OR_KEYWORD ||
-                    !leftAsImpureBool && operator == PyTokenTypes.AND_KEYWORD
-                ) {
-                    return evaluate(expression.leftExpression) ?: expression.leftExpression
-                }
+            is PyInt, is PyBool, is PyString -> true
+            is PyExpressionResult -> canBeProvenPure(result.expression)
+            is PySequence -> result.elements.all { canBeProvenPure(it) }
+            else -> when (expression) {
+                is PyReferenceExpression -> true
+                is PyKeyValueExpression -> canBeProvenPure(expression.key) && canBeProvenPure(expression.value)
+                else -> false
             }
         }
 
-        val lhsValue = asNumber(evaluate(lhs))?.let { toBigInteger(it) } ?: return null
-        val rhsValue = asNumber(evaluate(rhs))?.let { toBigInteger(it) } ?: return null
-        return tryEvaluateNumericBinary(lhsValue, rhsValue, operator)
-    }
+    private fun tryEvaluateBinaryAsNumber(lhs: BigInteger, rhs: BigInteger, operator: PyElementType): BigInteger? =
+        when (operator) {
+            PyTokenTypes.PLUS -> lhs.plus(rhs)
+            PyTokenTypes.MINUS -> lhs.minus(rhs)
+            PyTokenTypes.MULT -> lhs.multiply(rhs)
 
-    private fun tryEvaluateNumericBinary(lhsValue: BigInteger, rhsValue: BigInteger, operator: PyElementType): Number? {
-        val result = when (operator) {
-            PyTokenTypes.FLOORDIV -> pythonDiv(lhsValue, rhsValue)
-            PyTokenTypes.PERC -> pythonMod(lhsValue, rhsValue)
+            PyTokenTypes.FLOORDIV -> pythonDiv(lhs, rhs)
+            PyTokenTypes.PERC -> pythonMod(lhs, rhs)
 
-            PyTokenTypes.EXP -> smallPow(lhsValue, rhsValue)
+            PyTokenTypes.EXP -> smallPow(lhs, rhs)
 
-            PyTokenTypes.AND -> lhsValue.and(rhsValue)
-            PyTokenTypes.OR -> lhsValue.or(rhsValue)
-            PyTokenTypes.XOR -> lhsValue.xor(rhsValue)
+            PyTokenTypes.AND -> lhs.and(rhs)
+            PyTokenTypes.OR -> lhs.or(rhs)
+            PyTokenTypes.XOR -> lhs.xor(rhs)
 
-            PyTokenTypes.LTLT -> smallShiftLeft(lhsValue, rhsValue)
-            PyTokenTypes.GTGT -> smallShiftRight(lhsValue, rhsValue)
+            PyTokenTypes.LTLT -> smallShiftLeft(lhs, rhs)
+            PyTokenTypes.GTGT -> smallShiftRight(lhs, rhs)
 
             else -> null
         }
-        return result?.let { fromBigInteger(it) }
-    }
 
-    private fun tryEvaluatePrefixHere(expression: PyPrefixExpression): Any? {
+    private fun tryEvaluateBinaryAsBoolean(lhs: BigInteger, rhs: BigInteger, operator: PyElementType): Boolean? =
+        when (operator) {
+            PyTokenTypes.LT -> lhs < rhs
+            PyTokenTypes.LE -> lhs <= rhs
+            PyTokenTypes.GT -> lhs > rhs
+            PyTokenTypes.GE -> lhs >= rhs
+            PyTokenTypes.EQEQ -> lhs == rhs
+            PyTokenTypes.NE -> lhs != rhs
+            else -> null
+        }
+
+    private fun evaluatePrefix(expression: PyPrefixExpression): EvaluationResult? {
         val operand = expression.operand ?: return null
         val operator = expression.operator
 
         if (operator == PyTokenTypes.NOT_KEYWORD) {
-            return evaluateAsPureBoolean(operand)?.let { !it }
+            return evaluateAsPureBoolean(operand)?.let { PyBool(!it) }
         }
 
-        val operandValue = asNumber(evaluate(operand))?.let { toBigInteger(it) } ?: return null
+        val operandValue = asBigInteger(evaluate(operand)) ?: return null
         val result = when (operator) {
+            PyTokenTypes.MINUS -> operandValue.negate()
             PyTokenTypes.TILDE -> operandValue.not()
-            else -> return null
+            else -> null
         }
-        return fromBigInteger(result)
+        return result?.let { PyInt(it) }
     }
 
     companion object {
-        private fun Boolean.toInt() = if (this) 1 else 0
-
-        private fun asNumber(result: Any?): Number? =
+        private fun asBigInteger(result: EvaluationResult?) =
             when (result) {
-                is Number -> result
-                is Boolean -> result.toInt()
+                is PyInt -> result.value
+                is PyBool -> if (result.value) BigInteger.ONE else BigInteger.ZERO
+                else -> null
+            }
+
+        private fun asBoolean(result: EvaluationResult?) =
+            when (result) {
+                is PyBool -> result.value
+                is PyInt -> result.value != BigInteger.ZERO
+                is PyString -> result.string.isNotEmpty()
+                is PySequence -> result.elements.isNotEmpty()
                 else -> null
             }
 
@@ -184,28 +258,5 @@ class PyEvaluatorImproved : PyEvaluator() {
                 if (shiftRight) number.shiftRight(shiftInt) else number.shiftLeft(shiftInt)
             }
         }
-
-        private fun asBoolean(value: Any?): Boolean? =
-            when (value) {
-                is Boolean -> value
-                is Number -> value != 0
-                is String -> value.isNotEmpty()
-                is Collection<*> -> value.isNotEmpty()
-                is Map<*, *> -> value.isNotEmpty()
-                else -> null
-            }
-
-        // We need to "break into" PyEvaluator to reuse its implementation, because its evaluation
-        // of binary expressions is lacking.
-        private val toBigIntegerMethod =
-            PyEvaluator::class.declaredFunctions.find { it.name == "toBigInteger" }!!
-                .also { it.isAccessible = true }
-
-        private val fromBigIntegerMethod =
-            PyEvaluator::class.declaredFunctions.find { it.name == "fromBigInteger" }!!
-                .also { it.isAccessible = true }
-
-        private fun toBigInteger(value: Number): BigInteger = toBigIntegerMethod.call(value) as BigInteger
-        private fun fromBigInteger(value: BigInteger): Number = fromBigIntegerMethod.call(value) as Number
     }
 }

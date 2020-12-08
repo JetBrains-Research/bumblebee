@@ -1,11 +1,11 @@
 package org.jetbrains.research.ml.ast.transformations.constantfolding
 
 import com.intellij.psi.PsiElement
+import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyExpression
 import org.jetbrains.research.ml.ast.transformations.createBoolLiteralExpression
 import org.jetbrains.research.ml.ast.transformations.createExpressionFromNumber
-import kotlin.test.fail
 
 class ConstantFolder(private val generator: PyElementGenerator) {
     private val evaluator = PyEvaluatorImproved()
@@ -25,18 +25,21 @@ class ConstantFolder(private val generator: PyElementGenerator) {
 
     private fun simplifyByEvaluation(expression: PyExpression): (() -> PsiElement)? =
         when (val result = evaluator.evaluate(expression)) {
-            is Boolean -> { -> expression.replace(generator.createBoolLiteralExpression(result)) }
-            is Number -> { -> expression.replace(generator.createExpressionFromNumber(result)) }
-            is String -> { -> expression.replace(generator.createStringLiteralFromString(result)) }
-            is List<*> -> run {
-                val simplifyElements = result.map {
-                    simplifyAllSubexpressionsDelayed(
-                        it as? PyExpression
-                            ?: fail("Evaluated list elements should be PyExpressions")
-                    )
+            is PyEvaluatorImproved.PyBool ->
+                { -> expression.replace(generator.createBoolLiteralExpression(result.value)) }
+            is PyEvaluatorImproved.PyInt ->
+                { -> expression.replace(generator.createExpressionFromNumber(result.value)) }
+            is PyEvaluatorImproved.PyString ->
+                { -> expression.replace(generator.createStringLiteralFromString(result.string)) }
+            is PyEvaluatorImproved.PySequence -> run {
+                val emptyLiteral = when (result.kind ?: return@run null) {
+                    PyEvaluatorImproved.PySequence.PySequenceKind.LIST -> generator.createListLiteral()
+                    PyEvaluatorImproved.PySequence.PySequenceKind.TUPLE ->
+                        generator.createExpressionFromText(LanguageLevel.PYTHON39, "()")
                 }
+                val simplifyElements = result.elements.map { simplifyAllSubexpressionsDelayed(it) }
                 return@run {
-                    val newList = expression.replace(generator.createListLiteral()) as PyExpression
+                    val newList = expression.replace(emptyLiteral) as PyExpression
                     var anchor: PyExpression? = null
                     for (simplifyElement in simplifyElements) {
                         anchor = generator.insertItemIntoListRemoveRedundantCommas(
@@ -48,8 +51,8 @@ class ConstantFolder(private val generator: PyElementGenerator) {
                     newList
                 }
             }
-            is PyExpression -> run {
-                val simplifyNewExpression = simplifyAllSubexpressionsDelayed(result)
+            is PyEvaluatorImproved.PyExpressionResult -> run {
+                val simplifyNewExpression = simplifyAllSubexpressionsDelayed(result.expression)
                 return@run { expression.replace(simplifyNewExpression()) }
             }
             else -> null
