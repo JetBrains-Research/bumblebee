@@ -2,6 +2,7 @@ package org.jetbrains.research.ml.ast.transformations.constantfolding
 
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.psi.PyBinaryExpression
+import com.jetbrains.python.psi.PyElementType
 import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.PyPrefixExpression
 import com.jetbrains.python.psi.impl.PyEvaluator
@@ -10,7 +11,10 @@ import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.jvm.isAccessible
 
 class PyEvaluatorImproved : PyEvaluator() {
+    // Cache evaluation results to avoid re-evaluating the same expression twice
     private val evaluationResults: MutableMap<PyExpression?, Any?> = mutableMapOf()
+
+    // Also cache whether an expression can be proven to be pure (i. e. to not have side-effects)
     private val purityResults: MutableMap<PyExpression?, Boolean> = mutableMapOf()
 
     init {
@@ -43,9 +47,7 @@ class PyEvaluatorImproved : PyEvaluator() {
 
     private fun canBeProvenPureNoCache(expression: PyExpression?): Boolean =
         when (val result = evaluate(expression)) {
-            is Boolean -> true
-            is Number -> true
-            is String -> true
+            is Boolean, is Number, is String -> true
             is PyExpression -> canBeProvenPure(result)
             is Collection<*> -> result.all { canBeProvenPure(it as? PyExpression) }
             is Map<*, *> -> result.all {
@@ -60,6 +62,8 @@ class PyEvaluatorImproved : PyEvaluator() {
         val operator = expression.operator ?: return null
 
         if (operator in listOf(PyTokenTypes.AND_KEYWORD, PyTokenTypes.OR_KEYWORD)) {
+            // True and x === x
+            // False or x === x
             evaluateAsPureBoolean(expression.leftExpression)?.let { leftAsPureBool ->
                 if (leftAsPureBool && operator == PyTokenTypes.AND_KEYWORD ||
                     !leftAsPureBool && operator == PyTokenTypes.OR_KEYWORD
@@ -67,6 +71,8 @@ class PyEvaluatorImproved : PyEvaluator() {
                     return evaluate(expression.rightExpression) ?: expression.rightExpression
                 }
             }
+            // truthy_value and x === truthy_value
+            // falsy_value  or  x === falsy_value
             evaluateAsImpureBoolean(expression.leftExpression)?.let { leftAsImpureBool ->
                 if (leftAsImpureBool && operator == PyTokenTypes.OR_KEYWORD ||
                     !leftAsImpureBool && operator == PyTokenTypes.AND_KEYWORD
@@ -78,22 +84,26 @@ class PyEvaluatorImproved : PyEvaluator() {
 
         val lhsValue = asNumber(evaluate(lhs))?.let { toBigInteger(it) } ?: return null
         val rhsValue = asNumber(evaluate(rhs))?.let { toBigInteger(it) } ?: return null
+        return tryEvaluateNumericBinary(lhsValue, rhsValue, operator)
+    }
+
+    private fun tryEvaluateNumericBinary(lhsValue: BigInteger, rhsValue: BigInteger, operator: PyElementType): Number? {
         val result = when (operator) {
             PyTokenTypes.FLOORDIV -> pythonDiv(lhsValue, rhsValue)
             PyTokenTypes.PERC -> pythonMod(lhsValue, rhsValue)
 
-            PyTokenTypes.EXP -> smallPow(lhsValue, rhsValue) ?: return null
+            PyTokenTypes.EXP -> smallPow(lhsValue, rhsValue)
 
             PyTokenTypes.AND -> lhsValue.and(rhsValue)
             PyTokenTypes.OR -> lhsValue.or(rhsValue)
             PyTokenTypes.XOR -> lhsValue.xor(rhsValue)
 
-            PyTokenTypes.LTLT -> smallShiftLeft(lhsValue, rhsValue) ?: return null
-            PyTokenTypes.GTGT -> smallShiftRight(lhsValue, rhsValue) ?: return null
+            PyTokenTypes.LTLT -> smallShiftLeft(lhsValue, rhsValue)
+            PyTokenTypes.GTGT -> smallShiftRight(lhsValue, rhsValue)
 
-            else -> return null
+            else -> null
         }
-        return fromBigInteger(result)
+        return result?.let { fromBigInteger(it) }
     }
 
     private fun tryEvaluatePrefixHere(expression: PyPrefixExpression): Any? {
@@ -113,10 +123,12 @@ class PyEvaluatorImproved : PyEvaluator() {
     }
 
     companion object {
+        private fun Boolean.toInt() = if (this) 1 else 0
+
         private fun asNumber(result: Any?): Number? =
             when (result) {
                 is Number -> result
-                is Boolean -> if (result) 1 else 0
+                is Boolean -> result.toInt()
                 else -> null
             }
 
