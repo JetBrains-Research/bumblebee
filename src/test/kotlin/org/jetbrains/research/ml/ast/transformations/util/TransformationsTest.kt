@@ -12,6 +12,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.research.ml.ast.util.FileTestUtil
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
+import org.jetbrains.research.ml.ast.util.ParametrizedBaseWithSdkTest
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.runners.Parameterized
@@ -19,7 +20,7 @@ import java.io.File
 import kotlin.reflect.KFunction
 
 @Ignore
-open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(testDataRoot) {
+open class TransformationsTest(testDataRoot: String) : ParametrizedBaseWithSdkTest(testDataRoot) {
     private lateinit var codeStyleManager: CodeStyleManager
 
     @JvmField
