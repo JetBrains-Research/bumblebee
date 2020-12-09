@@ -4,11 +4,12 @@ import com.intellij.psi.PsiElement
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyExpression
+import com.jetbrains.python.psi.PyFile
 import org.jetbrains.research.ml.ast.transformations.createBoolLiteralExpression
 import org.jetbrains.research.ml.ast.transformations.createExpressionFromNumber
 
-class ConstantFolder(private val generator: PyElementGenerator) {
-    private val evaluator = PyEvaluatorImproved()
+class ConstantFolder(private val generator: PyElementGenerator, file: PyFile) {
+    private val evaluator = PyEvaluatorImproved(file)
 
     fun simplifyAllSubexpressionsDelayed(element: PsiElement): () -> PsiElement {
         if (element is PyExpression) {

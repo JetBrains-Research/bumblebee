@@ -5,6 +5,7 @@ import com.jetbrains.python.psi.PyBinaryExpression
 import com.jetbrains.python.psi.PyBoolLiteralExpression
 import com.jetbrains.python.psi.PyElementType
 import com.jetbrains.python.psi.PyExpression
+import com.jetbrains.python.psi.PyFile
 import com.jetbrains.python.psi.PyKeyValueExpression
 import com.jetbrains.python.psi.PyListLiteralExpression
 import com.jetbrains.python.psi.PyLiteralExpression
@@ -15,14 +16,27 @@ import com.jetbrains.python.psi.PyReferenceExpression
 import com.jetbrains.python.psi.PySequenceExpression
 import com.jetbrains.python.psi.PyStringLiteralExpression
 import com.jetbrains.python.psi.PyTupleExpression
+import com.jetbrains.python.psi.impl.PyBuiltinCache
+import com.jetbrains.python.psi.types.PyType
+import com.jetbrains.python.psi.types.TypeEvalContext
 import java.math.BigInteger
+import kotlin.test.fail
 
-class PyEvaluatorImproved {
+class PyEvaluatorImproved(file: PyFile) {
     // Cache evaluation results to avoid re-evaluating the same expression twice
     private val evaluationResults: MutableMap<PyExpression?, EvaluationResult?> = mutableMapOf()
 
     // Also cache whether an expression can be proven to be pure (i. e. to not have side-effects)
     private val purityResults: MutableMap<PyExpression?, Boolean> = mutableMapOf()
+
+    private val typeEvalContext = TypeEvalContext.userInitiated(file.project, file)
+    private val builtinsCache = PyBuiltinCache.getInstance(file)
+    private val integerLikeTypes =
+        listOf(builtinsCache.intType ?: failNoSDK(), builtinsCache.boolType ?: failNoSDK())
+    private val onlyBoolType = listOf(builtinsCache.boolType ?: failNoSDK())
+
+    private fun failNoSDK(): Nothing =
+        fail("A working Python SDK is required to use PyEvaluatorImproved")
 
     interface EvaluationResult
     data class PyInt(val value: BigInteger) : EvaluationResult
@@ -69,6 +83,7 @@ class PyEvaluatorImproved {
             is PyStringLiteralExpression -> PyString(expression.stringValue)
             else -> null
         }
+            .also { extractListOfPlusTerms(expression) }
 
     private fun evaluateSequence(expression: PySequenceExpression): EvaluationResult =
         PySequence(expression.elements.toList(), PySequence.getKind(expression))
@@ -187,6 +202,71 @@ class PyEvaluatorImproved {
             else -> null
         }
         return result?.let { PyInt(it) }
+    }
+
+    private data class Operand(val result: EvaluationResult, val negate: Boolean)
+
+    private fun extractListOfPlusTerms(expression: PyExpression?): List<Operand>? =
+        extractListOfOperandsCommutativeImpl(
+            expression, integerLikeTypes, PyTokenTypes.PLUS, PyTokenTypes.MINUS, PyTokenTypes.PLUS, PyTokenTypes.MINUS
+        )
+
+    private fun extractListOfNumericOperandsCommutative(
+        expression: PyExpression?,
+        operator: PyElementType
+    ): List<EvaluationResult>? =
+        extractListOfOperandsCommutative(expression, operator, integerLikeTypes)
+
+    private fun extractListOfBooleanOperandsCommutative(
+        expression: PyExpression?,
+        operator: PyElementType
+    ): List<EvaluationResult>? =
+        extractListOfOperandsCommutative(expression, operator, onlyBoolType)
+
+    private fun extractListOfOperandsCommutative(
+        expression: PyExpression?,
+        operator: PyElementType,
+        allowedTypes: List<PyType>
+    ): List<EvaluationResult>? =
+        extractListOfOperandsCommutativeImpl(expression, allowedTypes, operator, null, null, null)
+            ?.map { it.result }
+
+    private fun extractListOfOperandsCommutativeImpl(
+        expression: PyExpression?,
+        allowedTypes: List<PyType>,
+        binaryPlus: PyElementType,
+        binaryMinus: PyElementType?,
+        unaryPlus: PyElementType?,
+        unaryMinus: PyElementType?
+    ): List<Operand>? {
+        fun extract(expression: PyExpression?, negate: Boolean): List<Operand>? {
+            when (expression) {
+                is PyParenthesizedExpression -> extract(expression.containedExpression, negate)
+                is PyBinaryExpression -> {
+                    val operator = expression.operator ?: return null
+                    if (operator == binaryMinus || operator == binaryPlus) {
+                        val lhsList = extract(expression.leftExpression, negate) ?: return null
+                        val rhsList = extract(expression.rightExpression, negate xor (operator == binaryMinus))
+                            ?: return null
+                        return lhsList + rhsList
+                    }
+                }
+                is PyPrefixExpression -> {
+                    val operator = expression.operator ?: return null
+                    if (operator == unaryMinus || operator == unaryPlus) {
+                        return extract(expression.operand, negate xor (operator == unaryMinus))
+                    }
+                }
+                else -> {
+                    val type = expression?.let { typeEvalContext.getType(it) }
+                    if (type in allowedTypes) {
+                        return evaluateOrGet(expression)?.let { listOf(Operand(it, negate)) }
+                    }
+                }
+            }
+            return null
+        }
+        return extract(expression, false)
     }
 
     companion object {
