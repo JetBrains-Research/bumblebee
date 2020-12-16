@@ -24,22 +24,17 @@ dependencies {
 
 intellij {
     type = "PC"
-    version = "2020.3"
+    version = "2020.2.3"
     downloadSources = false
-    setPlugins("PythonCore:203.5981.165")
+    setPlugins("PythonCore:202.7660.27")
 }
 
 configure<JavaPluginConvention> {
-    sourceCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_1_8
 }
 
-tasks {
-    compileKotlin {
-        kotlinOptions.jvmTarget = "11"
-    }
-    compileTestKotlin {
-        kotlinOptions.jvmTarget = "11"
-    }
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "1.8"
 }
 
 ktlint {

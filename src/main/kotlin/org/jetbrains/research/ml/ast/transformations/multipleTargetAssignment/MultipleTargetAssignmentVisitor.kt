@@ -5,8 +5,10 @@ import com.jetbrains.python.psi.PyElementVisitor
 import org.jetbrains.research.ml.ast.transformations.PyUtils
 
 class MultipleTargetAssignmentVisitor : PyElementVisitor() {
-    override fun visitPyAssignmentStatement(node: PyAssignmentStatement) {
-        processAssignment(node)
+    override fun visitPyAssignmentStatement(node: PyAssignmentStatement?) {
+        if (node != null) {
+            processAssignment(node)
+        }
         super.visitPyAssignmentStatement(node)
     }
 
