@@ -7,10 +7,8 @@ import com.jetbrains.python.psi.PyElementVisitor
 import org.jetbrains.research.ml.ast.transformations.PyUtils
 
 internal class MultipleOperatorComparisonVisitor : PyElementVisitor() {
-    override fun visitPyBinaryExpression(node: PyBinaryExpression?) {
-        if (node != null) {
-            handleBinaryExpression(node)
-        }
+    override fun visitPyBinaryExpression(node: PyBinaryExpression) {
+        handleBinaryExpression(node)
         super.visitPyBinaryExpression(node)
     }
 

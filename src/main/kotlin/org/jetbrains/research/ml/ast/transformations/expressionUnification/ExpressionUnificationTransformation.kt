@@ -15,7 +15,7 @@ class ExpressionUnificationTransformation : Transformation {
 
         val binaryExpressions = PsiTreeUtil.collectElementsOfType(psiTree, PyBinaryExpression::class.java)
         val ancestors = PsiTreeUtil.filterAncestors(binaryExpressions.toTypedArray())
-        val typeEvalContext = TypeEvalContext.codeAnalysis(psiTree.project, psiTree as? PsiFile)
+        val typeEvalContext = TypeEvalContext.userInitiated(psiTree.project, psiTree as? PsiFile)
         val visitor = ExpressionUnificationVisitor(typeEvalContext)
         for (psiElement in ancestors) {
             psiElement.accept(visitor)

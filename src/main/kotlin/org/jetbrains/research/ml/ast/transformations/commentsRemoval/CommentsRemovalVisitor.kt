@@ -14,11 +14,9 @@ class CommentsRemovalVisitor : PyElementVisitor() {
         super.visitComment(comment)
     }
 
-    override fun visitPyStringLiteralExpression(node: PyStringLiteralExpression?) {
-        if (node != null) {
-            if (node.isDocString || node.isTripleQuotedString) {
-                node.delete()
-            }
+    override fun visitPyStringLiteralExpression(node: PyStringLiteralExpression) {
+        if (node.isDocString || node.isTripleQuotedString) {
+            node.delete()
         }
         super.visitPyStringLiteralExpression(node)
     }

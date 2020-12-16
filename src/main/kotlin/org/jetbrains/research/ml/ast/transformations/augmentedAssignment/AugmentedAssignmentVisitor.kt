@@ -5,10 +5,8 @@ import com.jetbrains.python.psi.PyElementVisitor
 import org.jetbrains.research.ml.ast.transformations.PyUtils
 
 internal class AugmentedAssignmentVisitor : PyElementVisitor() {
-    override fun visitPyAugAssignmentStatement(node: PyAugAssignmentStatement?) {
-        if (node != null) {
-            handleAugAssignment(node)
-        }
+    override fun visitPyAugAssignmentStatement(node: PyAugAssignmentStatement) {
+        handleAugAssignment(node)
         super.visitPyAugAssignmentStatement(node)
     }
 

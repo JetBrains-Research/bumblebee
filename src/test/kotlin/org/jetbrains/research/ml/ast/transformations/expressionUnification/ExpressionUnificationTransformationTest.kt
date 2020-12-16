@@ -1,13 +1,13 @@
 package org.jetbrains.research.ml.ast.transformations.expressionUnification
 
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestWithSdk
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
 class ExpressionUnificationTransformationTest :
-    TransformationsTest(getResourcesRootPath(::ExpressionUnificationTransformationTest)) {
+    TransformationsTestWithSdk(getResourcesRootPath(::ExpressionUnificationTransformationTest)) {
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
