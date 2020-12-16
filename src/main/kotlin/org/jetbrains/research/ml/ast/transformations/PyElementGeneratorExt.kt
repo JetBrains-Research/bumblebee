@@ -4,6 +4,7 @@ import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.PyBoolLiteralExpression
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyExpression
+import com.jetbrains.python.psi.PyPrefixExpression
 
 // TODO: merge this file with PyUtils?
 private val defaultLanguageLevel = LanguageLevel.getDefault()
@@ -18,4 +19,21 @@ fun PyElementGenerator.createBoolLiteralExpression(value: Boolean): PyBoolLitera
  */
 fun PyElementGenerator.createExpressionFromNumber(value: Number): PyExpression {
     return createExpressionFromText(defaultLanguageLevel, value.toString())
+}
+
+fun PyElementGenerator.createBinaryOperandList(operator: String, operands: List<PyExpression>): PyExpression {
+    require(operands.isNotEmpty()) { "operands list should not be empty" }
+    // TODO: deal with parentheses here?
+    return if (operands.size == 1) {
+        operands.single()
+    } else {
+        val rhs = createBinaryOperandList(operator, operands.drop(1))
+        createBinaryExpression(operator, operands.first(), rhs)
+    }
+}
+
+fun PyElementGenerator.createPrefixExpression(operator: String, operand: PyExpression): PyPrefixExpression {
+    val prefixExpression = createExpressionFromText(defaultLanguageLevel, "$operator 1") as PyPrefixExpression
+    prefixExpression.operand!!.replace(operand)
+    return prefixExpression
 }

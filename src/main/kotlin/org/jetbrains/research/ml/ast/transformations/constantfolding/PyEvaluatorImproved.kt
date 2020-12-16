@@ -20,7 +20,6 @@ import com.jetbrains.python.psi.impl.PyBuiltinCache
 import com.jetbrains.python.psi.types.PyType
 import com.jetbrains.python.psi.types.TypeEvalContext
 import java.math.BigInteger
-import kotlin.math.exp
 import kotlin.test.fail
 
 class PyEvaluatorImproved(file: PyFile) {
@@ -57,11 +56,12 @@ class PyEvaluatorImproved(file: PyFile) {
     }
 
     data class PyOperandSequence(
+        val operator: PyElementType,
         val evaluatedValue: EvaluationResult?,
-        val unevaluatedAtoms: List<TransformedPyExpression>
+        val unevaluatedAtoms: List<PossiblyNegatedExpression>
     ) : EvaluationResult
 
-    data class TransformedPyExpression(val expression: PyExpression, val transformation: (PyExpression) -> PyExpression)
+    data class PossiblyNegatedExpression(val expression: PyExpression, val needsUnaryMinus: Boolean)
 
     fun evaluate(expression: PyExpression?): EvaluationResult? =
         evaluationResults.getOrPut(expression) { evaluateNoCache(expression) }
@@ -215,23 +215,30 @@ class PyEvaluatorImproved(file: PyFile) {
     }
 
     private fun evaluateBinaryAsOperandList(expression: PyBinaryExpression): EvaluationResult? {
-        fun presentEvaluatedValue(value: Any?): EvaluationResult? {
-            // TODO
-        }
-
-        fun <Acc> presentSimpleResult(result: Pair<Acc, List<PyExpression>>, initAcc: Acc): EvaluationResult {
-            val evaluatedValue = when (val value = result.first?.takeIf { it != initAcc }) {
+        fun presentEvaluatedValue(value: Any?): EvaluationResult? =
+            when (value) {
                 is BigInteger -> PyInt(value)
                 is Boolean -> PyBool(value)
                 null -> null
                 else -> fail("Acc should be either BigInteger or Boolean")
             }
-            return PyOperandSequence(evaluatedValue, result.second.map { expression ->
-                TransformedPyExpression(expression) { it }
-            })
+
+        fun <Acc> presentSimpleResult(
+            operator: PyElementType,
+            result: Pair<Acc, List<PyExpression>>,
+            initAcc: Acc
+        ): EvaluationResult {
+            return PyOperandSequence(
+                operator,
+                presentEvaluatedValue(result.first).takeIf { it != initAcc },
+                result.second.map {
+                    PossiblyNegatedExpression(it, false)
+                })
         }
 
-        when (expression.operator) {
+        val operator = expression.operator ?: return null
+
+        when (operator) {
             PyTokenTypes.MULT -> extractListOfBigIntegerOperandsCommutative(
                 expression, PyTokenTypes.MULT, { a, b -> a.multiply(b) }, BigInteger.ONE
             )?.let { it to BigInteger.ONE }
@@ -245,9 +252,9 @@ class PyEvaluatorImproved(file: PyFile) {
                 expression, PyTokenTypes.XOR, { a, b -> a.xor(b) }, BigInteger.ZERO
             )?.let { it to BigInteger.ZERO }
             else -> null
-        }?.let { return presentSimpleResult(it.first, it.second) }
+        }?.let { return presentSimpleResult(operator, it.first, it.second) }
 
-        when (expression.operator) {
+        when (operator) {
             PyTokenTypes.AND_KEYWORD -> extractListOfBooleanOperandsCommutative(
                 expression, PyTokenTypes.AND_KEYWORD, { a, b -> a && b }, true
             )?.let { it to true }
@@ -255,11 +262,15 @@ class PyEvaluatorImproved(file: PyFile) {
                 expression, PyTokenTypes.OR_KEYWORD, { a, b -> a || b }, false
             )?.let { it to false }
             else -> null
-        }?.let { return presentSimpleResult(it.first, it.second) }
+        }?.let { return presentSimpleResult(operator, it.first, it.second) }
 
         if (expression.operator == PyTokenTypes.PLUS || expression.operator == PyTokenTypes.MINUS) {
             val (evaluatedValue, unevaluatedAtoms) = extractListOfPlusTerms(expression) ?: return null
-            return PyOperandSequence(evaluatedValue.takeIf { it != BigInteger.ZERO}, )
+            return PyOperandSequence(PyTokenTypes.PLUS,
+                presentEvaluatedValue(evaluatedValue).takeIf { it != BigInteger.ZERO },
+                unevaluatedAtoms.map {
+                    PossiblyNegatedExpression(it.expression, it.negate)
+                })
         }
 
         return null
@@ -298,7 +309,7 @@ class PyEvaluatorImproved(file: PyFile) {
         initAcc: Boolean
     ): Pair<Boolean, List<PyExpression>>? =
         extractListOfOperandsCommutative(
-            expression, operator, binaryOp, initAcc, ::evaluateAsPureBoolean, onlyBoolType
+            expression, operator, binaryOp, initAcc, ::evaluateAsBooleanNoCast, onlyBoolType
         )
 
     private fun <Acc> extractListOfOperandsCommutative(
