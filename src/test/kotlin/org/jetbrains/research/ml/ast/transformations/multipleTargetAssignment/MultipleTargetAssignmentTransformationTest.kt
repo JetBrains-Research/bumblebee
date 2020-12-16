@@ -1,5 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment
 
+import org.jetbrains.research.ml.ast.transformations.util.BaseTransformationsTestHelper.Companion.getInAndOutArray
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -10,7 +11,7 @@ class MultipleTargetAssignmentTransformationTest : TransformationsTest(getResour
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
-        fun getTestData() = getInAndOutArray(::MultipleTargetAssignmentTransformationTest)
+        fun getTestData() = getInAndOutArray(::MultipleTargetAssignmentTransformationTest, resourcesRoot)
     }
 
     @Test

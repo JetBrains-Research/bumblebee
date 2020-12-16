@@ -1,5 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations.expressionUnification
 
+import org.jetbrains.research.ml.ast.transformations.util.BaseTransformationsTestHelper.Companion.getInAndOutArray
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestWithSdk
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -11,7 +12,7 @@ class ExpressionUnificationTransformationTest :
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
-        fun getTestData() = getInAndOutArray(::ExpressionUnificationTransformationTest)
+        fun getTestData() = getInAndOutArray(::ExpressionUnificationTransformationTest, resourcesRoot)
     }
 
     @Test
