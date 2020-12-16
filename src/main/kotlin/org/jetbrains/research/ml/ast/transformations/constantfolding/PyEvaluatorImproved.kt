@@ -20,6 +20,7 @@ import com.jetbrains.python.psi.impl.PyBuiltinCache
 import com.jetbrains.python.psi.types.PyType
 import com.jetbrains.python.psi.types.TypeEvalContext
 import java.math.BigInteger
+import kotlin.math.exp
 import kotlin.test.fail
 
 class PyEvaluatorImproved(file: PyFile) {
@@ -55,6 +56,13 @@ class PyEvaluatorImproved(file: PyFile) {
         }
     }
 
+    data class PyOperandSequence(
+        val evaluatedValue: EvaluationResult?,
+        val unevaluatedAtoms: List<TransformedPyExpression>
+    ) : EvaluationResult
+
+    data class TransformedPyExpression(val expression: PyExpression, val transformation: (PyExpression) -> PyExpression)
+
     fun evaluate(expression: PyExpression?): EvaluationResult? =
         evaluationResults.getOrPut(expression) { evaluateNoCache(expression) }
 
@@ -83,12 +91,14 @@ class PyEvaluatorImproved(file: PyFile) {
             is PyStringLiteralExpression -> PyString(expression.stringValue)
             else -> null
         }
-            .also { extractListOfPlusTerms(expression) }
 
     private fun evaluateSequence(expression: PySequenceExpression): EvaluationResult =
         PySequence(expression.elements.toList(), PySequence.getKind(expression))
 
-    private fun evaluateBinary(expression: PyBinaryExpression): EvaluationResult? {
+    private fun evaluateBinary(expression: PyBinaryExpression): EvaluationResult? =
+        evaluateBinarySimple(expression) ?: evaluateBinaryAsOperandList(expression)
+
+    private fun evaluateBinarySimple(expression: PyBinaryExpression): EvaluationResult? {
         val lhs = evaluateOrGet(expression.leftExpression) ?: return null
         val rhs = evaluateOrGet(expression.rightExpression) ?: return null
         val operator = expression.operator ?: return null
@@ -204,69 +214,165 @@ class PyEvaluatorImproved(file: PyFile) {
         return result?.let { PyInt(it) }
     }
 
-    private data class Operand(val result: EvaluationResult, val negate: Boolean)
+    private fun evaluateBinaryAsOperandList(expression: PyBinaryExpression): EvaluationResult? {
+        fun presentEvaluatedValue(value: Any?): EvaluationResult? {
+            // TODO
+        }
 
-    private fun extractListOfPlusTerms(expression: PyExpression?): List<Operand>? =
+        fun <Acc> presentSimpleResult(result: Pair<Acc, List<PyExpression>>, initAcc: Acc): EvaluationResult {
+            val evaluatedValue = when (val value = result.first?.takeIf { it != initAcc }) {
+                is BigInteger -> PyInt(value)
+                is Boolean -> PyBool(value)
+                null -> null
+                else -> fail("Acc should be either BigInteger or Boolean")
+            }
+            return PyOperandSequence(evaluatedValue, result.second.map { expression ->
+                TransformedPyExpression(expression) { it }
+            })
+        }
+
+        when (expression.operator) {
+            PyTokenTypes.MULT -> extractListOfBigIntegerOperandsCommutative(
+                expression, PyTokenTypes.MULT, { a, b -> a.multiply(b) }, BigInteger.ONE
+            )?.let { it to BigInteger.ONE }
+            PyTokenTypes.AND -> extractListOfBigIntegerOperandsCommutative(
+                expression, PyTokenTypes.AND, { a, b -> a.and(b) }, BigInteger.ONE.unaryMinus()
+            )?.let { it to BigInteger.ONE.unaryMinus() }
+            PyTokenTypes.OR -> extractListOfBigIntegerOperandsCommutative(
+                expression, PyTokenTypes.OR, { a, b -> a.or(b) }, BigInteger.ZERO
+            )?.let { it to BigInteger.ZERO }
+            PyTokenTypes.XOR -> extractListOfBigIntegerOperandsCommutative(
+                expression, PyTokenTypes.XOR, { a, b -> a.xor(b) }, BigInteger.ZERO
+            )?.let { it to BigInteger.ZERO }
+            else -> null
+        }?.let { return presentSimpleResult(it.first, it.second) }
+
+        when (expression.operator) {
+            PyTokenTypes.AND_KEYWORD -> extractListOfBooleanOperandsCommutative(
+                expression, PyTokenTypes.AND_KEYWORD, { a, b -> a && b }, true
+            )?.let { it to true }
+            PyTokenTypes.OR_KEYWORD -> extractListOfBooleanOperandsCommutative(
+                expression, PyTokenTypes.OR_KEYWORD, { a, b -> a || b }, false
+            )?.let { it to false }
+            else -> null
+        }?.let { return presentSimpleResult(it.first, it.second) }
+
+        if (expression.operator == PyTokenTypes.PLUS || expression.operator == PyTokenTypes.MINUS) {
+            val (evaluatedValue, unevaluatedAtoms) = extractListOfPlusTerms(expression) ?: return null
+            return PyOperandSequence(evaluatedValue.takeIf { it != BigInteger.ZERO}, )
+        }
+
+        return null
+    }
+
+    private data class UnevaluatedAtom(val expression: PyExpression, val negate: Boolean)
+
+    private fun extractListOfPlusTerms(expression: PyExpression?): Pair<BigInteger, List<UnevaluatedAtom>>? =
         extractListOfOperandsCommutativeImpl(
-            expression, integerLikeTypes, PyTokenTypes.PLUS, PyTokenTypes.MINUS, PyTokenTypes.PLUS, PyTokenTypes.MINUS
+            expression,
+            BigInteger.ZERO,
+            { a, b -> a.plus(b) },
+            { x -> x.unaryMinus() },
+            ::evaluateAsBigInteger,
+            integerLikeTypes,
+            PyTokenTypes.PLUS,
+            PyTokenTypes.MINUS,
+            PyTokenTypes.PLUS,
+            PyTokenTypes.MINUS
         )
 
-    private fun extractListOfNumericOperandsCommutative(
+    private fun extractListOfBigIntegerOperandsCommutative(
         expression: PyExpression?,
-        operator: PyElementType
-    ): List<EvaluationResult>? =
-        extractListOfOperandsCommutative(expression, operator, integerLikeTypes)
+        operator: PyElementType,
+        binaryOp: (BigInteger, BigInteger) -> BigInteger,
+        initAcc: BigInteger
+    ): Pair<BigInteger, List<PyExpression>>? =
+        extractListOfOperandsCommutative(
+            expression, operator, binaryOp, initAcc, ::evaluateAsBigInteger, integerLikeTypes
+        )
 
     private fun extractListOfBooleanOperandsCommutative(
         expression: PyExpression?,
-        operator: PyElementType
-    ): List<EvaluationResult>? =
-        extractListOfOperandsCommutative(expression, operator, onlyBoolType)
+        operator: PyElementType,
+        binaryOp: (Boolean, Boolean) -> Boolean,
+        initAcc: Boolean
+    ): Pair<Boolean, List<PyExpression>>? =
+        extractListOfOperandsCommutative(
+            expression, operator, binaryOp, initAcc, ::evaluateAsPureBoolean, onlyBoolType
+        )
 
-    private fun extractListOfOperandsCommutative(
+    private fun <Acc> extractListOfOperandsCommutative(
         expression: PyExpression?,
         operator: PyElementType,
+        binaryOp: (Acc, Acc) -> Acc,
+        initAcc: Acc,
+        evaluateAtom: (PyExpression) -> Acc?,
         allowedTypes: List<PyType>
-    ): List<EvaluationResult>? =
-        extractListOfOperandsCommutativeImpl(expression, allowedTypes, operator, null, null, null)
-            ?.map { it.result }
+    ): Pair<Acc, List<PyExpression>>? =
+        extractListOfOperandsCommutativeImpl(
+            expression, initAcc, binaryOp, null, evaluateAtom, allowedTypes, operator,
+            null, null, null
+        )?.let { (finalAcc, unevaluatedOperands) ->
+            Pair(finalAcc, unevaluatedOperands.map { it.expression })
+        }
 
-    private fun extractListOfOperandsCommutativeImpl(
+    private fun evaluateAsBigInteger(expression: PyExpression): BigInteger? =
+        asBigInteger(evaluate(expression))
+
+    private fun evaluateAsBooleanNoCast(expression: PyExpression): Boolean? =
+        (evaluate(expression) as? PyBool)?.value
+
+    private fun <Acc> extractListOfOperandsCommutativeImpl(
         expression: PyExpression?,
+        initAcc: Acc,
+        binaryOp: (Acc, Acc) -> Acc,
+        negateOp: ((Acc) -> Acc)?,
+        evaluateAtom: (PyExpression) -> Acc?,
         allowedTypes: List<PyType>,
         binaryPlus: PyElementType,
         binaryMinus: PyElementType?,
         unaryPlus: PyElementType?,
         unaryMinus: PyElementType?
-    ): List<Operand>? {
-        fun extract(expression: PyExpression?, negate: Boolean): List<Operand>? {
+    ): Pair<Acc, List<UnevaluatedAtom>>? {
+        var acc = initAcc
+        val unevaluatedAtoms = mutableListOf<UnevaluatedAtom>()
+        fun extract(expression: PyExpression?, negate: Boolean): Boolean {
+            if (expression == null) return false
             when (expression) {
                 is PyParenthesizedExpression -> extract(expression.containedExpression, negate)
                 is PyBinaryExpression -> {
-                    val operator = expression.operator ?: return null
+                    val operator = expression.operator
                     if (operator == binaryMinus || operator == binaryPlus) {
-                        val lhsList = extract(expression.leftExpression, negate) ?: return null
-                        val rhsList = extract(expression.rightExpression, negate xor (operator == binaryMinus))
-                            ?: return null
-                        return lhsList + rhsList
+                        return extract(expression.leftExpression, negate) &&
+                            extract(expression.rightExpression, negate xor (operator == binaryMinus))
                     }
                 }
                 is PyPrefixExpression -> {
-                    val operator = expression.operator ?: return null
+                    val operator = expression.operator
                     if (operator == unaryMinus || operator == unaryPlus) {
                         return extract(expression.operand, negate xor (operator == unaryMinus))
                     }
                 }
                 else -> {
-                    val type = expression?.let { typeEvalContext.getType(it) }
+                    evaluateAtom(expression)?.let { value ->
+                        val realValue = if (negate) negateOp!!(value) else value
+                        acc = binaryOp(acc, realValue)
+                        return true
+                    }
+                    val type = typeEvalContext.getType(expression)
                     if (type in allowedTypes) {
-                        return evaluateOrGet(expression)?.let { listOf(Operand(it, negate)) }
+                        unevaluatedAtoms.add(UnevaluatedAtom(expression, negate))
+                        return true
                     }
                 }
             }
-            return null
+            return false
         }
-        return extract(expression, false)
+        return if (extract(expression, false)) {
+            Pair(acc, unevaluatedAtoms)
+        } else {
+            null
+        }
     }
 
     companion object {
