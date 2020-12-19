@@ -17,33 +17,54 @@ import com.jetbrains.python.psi.PySequenceExpression
 import com.jetbrains.python.psi.PyStringLiteralExpression
 import com.jetbrains.python.psi.PyTupleExpression
 import com.jetbrains.python.psi.impl.PyBuiltinCache
-import com.jetbrains.python.psi.types.PyType
 import com.jetbrains.python.psi.types.TypeEvalContext
 import java.math.BigInteger
 import kotlin.test.fail
 
 class PyEvaluatorImproved(file: PyFile) {
     // Cache evaluation results to avoid re-evaluating the same expression twice
-    private val evaluationResults: MutableMap<PyExpression?, EvaluationResult?> = mutableMapOf()
+    private val evaluationResults: MutableMap<PyExpression?, PyEvaluationResult?> = mutableMapOf()
 
     // Also cache whether an expression can be proven to be pure (i. e. to not have side-effects)
     private val purityResults: MutableMap<PyExpression?, Boolean> = mutableMapOf()
 
     private val typeEvalContext = TypeEvalContext.userInitiated(file.project, file)
     private val builtinsCache = PyBuiltinCache.getInstance(file)
-    private val integerLikeTypes =
-        listOf(builtinsCache.intType ?: failNoSDK(), builtinsCache.boolType ?: failNoSDK())
-    private val onlyBoolType = listOf(builtinsCache.boolType ?: failNoSDK())
+    private val boolType = builtinsCache.boolType ?: failNoSDK()
+    private val integerLikeTypes = listOf(builtinsCache.intType ?: failNoSDK(), boolType)
 
     private fun failNoSDK(): Nothing =
         fail("A working Python SDK is required to use PyEvaluatorImproved")
 
-    interface EvaluationResult
-    data class PyInt(val value: BigInteger) : EvaluationResult
-    data class PyBool(val value: Boolean) : EvaluationResult
-    data class PyExpressionResult(val expression: PyExpression) : EvaluationResult
-    data class PyString(val string: String) : EvaluationResult
-    data class PySequence(val elements: List<PyExpression>, val kind: PySequenceKind?) : EvaluationResult {
+    interface PyEvaluationResult
+    interface PyIntLike : PyEvaluationResult {
+        val bigIntegerValue: BigInteger
+    }
+
+    data class PyInt(val value: BigInteger) : PyIntLike {
+        override val bigIntegerValue: BigInteger
+            get() = value
+
+        companion object {
+            val ZERO = PyInt(BigInteger.ZERO)
+            val ONE = PyInt(BigInteger.ONE)
+            val MINUS_ONE = PyInt(BigInteger.ONE.unaryMinus())
+        }
+    }
+
+    data class PyBool(val value: Boolean) : PyIntLike {
+        override val bigIntegerValue: BigInteger
+            get() = if (value) BigInteger.ONE else BigInteger.ZERO
+
+        companion object {
+            val TRUE = PyBool(true)
+            val FALSE = PyBool(false)
+        }
+    }
+
+    data class PyExpressionResult(val expression: PyExpression) : PyEvaluationResult
+    data class PyString(val string: String) : PyEvaluationResult
+    data class PySequence(val elements: List<PyExpression>, val kind: PySequenceKind?) : PyEvaluationResult {
         enum class PySequenceKind { LIST, TUPLE }
         companion object {
             fun getKind(expression: PySequenceExpression): PySequenceKind? =
@@ -56,20 +77,20 @@ class PyEvaluatorImproved(file: PyFile) {
     }
 
     data class PyOperandSequence(
-        val operator: PyElementType,
-        val evaluatedValue: EvaluationResult?,
+        val operator: String,
+        val evaluatedValue: PyIntLike?,
         val unevaluatedAtoms: List<PossiblyNegatedExpression>
-    ) : EvaluationResult
+    ) : PyEvaluationResult
 
-    data class PossiblyNegatedExpression(val expression: PyExpression, val needsUnaryMinus: Boolean)
+    data class PossiblyNegatedExpression(val expression: PyExpression, val negate: Boolean)
 
-    fun evaluate(expression: PyExpression?): EvaluationResult? =
+    fun evaluate(expression: PyExpression?): PyEvaluationResult? =
         evaluationResults.getOrPut(expression) { evaluateNoCache(expression) }
 
-    private fun evaluateOrGet(expression: PyExpression?): EvaluationResult? =
+    private fun evaluateOrGet(expression: PyExpression?): PyEvaluationResult? =
         evaluate(expression) ?: expression?.let { PyExpressionResult(it) }
 
-    private fun evaluateNoCache(expression: PyExpression?): EvaluationResult? =
+    private fun evaluateNoCache(expression: PyExpression?): PyEvaluationResult? =
         try {
             when (expression) {
                 is PyParenthesizedExpression -> evaluate(expression.containedExpression)
@@ -78,12 +99,12 @@ class PyEvaluatorImproved(file: PyFile) {
                 is PyBinaryExpression -> evaluateBinary(expression)
                 is PyPrefixExpression -> evaluatePrefix(expression)
                 else -> null
-            }
+            } ?: evaluateAsOperandSequence(expression)
         } catch (_: ArithmeticException) {
             null
         }
 
-    private fun evaluateLiteral(expression: PyLiteralExpression): EvaluationResult? =
+    private fun evaluateLiteral(expression: PyLiteralExpression): PyEvaluationResult? =
         when (expression) {
             is PyBoolLiteralExpression -> PyBool(expression.value)
             is PyNumericLiteralExpression ->
@@ -92,13 +113,10 @@ class PyEvaluatorImproved(file: PyFile) {
             else -> null
         }
 
-    private fun evaluateSequence(expression: PySequenceExpression): EvaluationResult =
+    private fun evaluateSequence(expression: PySequenceExpression): PyEvaluationResult =
         PySequence(expression.elements.toList(), PySequence.getKind(expression))
 
-    private fun evaluateBinary(expression: PyBinaryExpression): EvaluationResult? =
-        evaluateBinarySimple(expression) ?: evaluateBinaryAsOperandList(expression)
-
-    private fun evaluateBinarySimple(expression: PyBinaryExpression): EvaluationResult? {
+    private fun evaluateBinary(expression: PyBinaryExpression): PyEvaluationResult? {
         val lhs = evaluateOrGet(expression.leftExpression) ?: return null
         val rhs = evaluateOrGet(expression.rightExpression) ?: return null
         val operator = expression.operator ?: return null
@@ -128,13 +146,11 @@ class PyEvaluatorImproved(file: PyFile) {
             }
         }
 
-        val lhsValue = asBigInteger(lhs) ?: return null
-        val rhsValue = asBigInteger(rhs) ?: return null
-        return tryEvaluateBinaryAsNumber(lhsValue, rhsValue, operator)?.let { PyInt(it) }
-            ?: tryEvaluateBinaryAsBoolean(lhsValue, rhsValue, operator)?.let { PyBool(it) }
+        if (lhs !is PyIntLike || rhs !is PyIntLike) return null
+        return evaluateBinaryIntLike(lhs, rhs, operator)
     }
 
-    private fun tryConcatenateSequences(lhs: EvaluationResult, rhs: EvaluationResult): EvaluationResult? {
+    private fun tryConcatenateSequences(lhs: PyEvaluationResult, rhs: PyEvaluationResult): PyEvaluationResult? {
         if (lhs is PyString && rhs is PyString) {
             return PyString(lhs.string + rhs.string)
         }
@@ -165,39 +181,48 @@ class PyEvaluatorImproved(file: PyFile) {
             }
         }
 
-    private fun tryEvaluateBinaryAsNumber(lhs: BigInteger, rhs: BigInteger, operator: PyElementType): BigInteger? =
+    private fun evaluateBinaryIntLike(lhs: PyIntLike, rhs: PyIntLike, operator: PyElementType): PyIntLike? {
+        val lhsValue = lhs.bigIntegerValue
+        val rhsValue = rhs.bigIntegerValue
+
+        // Operators always returning an int:
         when (operator) {
-            PyTokenTypes.PLUS -> lhs.plus(rhs)
-            PyTokenTypes.MINUS -> lhs.minus(rhs)
-            PyTokenTypes.MULT -> lhs.multiply(rhs)
+            PyTokenTypes.PLUS -> lhsValue.plus(rhsValue)
+            PyTokenTypes.MINUS -> lhsValue.minus(rhsValue)
+            PyTokenTypes.MULT -> lhsValue.multiply(rhsValue)
 
-            PyTokenTypes.FLOORDIV -> pythonDiv(lhs, rhs)
-            PyTokenTypes.PERC -> pythonMod(lhs, rhs)
+            PyTokenTypes.FLOORDIV -> pythonDiv(lhsValue, rhsValue)
+            PyTokenTypes.PERC -> pythonMod(lhsValue, rhsValue)
 
-            PyTokenTypes.EXP -> smallPow(lhs, rhs)
+            PyTokenTypes.EXP -> smallPow(lhsValue, rhsValue)
 
-            PyTokenTypes.AND -> lhs.and(rhs)
-            PyTokenTypes.OR -> lhs.or(rhs)
-            PyTokenTypes.XOR -> lhs.xor(rhs)
-
-            PyTokenTypes.LTLT -> smallShiftLeft(lhs, rhs)
-            PyTokenTypes.GTGT -> smallShiftRight(lhs, rhs)
+            PyTokenTypes.LTLT -> smallShiftLeft(lhsValue, rhsValue)
+            PyTokenTypes.GTGT -> smallShiftRight(lhsValue, rhsValue)
 
             else -> null
-        }
+        }?.let { return PyInt(it) }
 
-    private fun tryEvaluateBinaryAsBoolean(lhs: BigInteger, rhs: BigInteger, operator: PyElementType): Boolean? =
+        // Operators always returning a bool ("and"/"or" are handled separately with partial evaluation):
         when (operator) {
-            PyTokenTypes.LT -> lhs < rhs
-            PyTokenTypes.LE -> lhs <= rhs
-            PyTokenTypes.GT -> lhs > rhs
-            PyTokenTypes.GE -> lhs >= rhs
-            PyTokenTypes.EQEQ -> lhs == rhs
-            PyTokenTypes.NE -> lhs != rhs
+            PyTokenTypes.LT -> lhsValue < rhsValue
+            PyTokenTypes.LE -> lhsValue <= rhsValue
+            PyTokenTypes.GT -> lhsValue > rhsValue
+            PyTokenTypes.GE -> lhsValue >= rhsValue
+            PyTokenTypes.EQEQ -> lhsValue == rhsValue
+            PyTokenTypes.NE -> lhsValue != rhsValue
             else -> null
-        }
+        }?.let { return PyBool(it) }
 
-    private fun evaluatePrefix(expression: PyPrefixExpression): EvaluationResult? {
+        // Operators returning bool iff both operands are bools:
+        return when (operator) {
+            PyTokenTypes.AND -> lhsValue.and(rhsValue)
+            PyTokenTypes.OR -> lhsValue.or(rhsValue)
+            PyTokenTypes.XOR -> lhsValue.xor(rhsValue)
+            else -> null
+        }?.let { PyInt(it).takeUnless { lhs is PyBool && rhs is PyBool } ?: PyBool(it != BigInteger.ZERO) }
+    }
+
+    private fun evaluatePrefix(expression: PyPrefixExpression): PyEvaluationResult? {
         val operand = expression.operand ?: return null
         val operator = expression.operator
 
@@ -205,7 +230,7 @@ class PyEvaluatorImproved(file: PyFile) {
             return evaluateAsPureBoolean(operand)?.let { PyBool(!it) }
         }
 
-        val operandValue = asBigInteger(evaluate(operand)) ?: return null
+        val operandValue = (evaluate(operand) as? PyIntLike)?.bigIntegerValue ?: return null
         val result = when (operator) {
             PyTokenTypes.MINUS -> operandValue.negate()
             PyTokenTypes.TILDE -> operandValue.not()
@@ -214,187 +239,86 @@ class PyEvaluatorImproved(file: PyFile) {
         return result?.let { PyInt(it) }
     }
 
-    private fun evaluateBinaryAsOperandList(expression: PyBinaryExpression): EvaluationResult? {
-        fun presentEvaluatedValue(value: Any?): EvaluationResult? =
-            when (value) {
-                is BigInteger -> PyInt(value)
-                is Boolean -> PyBool(value)
-                null -> null
-                else -> fail("Acc should be either BigInteger or Boolean")
-            }
-
-        fun <Acc> presentSimpleResult(
-            operator: PyElementType,
-            result: Pair<Acc, List<PyExpression>>,
-            initAcc: Acc
-        ): EvaluationResult {
-            return PyOperandSequence(
-                operator,
-                presentEvaluatedValue(result.first).takeIf { it != initAcc },
-                result.second.map {
-                    PossiblyNegatedExpression(it, false)
-                })
-        }
-
-        val operator = expression.operator ?: return null
-
-        when (operator) {
-            PyTokenTypes.MULT -> extractListOfBigIntegerOperandsCommutative(
-                expression, PyTokenTypes.MULT, { a, b -> a.multiply(b) }, BigInteger.ONE
-            )?.let { it to BigInteger.ONE }
-            PyTokenTypes.AND -> extractListOfBigIntegerOperandsCommutative(
-                expression, PyTokenTypes.AND, { a, b -> a.and(b) }, BigInteger.ONE.unaryMinus()
-            )?.let { it to BigInteger.ONE.unaryMinus() }
-            PyTokenTypes.OR -> extractListOfBigIntegerOperandsCommutative(
-                expression, PyTokenTypes.OR, { a, b -> a.or(b) }, BigInteger.ZERO
-            )?.let { it to BigInteger.ZERO }
-            PyTokenTypes.XOR -> extractListOfBigIntegerOperandsCommutative(
-                expression, PyTokenTypes.XOR, { a, b -> a.xor(b) }, BigInteger.ZERO
-            )?.let { it to BigInteger.ZERO }
+    private fun evaluateAsOperandSequence(expression: PyExpression?): PyOperandSequence? {
+        val operator = when (expression) {
+            is PyBinaryExpression -> expression.operator
+            is PyPrefixExpression -> expression.operator
             else -> null
-        }?.let { return presentSimpleResult(operator, it.first, it.second) }
-
-        when (operator) {
-            PyTokenTypes.AND_KEYWORD -> extractListOfBooleanOperandsCommutative(
-                expression, PyTokenTypes.AND_KEYWORD, { a, b -> a && b }, true
-            )?.let { it to true }
-            PyTokenTypes.OR_KEYWORD -> extractListOfBooleanOperandsCommutative(
-                expression, PyTokenTypes.OR_KEYWORD, { a, b -> a || b }, false
-            )?.let { it to false }
-            else -> null
-        }?.let { return presentSimpleResult(operator, it.first, it.second) }
-
-        if (expression.operator == PyTokenTypes.PLUS || expression.operator == PyTokenTypes.MINUS) {
-            val (evaluatedValue, unevaluatedAtoms) = extractListOfPlusTerms(expression) ?: return null
-            return PyOperandSequence(PyTokenTypes.PLUS,
-                presentEvaluatedValue(evaluatedValue).takeIf { it != BigInteger.ZERO },
-                unevaluatedAtoms.map {
-                    PossiblyNegatedExpression(it.expression, it.negate)
-                })
-        }
-
-        return null
+        } ?: return null
+        val operation = opTokenToCommutativeOperation[operator] ?: return null
+        return extractListOfOperandsCommutative(expression, operation)
     }
 
-    private data class UnevaluatedAtom(val expression: PyExpression, val negate: Boolean)
-
-    private fun extractListOfPlusTerms(expression: PyExpression?): Pair<BigInteger, List<UnevaluatedAtom>>? =
-        extractListOfOperandsCommutativeImpl(
-            expression,
-            BigInteger.ZERO,
-            { a, b -> a.plus(b) },
-            { x -> x.unaryMinus() },
-            ::evaluateAsBigInteger,
-            integerLikeTypes,
-            PyTokenTypes.PLUS,
-            PyTokenTypes.MINUS,
-            PyTokenTypes.PLUS,
-            PyTokenTypes.MINUS
-        )
-
-    private fun extractListOfBigIntegerOperandsCommutative(
+    private fun extractListOfOperandsCommutative(
         expression: PyExpression?,
-        operator: PyElementType,
-        binaryOp: (BigInteger, BigInteger) -> BigInteger,
-        initAcc: BigInteger
-    ): Pair<BigInteger, List<PyExpression>>? =
-        extractListOfOperandsCommutative(
-            expression, operator, binaryOp, initAcc, ::evaluateAsBigInteger, integerLikeTypes
-        )
+        operation: CommutativeOperation
+    ): PyOperandSequence? {
+        val values = mutableListOf<PyIntLike>()
+        val unevaluatedAtoms = mutableListOf<PossiblyNegatedExpression>()
+        val isPlus = operation == CommutativeOperation.PLUS
 
-    private fun extractListOfBooleanOperandsCommutative(
-        expression: PyExpression?,
-        operator: PyElementType,
-        binaryOp: (Boolean, Boolean) -> Boolean,
-        initAcc: Boolean
-    ): Pair<Boolean, List<PyExpression>>? =
-        extractListOfOperandsCommutative(
-            expression, operator, binaryOp, initAcc, ::evaluateAsBooleanNoCast, onlyBoolType
-        )
-
-    private fun <Acc> extractListOfOperandsCommutative(
-        expression: PyExpression?,
-        operator: PyElementType,
-        binaryOp: (Acc, Acc) -> Acc,
-        initAcc: Acc,
-        evaluateAtom: (PyExpression) -> Acc?,
-        allowedTypes: List<PyType>
-    ): Pair<Acc, List<PyExpression>>? =
-        extractListOfOperandsCommutativeImpl(
-            expression, initAcc, binaryOp, null, evaluateAtom, allowedTypes, operator,
-            null, null, null
-        )?.let { (finalAcc, unevaluatedOperands) ->
-            Pair(finalAcc, unevaluatedOperands.map { it.expression })
-        }
-
-    private fun evaluateAsBigInteger(expression: PyExpression): BigInteger? =
-        asBigInteger(evaluate(expression))
-
-    private fun evaluateAsBooleanNoCast(expression: PyExpression): Boolean? =
-        (evaluate(expression) as? PyBool)?.value
-
-    private fun <Acc> extractListOfOperandsCommutativeImpl(
-        expression: PyExpression?,
-        initAcc: Acc,
-        binaryOp: (Acc, Acc) -> Acc,
-        negateOp: ((Acc) -> Acc)?,
-        evaluateAtom: (PyExpression) -> Acc?,
-        allowedTypes: List<PyType>,
-        binaryPlus: PyElementType,
-        binaryMinus: PyElementType?,
-        unaryPlus: PyElementType?,
-        unaryMinus: PyElementType?
-    ): Pair<Acc, List<UnevaluatedAtom>>? {
-        var acc = initAcc
-        val unevaluatedAtoms = mutableListOf<UnevaluatedAtom>()
         fun extract(expression: PyExpression?, negate: Boolean): Boolean {
             if (expression == null) return false
             when (expression) {
-                is PyParenthesizedExpression -> extract(expression.containedExpression, negate)
+                is PyParenthesizedExpression -> {
+                    return extract(expression.containedExpression, negate)
+                }
                 is PyBinaryExpression -> {
                     val operator = expression.operator
-                    if (operator == binaryMinus || operator == binaryPlus) {
+                    if (operator == operation.opToken || (isPlus && operator == PyTokenTypes.MINUS)) {
                         return extract(expression.leftExpression, negate) &&
-                            extract(expression.rightExpression, negate xor (operator == binaryMinus))
+                            extract(expression.rightExpression, negate xor (operator == PyTokenTypes.MINUS))
                     }
                 }
                 is PyPrefixExpression -> {
                     val operator = expression.operator
-                    if (operator == unaryMinus || operator == unaryPlus) {
-                        return extract(expression.operand, negate xor (operator == unaryMinus))
+                    if (isPlus && (operator == PyTokenTypes.PLUS || operator == PyTokenTypes.MINUS)) {
+                        return extract(expression.operand, negate xor (operator == PyTokenTypes.MINUS))
                     }
                 }
                 else -> {
-                    evaluateAtom(expression)?.let { value ->
-                        val realValue = if (negate) negateOp!!(value) else value
-                        acc = binaryOp(acc, realValue)
+                    (evaluate(expression) as? PyIntLike)?.let { value ->
+                        val realValue = if (negate) PyInt(value.bigIntegerValue.unaryMinus()) else value
+                        values.add(realValue)
                         return true
                     }
                     val type = typeEvalContext.getType(expression)
-                    if (type in allowedTypes) {
-                        unevaluatedAtoms.add(UnevaluatedAtom(expression, negate))
+                    if (type in integerLikeTypes) {
+                        unevaluatedAtoms.add(PossiblyNegatedExpression(expression, negate))
                         return true
                     }
                 }
             }
             return false
         }
+
         return if (extract(expression, false)) {
-            Pair(acc, unevaluatedAtoms)
+            assert(unevaluatedAtoms.isNotEmpty()) {
+                "An expression with no unevaluated atoms should have been evaluated fully before calling this function"
+            }
+            val evaluatedValue = values.reduceOrNull { a, b -> evaluateBinaryIntLike(a, b, operation.opToken)!! }
+
+            val unevaluatedIsBool = unevaluatedAtoms.all { typeEvalContext.getType(it.expression) == boolType }
+            val operationIsQuasiBoolean = operation.boolIdentity != null
+            val multipleUnevaluated = unevaluatedAtoms.size > 1
+            val removeValue =
+                if (!unevaluatedIsBool || multipleUnevaluated && !operationIsQuasiBoolean) {
+                    evaluatedValue?.bigIntegerValue == operation.identity.bigIntegerValue
+                } else {
+                    operationIsQuasiBoolean && evaluatedValue == operation.boolIdentity
+                }
+
+            PyOperandSequence(operation.opText, evaluatedValue?.takeUnless { removeValue }, unevaluatedAtoms)
         } else {
             null
         }
     }
 
     companion object {
-        private fun asBigInteger(result: EvaluationResult?) =
-            when (result) {
-                is PyInt -> result.value
-                is PyBool -> if (result.value) BigInteger.ONE else BigInteger.ZERO
-                else -> null
-            }
+        private val opTokenToCommutativeOperation: Map<PyElementType, CommutativeOperation> =
+            CommutativeOperation.values().associateBy { it.opToken } + (PyTokenTypes.MINUS to CommutativeOperation.PLUS)
 
-        private fun asBoolean(result: EvaluationResult?) =
+        private fun asBoolean(result: PyEvaluationResult?) =
             when (result) {
                 is PyBool -> result.value
                 is PyInt -> result.value != BigInteger.ZERO
@@ -454,6 +378,19 @@ class PyEvaluatorImproved(file: PyFile) {
             return shift.toInt().takeUnless { it < 0 }?.let { shiftInt ->
                 if (shiftRight) number.shiftRight(shiftInt) else number.shiftLeft(shiftInt)
             }
+        }
+
+        private enum class CommutativeOperation(
+            val identity: PyIntLike,
+            val opToken: PyElementType,
+            val opText: String,
+            val boolIdentity: PyBool?
+        ) {
+            PLUS(PyInt.ZERO, PyTokenTypes.PLUS, "+",null),
+            MULTIPLY(PyInt.ONE, PyTokenTypes.MULT, "*",null),
+            BITAND(PyInt.MINUS_ONE, PyTokenTypes.AND, "&", PyBool.TRUE),
+            BITOR(PyInt.ZERO, PyTokenTypes.OR, "|", PyBool.FALSE),
+            BITXOR(PyInt.ZERO, PyTokenTypes.XOR, "^", PyBool.FALSE)
         }
     }
 }

@@ -23,17 +23,13 @@ fun PyElementGenerator.createExpressionFromNumber(value: Number): PyExpression {
 
 fun PyElementGenerator.createBinaryOperandList(operator: String, operands: List<PyExpression>): PyExpression {
     require(operands.isNotEmpty()) { "operands list should not be empty" }
-    // TODO: deal with parentheses here?
-    return if (operands.size == 1) {
-        operands.single()
-    } else {
-        val rhs = createBinaryOperandList(operator, operands.drop(1))
-        createBinaryExpression(operator, operands.first(), rhs)
-    }
+    return operands
+        .map { PyUtils.braceExpression(it) }
+        .reduce { lhs, rhs -> createBinaryExpression(operator, lhs, rhs) }
 }
 
 fun PyElementGenerator.createPrefixExpression(operator: String, operand: PyExpression): PyPrefixExpression {
-    val prefixExpression = createExpressionFromText(defaultLanguageLevel, "$operator 1") as PyPrefixExpression
+    val prefixExpression = createExpressionFromText(defaultLanguageLevel, "${operator}1") as PyPrefixExpression
     prefixExpression.operand!!.replace(operand)
     return prefixExpression
 }
