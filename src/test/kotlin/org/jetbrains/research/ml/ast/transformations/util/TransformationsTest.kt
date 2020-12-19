@@ -4,10 +4,7 @@
 
 package org.jetbrains.research.ml.ast.transformations.util
 
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
@@ -16,11 +13,9 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.runners.Parameterized
 import java.io.File
-import kotlin.reflect.KFunction
 
 @Ignore
-open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(testDataRoot) {
-    private lateinit var codeStyleManager: CodeStyleManager
+open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(testDataRoot), ITransformationsTest {
 
     @JvmField
     @Parameterized.Parameter(0)

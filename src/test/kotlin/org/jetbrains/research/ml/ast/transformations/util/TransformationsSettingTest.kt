@@ -4,6 +4,8 @@
 
 package org.jetbrains.research.ml.ast.transformations.util
 
+import com.intellij.psi.PsiElement
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getInAndOutArray
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -18,7 +20,7 @@ class TransformationsSettingTest : TransformationsTest(getResourcesRootPath(::Tr
         //  See: https://github.com/junit-team/junit4/wiki/Parameterized-tests
         //  Also see the issue: https://github.com/junit-team/junit5/issues/1309
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
-        fun getTestData() = getInAndOutArray(::TransformationsSettingTest)
+        fun getTestData() = getInAndOutArray(::TransformationsSettingTest, resourcesRoot)
     }
 
     @Test
