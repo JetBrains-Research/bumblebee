@@ -386,8 +386,8 @@ class PyEvaluatorImproved(file: PyFile) {
             val opText: String,
             val boolIdentity: PyBool?
         ) {
-            PLUS(PyInt.ZERO, PyTokenTypes.PLUS, "+",null),
-            MULTIPLY(PyInt.ONE, PyTokenTypes.MULT, "*",null),
+            PLUS(PyInt.ZERO, PyTokenTypes.PLUS, "+", null),
+            MULTIPLY(PyInt.ONE, PyTokenTypes.MULT, "*", null),
             BITAND(PyInt.MINUS_ONE, PyTokenTypes.AND, "&", PyBool.TRUE),
             BITOR(PyInt.ZERO, PyTokenTypes.OR, "|", PyBool.FALSE),
             BITXOR(PyInt.ZERO, PyTokenTypes.XOR, "^", PyBool.FALSE)

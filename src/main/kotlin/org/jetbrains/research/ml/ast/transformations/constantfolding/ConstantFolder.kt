@@ -10,8 +10,8 @@ import org.jetbrains.research.ml.ast.transformations.createBinaryOperandList
 import org.jetbrains.research.ml.ast.transformations.createBoolLiteralExpression
 import org.jetbrains.research.ml.ast.transformations.createExpressionFromNumber
 import org.jetbrains.research.ml.ast.transformations.createPrefixExpression
-import kotlin.test.fail
 import kotlin.collections.listOfNotNull
+import kotlin.test.fail
 
 class ConstantFolder(private val generator: PyElementGenerator, file: PyFile) {
     private val evaluator = PyEvaluatorImproved(file)
@@ -75,7 +75,8 @@ class ConstantFolder(private val generator: PyElementGenerator, file: PyFile) {
                                 .mapIndexed { i, expr ->
                                     if (result.unevaluatedAtoms[i].negate) {
                                         generator.createPrefixExpression(
-                                            "-", PyUtils.braceExpression(expr)
+                                            "-",
+                                            PyUtils.braceExpression(expr)
                                         )
                                     } else {
                                         expr

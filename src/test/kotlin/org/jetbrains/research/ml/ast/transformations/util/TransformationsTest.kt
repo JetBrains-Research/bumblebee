@@ -11,7 +11,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.research.ml.ast.util.FileTestUtil
-import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseWithSdkTest
 import org.junit.Before
 import org.junit.Ignore
