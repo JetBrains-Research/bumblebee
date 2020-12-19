@@ -7,9 +7,11 @@ package org.jetbrains.research.ml.ast.transformations.util
 import com.intellij.psi.PsiElement
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
 import org.jetbrains.research.ml.ast.util.PsiFileHandler
+import org.junit.Ignore
 import org.junit.runners.Parameterized
 import java.io.File
 
+@Ignore
 open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(testDataRoot), ITransformationsTest {
 
     @JvmField
