@@ -1,18 +1,19 @@
+/*
+ * Copyright (c) 2020.  Anastasiia Birillo, Elena Lyulina
+ */
+
 package org.jetbrains.research.ml.ast.transformations.util
 
 import com.intellij.psi.PsiElement
-import com.intellij.psi.codeStyle.CodeStyleManager
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseWithSdkTest
-import org.junit.Before
-import org.junit.Ignore
+import org.jetbrains.research.ml.ast.util.PsiFileHandler
 import org.junit.runners.Parameterized
 import java.io.File
 
-@Ignore
 open class TransformationsTestWithSdk(testDataRoot: String) :
     ParametrizedBaseWithSdkTest(testDataRoot),
-    IBaseTransformationsTestHelper by BaseTransformationsTestHelper(),
-    IBaseTransformationsTest {
+    ITransformationsTest {
+
     @JvmField
     @Parameterized.Parameter(0)
     var inFile: File? = null
@@ -21,24 +22,16 @@ open class TransformationsTestWithSdk(testDataRoot: String) :
     @Parameterized.Parameter(1)
     var outFile: File? = null
 
-    @Before
-    override fun mySetUp() {
-        super.mySetUp()
-        codeStyleManager = CodeStyleManager.getInstance(project)
-    }
-
     override fun assertCodeTransformation(
         inFile: File,
         outFile: File,
         transformation: (PsiElement, Boolean) -> Unit
     ) {
-        assertCodeTransformation(
+        TransformationsTestHelper.assertCodeTransformation(
             inFile,
             outFile,
             transformation,
-            myFixture,
-            project,
-            logger = LOG,
+            PsiFileHandler(myFixture, project),
             toCheckFileStructure = false
         )
     }

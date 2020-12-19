@@ -1,7 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.augmentedAssignment
 
-import org.jetbrains.research.ml.ast.transformations.util.BaseTransformationsTestHelper.Companion.getInAndOutArray
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getInAndOutArray
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
