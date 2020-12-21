@@ -15,9 +15,6 @@ class MultipleTargetAssignmentTransformationTest : TransformationsTest(getResour
 
     @Test
     fun testForwardTransformation() {
-        assertCodeTransformation(inFile!!, outFile!!) { psiTree, toStoreMetadata ->
-            val transformation = MultipleTargetAssignmentTransformation()
-            transformation.apply(psiTree, toStoreMetadata)
-        }
+        assertCodeTransformation(inFile!!, outFile!!, MultipleTargetAssignmentTransformation::apply)
     }
 }

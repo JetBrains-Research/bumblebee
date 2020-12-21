@@ -4,11 +4,16 @@
 
 package org.jetbrains.research.ml.ast.transformations.deadcode
 
-import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.PyElementVisitor
+import com.jetbrains.python.psi.PyExpression
+import com.jetbrains.python.psi.PyIfStatement
+import com.jetbrains.python.psi.PyWhileStatement
 import com.jetbrains.python.psi.impl.PyEvaluator
+import org.jetbrains.research.ml.ast.transformations.MetaDataStorage
 import org.jetbrains.research.ml.ast.transformations.PyUtils
+import org.jetbrains.research.ml.ast.transformations.safePerform
 
-internal class DeadCodeRemovalHeuristicVisitor : PyElementVisitor() {
+internal class DeadCodeRemovalHeuristicVisitor(private val metaDataStorage: MetaDataStorage?) : PyElementVisitor() {
     override fun visitPyIfStatement(node: PyIfStatement?) {
         if (node != null) {
             handleIfFalseStatement(node)
@@ -31,17 +36,24 @@ internal class DeadCodeRemovalHeuristicVisitor : PyElementVisitor() {
             val firstElsePart = node.elifParts.firstOrNull()
             if (firstElsePart != null) {
                 val newIfPart = PyUtils.createPyIfElsePart(firstElsePart)
-                node.ifPart.replace(newIfPart)
-                firstElsePart.delete()
+//                node.ifPart.replace(newIfPart)
+                metaDataStorage.safePerform(
+                    { node.ifPart.replace(newIfPart) },
+                    "Replace false condition from \"if\"-node with condition from first \"elif\"-node"
+                )
+//                firstElsePart.delete()
+                metaDataStorage.safePerform({ firstElsePart.delete() }, "Delete first \"elif\"-node")
             } else {
-                node.delete()
+//                node.delete()
+                metaDataStorage.safePerform({ node.delete() }, "Delete \"if\"-node with false condition")
                 break
             }
         }
 
         for (ifElsePart in node.elifParts) {
             if (ifElsePart.condition?.evaluateBoolean() == false) {
-                ifElsePart.delete()
+//                ifElsePart.delete()
+                metaDataStorage.safePerform({ ifElsePart.delete() }, "Delete \"else\"-node with false condition")
             }
         }
     }
@@ -51,7 +63,8 @@ internal class DeadCodeRemovalHeuristicVisitor : PyElementVisitor() {
      */
     private fun handleWhileFalseStatement(node: PyWhileStatement) {
         if (node.whilePart.condition?.evaluateBoolean() == false) {
-            node.delete()
+//            node.delete()
+            metaDataStorage.safePerform({ node.delete() }, "Delete \"while\"-node with false condition")
         }
     }
 }

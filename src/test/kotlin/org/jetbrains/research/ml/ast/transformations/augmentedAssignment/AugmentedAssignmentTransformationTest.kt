@@ -16,9 +16,6 @@ class AugmentedAssignmentTransformationTest :
 
     @Test
     fun testForwardTransformation() {
-        assertCodeTransformation(inFile!!, outFile!!) { psiTree, toStoreMetadata ->
-            val transformation = AugmentedAssignmentTransformation()
-            transformation.apply(psiTree, toStoreMetadata)
-        }
+        assertCodeTransformation(inFile!!, outFile!!, AugmentedAssignmentTransformation::apply)
     }
 }

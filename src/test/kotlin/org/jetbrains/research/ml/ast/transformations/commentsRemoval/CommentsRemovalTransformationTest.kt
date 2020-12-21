@@ -15,8 +15,6 @@ class CommentsRemovalTransformationTest : TransformationsTest(getResourcesRootPa
 
     @Test
     fun testForwardTransformation() {
-        assertCodeTransformation(inFile!!, outFile!!) { psiTree, toStoreMetadata ->
-            CommentsRemovalTransformation.apply(psiTree, toStoreMetadata)
-        }
+        assertCodeTransformation(inFile!!, outFile!!, CommentsRemovalTransformation::apply)
     }
 }

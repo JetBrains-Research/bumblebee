@@ -9,13 +9,15 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.psi.PyIfStatement
 import com.jetbrains.python.psi.PyWhileStatement
+import org.jetbrains.research.ml.ast.transformations.MetaDataStorage
 import org.jetbrains.research.ml.ast.transformations.Transformation
+import org.jetbrains.research.ml.ast.transformations.safePerform
 
-class DeadCodeRemovalTransformation : Transformation {
-    override val metadataKey: String = "DeadCodeRemoval"
+object DeadCodeRemovalTransformation : Transformation() {
+    override val key: String = "DeadCodeRemoval"
 
-    override fun apply(psiTree: PsiElement, toStoreMetadata: Boolean) {
-        val heuristicVisitor = DeadCodeRemovalHeuristicVisitor()
+    override fun apply(psiTree: PsiElement, metaDataStorage: MetaDataStorage?) {
+        val heuristicVisitor = DeadCodeRemovalHeuristicVisitor(metaDataStorage)
         val ifStatements = PsiTreeUtil.collectElementsOfType(psiTree, PyIfStatement::class.java)
         val whileStatements = PsiTreeUtil.collectElementsOfType(psiTree, PyWhileStatement::class.java)
 
@@ -33,12 +35,9 @@ class DeadCodeRemovalTransformation : Transformation {
 
         for (unreachable in cfgVisitor.unreachableElements) {
             WriteCommandAction.runWriteCommandAction(psiTree.project) {
-                unreachable.delete()
+//                unreachable.delete()
+                metaDataStorage.safePerform({ unreachable.delete() }, "Delete unreachable element")
             }
         }
-    }
-
-    override fun inverseApply(psiTree: PsiElement) {
-        TODO("Implement inverse transformation")
     }
 }

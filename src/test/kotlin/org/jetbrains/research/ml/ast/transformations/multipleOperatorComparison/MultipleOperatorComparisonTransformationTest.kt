@@ -17,9 +17,6 @@ class MultipleOperatorComparisonTransformationTest :
 
     @Test
     fun testForwardTransformation() {
-        assertCodeTransformation(inFile!!, outFile!!) { psiTree, toStoreMetadata ->
-            val transformation = MultipleOperatorComparisonTransformation()
-            transformation.apply(psiTree, toStoreMetadata)
-        }
+        assertCodeTransformation(inFile!!, outFile!!, MultipleOperatorComparisonTransformation::apply)
     }
 }
