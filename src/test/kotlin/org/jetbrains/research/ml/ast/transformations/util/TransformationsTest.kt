@@ -87,6 +87,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
             transformation(psiInFile, metaDataStorage)
             PsiTestUtil.checkFileStructure(psiInFile)
             val actualPsiFile = metaDataStorage.undoCommands()
+            formatPsiFile(actualPsiFile)
             actualSrc = actualPsiFile.text
         }
         LOG.info("The actual code is:\n$actualSrc")
