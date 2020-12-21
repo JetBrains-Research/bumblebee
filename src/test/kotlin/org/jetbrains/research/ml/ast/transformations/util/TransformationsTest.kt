@@ -10,7 +10,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.PsiTestUtil
-import org.jetbrains.research.ml.ast.transformations.MetaDataStorage
+import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.util.FileTestUtil
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
 import org.junit.Before
@@ -47,7 +47,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         }
     }
 
-    protected fun assertCodeTransformation(
+    protected fun assertForwardTransformation(
         inFile: File,
         outFile: File,
         transformation: (PsiElement) -> Unit
@@ -68,10 +68,10 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         assertEquals(expectedSrc, actualSrc)
     }
 
-    //    Todo: make better
-    protected fun assertInverseTransformation(
+    protected fun assertBackwardTransformation(
         inFile: File,
-        transformation: (PsiElement, MetaDataStorage?) -> Unit
+        forwardTransformation: (PsiElement, PerformedCommandStorage?) -> Unit,
+        backwardTransformation: (PerformedCommandStorage) -> PsiElement
     ) {
         LOG.info("The current input file is: ${inFile.path}")
         val psiInFile = getPsiFile(inFile)
@@ -81,12 +81,12 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         val expectedSrc = psiInFile.text
         LOG.info("The expected code is:\n$expectedSrc")
 
-        val metaDataStorage = MetaDataStorage(psiInFile)
+        val commandStorage = PerformedCommandStorage(psiInFile)
         lateinit var actualSrc: String
         ApplicationManager.getApplication().invokeAndWait {
-            transformation(psiInFile, metaDataStorage)
+            forwardTransformation(psiInFile, commandStorage)
             PsiTestUtil.checkFileStructure(psiInFile)
-            val actualPsiFile = metaDataStorage.undoCommands()
+            val actualPsiFile = backwardTransformation(commandStorage)
             formatPsiFile(actualPsiFile)
             actualSrc = actualPsiFile.text
         }
@@ -94,7 +94,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         assertEquals(expectedSrc, actualSrc)
     }
 
-    fun getPsiFile(file: File, toReformatFile: Boolean = true): PsiFile {
+    protected fun getPsiFile(file: File, toReformatFile: Boolean = true): PsiFile {
         val psiFile = myFixture.configureByFile(file.path)
         if (toReformatFile) {
             formatPsiFile(psiFile)
@@ -102,7 +102,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         return psiFile
     }
 
-    fun formatPsiFile(psi: PsiElement) {
+    protected fun formatPsiFile(psi: PsiElement) {
         WriteCommandAction.runWriteCommandAction(project) { // reformat the expected file
             codeStyleManager.reformat(psi)
         }

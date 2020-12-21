@@ -24,6 +24,6 @@ class TransformationsSettingTest : TransformationsTest(getResourcesRootPath(::Tr
     @Test
     fun `transformations setting test`() {
         // We are sure that inFile != null and outFile != null
-        assertCodeTransformation(inFile!!, outFile!!) { println("Empty transformation") }
+        assertForwardTransformation(inFile!!, outFile!!) { println("Empty transformation") }
     }
 }

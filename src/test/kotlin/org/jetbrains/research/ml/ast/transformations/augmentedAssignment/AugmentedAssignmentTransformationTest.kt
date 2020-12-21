@@ -16,6 +16,15 @@ class AugmentedAssignmentTransformationTest :
 
     @Test
     fun testForwardTransformation() {
-        assertCodeTransformation(inFile!!, outFile!!, AugmentedAssignmentTransformation::apply)
+        assertForwardTransformation(inFile!!, outFile!!, AugmentedAssignmentTransformation::forwardApply)
+    }
+
+    @Test
+    fun testBackwardTransformation() {
+        assertBackwardTransformation(
+            inFile!!,
+            AugmentedAssignmentTransformation::forwardApply,
+            AugmentedAssignmentTransformation::backwardApply
+        )
     }
 }

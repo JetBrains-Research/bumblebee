@@ -15,11 +15,15 @@ class DeadCodeRemovalTransformationTest : TransformationsTest(getResourcesRootPa
 
     @Test
     fun testForwardTransformation() {
-        assertCodeTransformation(inFile!!, outFile!!, DeadCodeRemovalTransformation::apply)
+        assertForwardTransformation(inFile!!, outFile!!, DeadCodeRemovalTransformation::forwardApply)
     }
 
     @Test
-    fun testInverseTransformation() {
-        assertInverseTransformation(inFile!!, DeadCodeRemovalTransformation::apply)
+    fun testBackwardTransformation() {
+        assertBackwardTransformation(
+            inFile!!,
+            DeadCodeRemovalTransformation::forwardApply,
+            DeadCodeRemovalTransformation::backwardApply
+        )
     }
 }

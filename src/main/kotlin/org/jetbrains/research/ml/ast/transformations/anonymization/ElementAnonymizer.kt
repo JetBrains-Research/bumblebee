@@ -76,7 +76,6 @@ class ElementAnonymizer {
         ) {
             return false
         }
-
         return true
     }
 

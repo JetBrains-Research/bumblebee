@@ -1,22 +1,18 @@
 package org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment
 
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.psi.PyAssignmentStatement
-import org.jetbrains.research.ml.ast.transformations.MetaDataStorage
+import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.Transformation
+import org.jetbrains.research.ml.ast.transformations.util.PsiUtil
 
 object MultipleTargetAssignmentTransformation : Transformation() {
     override val key: String = "MultipleTargetAssigment"
 
-    override fun apply(psiTree: PsiElement, metaDataStorage: MetaDataStorage?) {
+    override fun forwardApply(psiTree: PsiElement, commandsStorage: PerformedCommandStorage?) {
         val assignments = PsiTreeUtil.collectElementsOfType(psiTree, PyAssignmentStatement::class.java)
-        val visitor = MultipleTargetAssignmentVisitor()
-        WriteCommandAction.runWriteCommandAction(psiTree.project) {
-            for (assignment in assignments) {
-                assignment.accept(visitor)
-            }
-        }
+        val visitor = MultipleTargetAssignmentVisitor(commandsStorage)
+        PsiUtil.acceptStatements(psiTree.project, assignments, visitor)
     }
 }
