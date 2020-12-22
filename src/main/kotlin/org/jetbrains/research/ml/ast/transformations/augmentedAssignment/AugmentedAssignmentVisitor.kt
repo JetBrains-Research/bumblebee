@@ -2,9 +2,11 @@ package org.jetbrains.research.ml.ast.transformations.augmentedAssignment
 
 import com.jetbrains.python.psi.PyAugAssignmentStatement
 import com.jetbrains.python.psi.PyElementVisitor
+import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PyUtils
+import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
-internal class AugmentedAssignmentVisitor : PyElementVisitor() {
+internal class AugmentedAssignmentVisitor(private val commandsStorage: PerformedCommandStorage?) : PyElementVisitor() {
     override fun visitPyAugAssignmentStatement(node: PyAugAssignmentStatement?) {
         if (node != null) {
             handleAugAssignment(node)
@@ -14,6 +16,6 @@ internal class AugmentedAssignmentVisitor : PyElementVisitor() {
 
     private fun handleAugAssignment(node: PyAugAssignmentStatement) {
         val newAssignment = PyUtils.createAssignment(node)
-        node.replace(newAssignment)
+        commandsStorage.safePerformCommand({ node.replace(newAssignment) }, "Replace AugAssignment")
     }
 }

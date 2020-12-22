@@ -6,18 +6,23 @@ import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.psi.PyElementVisitor
 import com.jetbrains.python.psi.PyExpressionStatement
 import com.jetbrains.python.psi.PyStringLiteralExpression
+import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
+import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
-class CommentsRemovalVisitor : PyElementVisitor() {
+class CommentsRemovalVisitor(private val commandsStorage: PerformedCommandStorage?) : PyElementVisitor() {
 
     override fun visitComment(comment: PsiComment) {
-        comment.delete()
+        commandsStorage.safePerformCommand({ comment.delete() }, "Delete comment")
         super.visitComment(comment)
     }
 
     override fun visitPyStringLiteralExpression(node: PyStringLiteralExpression?) {
         if (node != null) {
             if (node.isDocString || node.isTripleQuotedString) {
-                node.delete()
+                commandsStorage.safePerformCommand(
+                    { node.parent.delete() },
+                    "Delete doc string or triple quoted string"
+                )
             }
         }
         super.visitPyStringLiteralExpression(node)

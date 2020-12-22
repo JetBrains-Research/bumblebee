@@ -2,19 +2,15 @@ package org.jetbrains.research.ml.ast.transformations.anonymization
 
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.psi.PyFile
+import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.Transformation
 
-object AnonymizationTransformation : Transformation {
-    override val metadataKey: String
-        get() = TODO("Not yet implemented")
+object AnonymizationTransformation : Transformation() {
+    override val key: String = "Anonymization"
 
-    override fun inverseApply(psiTree: PsiElement) {
-        TODO("Not yet implemented")
-    }
-
-    override fun apply(psiTree: PsiElement, toStoreMetadata: Boolean) {
+    override fun forwardApply(psiTree: PsiElement, commandsStorage: PerformedCommandStorage?) {
         val visitor = AnonymizationVisitor(psiTree.containingFile as PyFile)
         psiTree.accept(visitor)
-        visitor.performAllRenames()
+        visitor.performAllRenames(commandsStorage)
     }
 }

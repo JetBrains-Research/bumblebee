@@ -2,9 +2,11 @@ package org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment
 
 import com.jetbrains.python.psi.PyAssignmentStatement
 import com.jetbrains.python.psi.PyElementVisitor
+import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PyUtils
+import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
-class MultipleTargetAssignmentVisitor : PyElementVisitor() {
+class MultipleTargetAssignmentVisitor(private val commandsStorage: PerformedCommandStorage?) : PyElementVisitor() {
     override fun visitPyAssignmentStatement(node: PyAssignmentStatement?) {
         if (node != null) {
             processAssignment(node)
@@ -16,10 +18,16 @@ class MultipleTargetAssignmentVisitor : PyElementVisitor() {
         val targets = node.targets.toList()
         val assignedValue = node.assignedValue ?: return
         val firstTarget = targets.first()
-        node.parent.addBefore(PyUtils.createAssignment(firstTarget, assignedValue), node)
+        commandsStorage.safePerformCommand(
+            { node.parent.addBefore(PyUtils.createAssignment(firstTarget, assignedValue), node) },
+            "Add first assignment from multiple target assignment"
+        )
         for ((value, target) in targets.windowed(2)) {
-            node.parent.addBefore(PyUtils.createAssignment(target, value), node)
+            commandsStorage.safePerformCommand(
+                { node.parent.addBefore(PyUtils.createAssignment(target, value), node) },
+                "Add the next assignment from multiple target assignment"
+            )
         }
-        node.delete()
+        commandsStorage.safePerformCommand({ node.delete() }, "Delete multiple target assignment node")
     }
 }
