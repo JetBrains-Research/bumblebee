@@ -23,8 +23,7 @@ class AnonymizationTransformationTest : TransformationsTest(getResourcesRootPath
     fun testBackwardTransformation() {
         assertBackwardTransformation(
             inFile!!,
-            AnonymizationTransformation::forwardApply,
-            AnonymizationTransformation::backwardApply
+            AnonymizationTransformation::forwardApply
         )
     }
 }

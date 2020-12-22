@@ -22,8 +22,7 @@ class CommentsRemovalTransformationTest : TransformationsTest(getResourcesRootPa
     fun testBackwardTransformation() {
         assertBackwardTransformation(
             inFile!!,
-            CommentsRemovalTransformation::forwardApply,
-            CommentsRemovalTransformation::backwardApply
+            CommentsRemovalTransformation::forwardApply
         )
     }
 }

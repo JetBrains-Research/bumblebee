@@ -19,7 +19,10 @@ class CommentsRemovalVisitor(private val commandsStorage: PerformedCommandStorag
     override fun visitPyStringLiteralExpression(node: PyStringLiteralExpression?) {
         if (node != null) {
             if (node.isDocString || node.isTripleQuotedString) {
-                commandsStorage.safePerformCommand({ node.delete() }, "Delete doc string or triple quoted string")
+                commandsStorage.safePerformCommand(
+                    { node.parent.delete() },
+                    "Delete doc string or triple quoted string"
+                )
             }
         }
         super.visitPyStringLiteralExpression(node)

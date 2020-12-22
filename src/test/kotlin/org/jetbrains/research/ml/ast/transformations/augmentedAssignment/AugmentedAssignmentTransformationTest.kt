@@ -23,8 +23,7 @@ class AugmentedAssignmentTransformationTest :
     fun testBackwardTransformation() {
         assertBackwardTransformation(
             inFile!!,
-            AugmentedAssignmentTransformation::forwardApply,
-            AugmentedAssignmentTransformation::backwardApply
+            AugmentedAssignmentTransformation::forwardApply
         )
     }
 }
