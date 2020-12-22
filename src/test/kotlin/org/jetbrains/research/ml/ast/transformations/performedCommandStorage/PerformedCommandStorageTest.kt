@@ -44,16 +44,11 @@ class PerformedCommandStorageTest : TransformationsTest(getResourcesRootPath(::P
         ApplicationManager.getApplication().invokeAndWait {
             transformations.forEach { it.forwardApply(inPsiFile, commandStorage) }
             actualAfterForwardTransformations = inPsiFile.text
-//          Todo: Should we run backwardApply on all transformations?
-//           If so, we need to filter performed commands by transformation (see backwardApply)
             val psiAfterBackwardTransformations = commandStorage.undoPerformedCommands()
             formatPsiFile(psiAfterBackwardTransformations)
             actualAfterBackwardTransformations = psiAfterBackwardTransformations.text
         }
-
-//        Todo: some transformations don't work (wrong indents after applying), so it's commented for now
-//         Need to find incorrect transformations and fix them, then uncomment
-//        assertEquals(expectedAfterForwardTransformations, actualAfterForwardTransformations)
+        assertEquals(expectedAfterForwardTransformations, actualAfterForwardTransformations)
         assertEquals(expectedAfterBackwardTransformations, actualAfterBackwardTransformations)
     }
 }

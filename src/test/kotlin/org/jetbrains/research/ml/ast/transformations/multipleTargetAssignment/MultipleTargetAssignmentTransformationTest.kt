@@ -22,8 +22,7 @@ class MultipleTargetAssignmentTransformationTest : TransformationsTest(getResour
     fun testBackwardTransformation() {
         assertBackwardTransformation(
             inFile!!,
-            MultipleTargetAssignmentTransformation::forwardApply,
-            MultipleTargetAssignmentTransformation::backwardApply
+            MultipleTargetAssignmentTransformation::forwardApply
         )
     }
 }

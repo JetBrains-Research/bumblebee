@@ -22,8 +22,7 @@ class DeadCodeRemovalTransformationTest : TransformationsTest(getResourcesRootPa
     fun testBackwardTransformation() {
         assertBackwardTransformation(
             inFile!!,
-            DeadCodeRemovalTransformation::forwardApply,
-            DeadCodeRemovalTransformation::backwardApply
+            DeadCodeRemovalTransformation::forwardApply
         )
     }
 }

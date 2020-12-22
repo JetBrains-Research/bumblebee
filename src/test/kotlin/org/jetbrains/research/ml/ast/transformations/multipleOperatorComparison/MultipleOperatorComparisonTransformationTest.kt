@@ -23,8 +23,7 @@ class MultipleOperatorComparisonTransformationTest :
     fun testBackwardTransformation() {
         assertBackwardTransformation(
             inFile!!,
-            MultipleOperatorComparisonTransformation::forwardApply,
-            MultipleOperatorComparisonTransformation::backwardApply
+            MultipleOperatorComparisonTransformation::forwardApply
         )
     }
 }

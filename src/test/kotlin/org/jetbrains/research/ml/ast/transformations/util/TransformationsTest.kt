@@ -47,6 +47,28 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         }
     }
 
+    private fun applyTransformation(
+        psiFile: PsiFile,
+        transformation: (PsiFile, PerformedCommandStorage?) -> PsiElement?,
+        commandStorage: PerformedCommandStorage? = null
+    ): String {
+        lateinit var actualSrc: String
+        ApplicationManager.getApplication().invokeAndWait {
+            val actualPsiFile = transformation(psiFile, commandStorage)
+            require(actualPsiFile != null) { "Got null instead actual psi file!" }
+            PsiTestUtil.checkFileStructure(psiFile)
+            formatPsiFile(actualPsiFile)
+            actualSrc = actualPsiFile.text
+        }
+        return actualSrc
+    }
+
+    private fun assertCode(expectedSrc: String, actualSrc: String) {
+        LOG.info("The expected code is:\n$expectedSrc")
+        LOG.info("The actual code is:\n$actualSrc")
+        assertEquals(expectedSrc, actualSrc)
+    }
+
     protected fun assertForwardTransformation(
         inFile: File,
         outFile: File,
@@ -56,42 +78,34 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         LOG.info("The current output file is: ${outFile.path}")
         val psiInFile = getPsiFile(inFile)
         val expectedPsiInFile = getPsiFile(outFile)
-        val expectedSrc = expectedPsiInFile.text
-        LOG.info("The expected code is:\n$expectedSrc")
-        ApplicationManager.getApplication().invokeAndWait {
-            transformation(psiInFile)
-            PsiTestUtil.checkFileStructure(psiInFile)
-        }
-        formatPsiFile(psiInFile)
-        val actualSrc = psiInFile.text
-        LOG.info("The actual code is:\n$actualSrc")
-        assertEquals(expectedSrc, actualSrc)
+        val actualSrc = applyTransformation(
+            psiInFile,
+            transformation = { psi: PsiFile, cs: PerformedCommandStorage? ->
+                transformation(psi)
+                psi
+            }
+        )
+        assertCode(expectedPsiInFile.text, actualSrc)
     }
 
     protected fun assertBackwardTransformation(
         inFile: File,
-        forwardTransformation: (PsiElement, PerformedCommandStorage?) -> Unit,
-        backwardTransformation: (PerformedCommandStorage) -> PsiElement
+        forwardTransformation: (PsiElement, PerformedCommandStorage?) -> Unit
     ) {
         LOG.info("The current input file is: ${inFile.path}")
         val psiInFile = getPsiFile(inFile)
         LOG.info("The input code is: ${psiInFile.text}")
-
-//      Expected Psi should be the same as the input Psi
-        val expectedSrc = psiInFile.text
-        LOG.info("The expected code is:\n$expectedSrc")
-
-        val commandStorage = PerformedCommandStorage(psiInFile)
-        lateinit var actualSrc: String
-        ApplicationManager.getApplication().invokeAndWait {
-            forwardTransformation(psiInFile, commandStorage)
-            PsiTestUtil.checkFileStructure(psiInFile)
-            val actualPsiFile = backwardTransformation(commandStorage)
-            formatPsiFile(actualPsiFile)
-            actualSrc = actualPsiFile.text
-        }
-        LOG.info("The actual code is:\n$actualSrc")
-        assertEquals(expectedSrc, actualSrc)
+        val actualSrc = applyTransformation(
+            psiInFile,
+            commandStorage = PerformedCommandStorage(psiInFile),
+            transformation = { psi: PsiFile, cs: PerformedCommandStorage? ->
+                forwardTransformation(psi, cs)
+                PsiTestUtil.checkFileStructure(psi)
+                cs?.undoPerformedCommands()
+            }
+        )
+        // Expected Psi should be the same as the input Psi
+        assertCode(psiInFile.text, actualSrc)
     }
 
     protected fun getPsiFile(file: File, toReformatFile: Boolean = true): PsiFile {
