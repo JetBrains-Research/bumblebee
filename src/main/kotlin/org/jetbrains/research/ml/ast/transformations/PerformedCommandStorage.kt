@@ -17,7 +17,7 @@ class PerformedCommandStorage(private val psiTree: PsiElement) {
     private val commandProcessor = CommandProcessor.getInstance()
     private var commandDescriptions = ArrayDeque<String>()
 
-//    Should be run in WriteAction
+    //    Should be run in WriteAction
     fun performCommand(command: () -> Unit, description: String) {
         commandDescriptions.addLast(description)
         commandProcessor.executeCommand(
@@ -57,4 +57,10 @@ class PerformedCommandStorage(private val psiTree: PsiElement) {
 
 fun PerformedCommandStorage?.safePerformCommand(command: () -> Unit, description: String) {
     this?.performCommand(command, description) ?: command()
+}
+
+fun <R> PerformedCommandStorage?.safePerformCommandWithResult(command: () -> R, description: String): R {
+    var result: R? = null
+    this.safePerformCommand({ result = command() }, description)
+    return result!!
 }

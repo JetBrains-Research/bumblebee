@@ -5,15 +5,20 @@ import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.PyFile
+import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PyUtils
 import org.jetbrains.research.ml.ast.transformations.createBinaryOperandList
 import org.jetbrains.research.ml.ast.transformations.createBoolLiteralExpression
 import org.jetbrains.research.ml.ast.transformations.createExpressionFromNumber
 import org.jetbrains.research.ml.ast.transformations.createPrefixExpression
-import kotlin.collections.listOfNotNull
+import org.jetbrains.research.ml.ast.transformations.safePerformCommandWithResult
 import kotlin.test.fail
 
-class ConstantFolder(private val generator: PyElementGenerator, file: PyFile) {
+class ConstantFolder(
+    private val commandsStorage: PerformedCommandStorage?,
+    private val generator: PyElementGenerator,
+    file: PyFile
+) {
     private val evaluator = PyEvaluatorImproved(file)
 
     fun simplifyAllSubexpressionsDelayed(element: PsiElement): () -> PsiElement {
@@ -31,9 +36,19 @@ class ConstantFolder(private val generator: PyElementGenerator, file: PyFile) {
 
     private fun simplifyByEvaluation(expression: PyExpression): (() -> PsiElement)? =
         when (val result = evaluator.evaluate(expression)) {
-            is PyEvaluatorImproved.PyIntLike -> { -> expression.replace(createIntOrBoolExpression(generator, result)) }
+            is PyEvaluatorImproved.PyIntLike -> { ->
+                commandsStorage.safePerformCommandWithResult(
+                    { expression.replace(createIntOrBoolExpression(generator, result)) },
+                    "Evaluate integer-like constant"
+                )
+            }
             is PyEvaluatorImproved.PyString ->
-                { -> expression.replace(generator.createStringLiteralFromString(result.string)) }
+                { ->
+                    commandsStorage.safePerformCommandWithResult(
+                        { expression.replace(generator.createStringLiteralFromString(result.string)) },
+                        "Evaluate string"
+                    )
+                }
             is PyEvaluatorImproved.PySequence -> run {
                 val emptyLiteral = when (result.kind ?: return@run null) {
                     PyEvaluatorImproved.PySequence.PySequenceKind.LIST -> generator.createListLiteral()
@@ -42,47 +57,62 @@ class ConstantFolder(private val generator: PyElementGenerator, file: PyFile) {
                 }
                 val simplifyElements = result.elements.map { simplifyAllSubexpressionsDelayed(it) }
                 return@run {
-                    val newList = expression.replace(emptyLiteral) as PyExpression
-                    var anchor: PyExpression? = null
-                    for (simplifyElement in simplifyElements) {
-                        anchor = generator.insertItemIntoListRemoveRedundantCommas(
-                            newList,
-                            anchor,
-                            simplifyElement() as PyExpression
-                        ) as PyExpression
-                    }
-                    newList
+                    commandsStorage.safePerformCommandWithResult(
+                        {
+                            val newList = expression.replace(emptyLiteral) as PyExpression
+                            var anchor: PyExpression? = null
+                            for (simplifyElement in simplifyElements) {
+                                anchor = generator.insertItemIntoListRemoveRedundantCommas(
+                                    newList,
+                                    anchor,
+                                    simplifyElement() as PyExpression
+                                ) as PyExpression
+                            }
+                            newList
+                        },
+                        "Evaluate sequence"
+                    )
                 }
             }
             is PyEvaluatorImproved.PyExpressionResult -> run {
                 val simplifyNewExpression = simplifyAllSubexpressionsDelayed(result.expression)
-                return@run { expression.replace(simplifyNewExpression()) }
+                return@run {
+                    commandsStorage.safePerformCommandWithResult(
+                        { expression.replace(simplifyNewExpression()) },
+                        "Evaluate to subexpression"
+                    )
+                }
             }
             is PyEvaluatorImproved.PyOperandSequence -> run {
                 val simplifyUnevaluated =
                     result.unevaluatedAtoms.map { simplifyAllSubexpressionsDelayed(it.expression) }
                 return@run {
-                    val valueOperand =
-                        listOfNotNull(result.evaluatedValue?.let { createIntOrBoolExpression(generator, it) })
-                    val newExpression = PyUtils.braceExpression(
-                        generator.createBinaryOperandList(
-                            result.operator,
-                            simplifyUnevaluated
-                                .map { it() as PyExpression }
-                                .mapIndexed { i, expr ->
-                                    if (result.unevaluatedAtoms[i].negate) {
-                                        generator.createPrefixExpression(
-                                            "-",
-                                            PyUtils.braceExpression(expr)
-                                        )
-                                    } else {
-                                        expr
-                                    }
-                                } + valueOperand
+                    commandsStorage.safePerformCommandWithResult(
+                        {
+                            val valueOperand =
+                                listOfNotNull(result.evaluatedValue?.let { createIntOrBoolExpression(generator, it) })
+                            val newExpression = PyUtils.braceExpression(
+                                generator.createBinaryOperandList(
+                                    result.operator,
+                                    simplifyUnevaluated
+                                        .map { it() as PyExpression }
+                                        .mapIndexed { i, expr ->
+                                            if (result.unevaluatedAtoms[i].negate) {
+                                                generator.createPrefixExpression(
+                                                    "-",
+                                                    PyUtils.braceExpression(expr)
+                                                )
+                                            } else {
+                                                expr
+                                            }
+                                        } + valueOperand
 
-                        )
+                                )
+                            )
+                            expression.replace(newExpression)
+                        },
+                        "Evaluate commutative operator partially"
                     )
-                    expression.replace(newExpression)
                 }
             }
             else -> null

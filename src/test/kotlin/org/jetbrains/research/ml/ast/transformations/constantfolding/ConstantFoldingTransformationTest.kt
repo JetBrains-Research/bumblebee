@@ -15,6 +15,11 @@ class ConstantFoldingTransformationTest : TransformationsTest(getResourcesRootPa
 
     @Test
     fun testForwardTransformation() {
-        assertCodeTransformation(inFile!!, outFile!!, ConstantFoldingTransformation::apply)
+        assertForwardTransformation(inFile!!, outFile!!, ConstantFoldingTransformation::forwardApply)
+    }
+
+    @Test
+    fun testBackwardTransformation() {
+        assertBackwardTransformation(inFile!!, ConstantFoldingTransformation::forwardApply)
     }
 }
