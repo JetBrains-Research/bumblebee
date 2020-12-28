@@ -5,20 +5,14 @@ import com.intellij.psi.PsiElement
 /**
  * The basic interface for AST transformations
  */
-interface Transformation {
+abstract class Transformation {
 
-    val metadataKey: String
+    abstract val key: String
 
     /**
      * Applying forward transformation.
      * @param [psiTree] - a hierarchy of PSI elements
-     * @param [toStoreMetadata] - flag that indicates necessity of metadata storing.
+     * @param [commandsStorage] - if not null, all commands, performed on [psiTree], will be saved and available to undo.
      */
-    fun apply(psiTree: PsiElement, toStoreMetadata: Boolean)
-
-    /**
-     * Applying reverse transformation.
-     * @param [psiTree] - a hierarchy of PSI elements
-     */
-    fun inverseApply(psiTree: PsiElement)
+    abstract fun forwardApply(psiTree: PsiElement, commandsStorage: PerformedCommandStorage? = null)
 }

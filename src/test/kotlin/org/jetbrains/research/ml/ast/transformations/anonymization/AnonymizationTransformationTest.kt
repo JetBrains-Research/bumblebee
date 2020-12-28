@@ -16,6 +16,14 @@ class AnonymizationTransformationTest : TransformationsTest(getResourcesRootPath
 
     @Test
     fun testForwardTransformation() {
-        assertCodeTransformation(inFile!!, outFile!!, AnonymizationTransformation::apply)
+        assertForwardTransformation(inFile!!, outFile!!, AnonymizationTransformation::forwardApply)
+    }
+
+    @Test
+    fun testBackwardTransformation() {
+        assertBackwardTransformation(
+            inFile!!,
+            AnonymizationTransformation::forwardApply
+        )
     }
 }

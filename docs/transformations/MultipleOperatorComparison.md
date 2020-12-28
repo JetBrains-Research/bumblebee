@@ -5,13 +5,13 @@
 Turning multiple-operator comparisons into combinations of single-operator comparisons
 
 ```python
--1 <= x > y < z<= 1
+-1 <= x > y < z <= 1
 ```
 
 Transforms to:
 
 ```python
--1 <= x and x > y and y < z and z<= 1
+-1 <= x and x > y and y < z and z <= 1
 ```
 
 ## Algorithm

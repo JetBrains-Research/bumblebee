@@ -9,36 +9,27 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.psi.PyIfStatement
 import com.jetbrains.python.psi.PyWhileStatement
+import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.Transformation
+import org.jetbrains.research.ml.ast.transformations.safePerformCommand
+import org.jetbrains.research.ml.ast.transformations.util.PsiUtil.acceptStatements
 
-class DeadCodeRemovalTransformation : Transformation {
-    override val metadataKey: String = "DeadCodeRemoval"
+object DeadCodeRemovalTransformation : Transformation() {
+    override val key: String = "DeadCodeRemoval"
 
-    override fun apply(psiTree: PsiElement, toStoreMetadata: Boolean) {
-        val heuristicVisitor = DeadCodeRemovalHeuristicVisitor()
+    override fun forwardApply(psiTree: PsiElement, commandsStorage: PerformedCommandStorage?) {
+        val heuristicVisitor = DeadCodeRemovalHeuristicVisitor(commandsStorage)
         val ifStatements = PsiTreeUtil.collectElementsOfType(psiTree, PyIfStatement::class.java)
         val whileStatements = PsiTreeUtil.collectElementsOfType(psiTree, PyWhileStatement::class.java)
-
-        WriteCommandAction.runWriteCommandAction(psiTree.project) {
-            for (statement in ifStatements) {
-                statement.accept(heuristicVisitor)
-            }
-            for (statement in whileStatements) {
-                statement.accept(heuristicVisitor)
-            }
-        }
+        acceptStatements(psiTree.project, ifStatements + whileStatements, heuristicVisitor)
 
         val cfgVisitor = DeadCodeRemovalCFGVisitor()
         psiTree.accept(cfgVisitor)
 
         for (unreachable in cfgVisitor.unreachableElements) {
             WriteCommandAction.runWriteCommandAction(psiTree.project) {
-                unreachable.delete()
+                commandsStorage.safePerformCommand({ unreachable.delete() }, "Delete unreachable element")
             }
         }
-    }
-
-    override fun inverseApply(psiTree: PsiElement) {
-        TODO("Implement inverse transformation")
     }
 }
