@@ -28,14 +28,22 @@ the JVM Long type (64-bits signed integer).
 
 For example:
 - `1 + 2 + x` is replaced with `3 + x`
-- `x + 1 + 2` is left unchanged (`+` is left-associative,
-  so there is no non-trivial constant subexpression)
 
 #### Partially evaluating boolean `and` and `or` operators
 
 For example:
 - `[x, y] or 42` is replaced with `[x, y]`, since the left part is
   truthy regardless of what specific values `x` and `y` have.
+
+#### Partially evaluating commutative operators
+
+Arguments of known commutative operators are partially evaluated
+regardless of the order of arguments given. All of the constant arguments do
+not have to form a distinct subtree in this case.
+
+For example:
+- `x + 1 + 2` is replaced with `x + 3` when it is possible to deduce that
+  `x` is of type `int` (to ensure the commutativity of `+`)
 
 #### Concatenating strings and lists
 

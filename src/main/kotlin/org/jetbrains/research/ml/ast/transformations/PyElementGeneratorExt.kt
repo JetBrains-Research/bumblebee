@@ -29,7 +29,9 @@ fun PyElementGenerator.createBinaryOperandList(operator: String, operands: List<
 }
 
 fun PyElementGenerator.createPrefixExpression(operator: String, operand: PyExpression): PyPrefixExpression {
-    val prefixExpression = createExpressionFromText(defaultLanguageLevel, "${operator}1") as PyPrefixExpression
+    val whitespace = if (operator.last() !in "+-~") " " else ""
+    val prefixExpression =
+        createExpressionFromText(defaultLanguageLevel, "${operator}${whitespace}1") as PyPrefixExpression
     prefixExpression.operand!!.replace(operand)
     return prefixExpression
 }

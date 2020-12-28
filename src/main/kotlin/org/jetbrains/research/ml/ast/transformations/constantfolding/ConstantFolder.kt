@@ -31,17 +31,14 @@ class ConstantFolder(private val generator: PyElementGenerator, file: PyFile) {
 
     private fun simplifyByEvaluation(expression: PyExpression): (() -> PsiElement)? =
         when (val result = evaluator.evaluate(expression)) {
-            is PyEvaluatorImproved.PyBool ->
-                { -> expression.replace(createIntOrBoolExpression(generator, result)) }
-            is PyEvaluatorImproved.PyInt ->
-                { -> expression.replace(createIntOrBoolExpression(generator, result)) }
+            is PyEvaluatorImproved.PyIntLike -> { -> expression.replace(createIntOrBoolExpression(generator, result)) }
             is PyEvaluatorImproved.PyString ->
                 { -> expression.replace(generator.createStringLiteralFromString(result.string)) }
             is PyEvaluatorImproved.PySequence -> run {
                 val emptyLiteral = when (result.kind ?: return@run null) {
                     PyEvaluatorImproved.PySequence.PySequenceKind.LIST -> generator.createListLiteral()
                     PyEvaluatorImproved.PySequence.PySequenceKind.TUPLE ->
-                        generator.createExpressionFromText(LanguageLevel.PYTHON39, "()")
+                        generator.createExpressionFromText(LanguageLevel.getDefault(), "()")
                 }
                 val simplifyElements = result.elements.map { simplifyAllSubexpressionsDelayed(it) }
                 return@run {
