@@ -54,19 +54,19 @@ internal sealed class NotEliminationRule {
         expression: PyPrefixExpression,
         commandsStorage: PerformedCommandStorage?
     ): PyExpression {
-        return if (canApply(expression))
+        return if (canApply(expression)) {
             apply(expression, commandsStorage)
-        else
+        } else {
             expression
+        }
     }
-
 }
-
 
 internal abstract class DeMorganNotEliminationRule : NotEliminationRule() {
     override fun canApply(expression: PyExpression): Boolean {
-        if (!expression.isNegationExpression)
+        if (!expression.isNegationExpression) {
             return false
+        }
         expression as PyPrefixExpression
 
         val inner = expression.innerOperand as? PyBinaryExpression
@@ -85,13 +85,16 @@ internal abstract class DeMorganNotEliminationRule : NotEliminationRule() {
         val myRightExpression = generator.createNegationExpression(LanguageLevel.PYTHON36, rightExpression)
         val newLeftExpression = CompositeNotEliminationRule.applyIfNeeded(myLeftExpression, commandsStorage)
         val newRightExpression = CompositeNotEliminationRule.applyIfNeeded(myRightExpression, commandsStorage)
-        val myExpression = generator.createBinaryExpression(flippedBinaryOperator, newLeftExpression, newRightExpression)
+        val myExpression = generator.createBinaryExpression(
+            flippedBinaryOperator,
+            newLeftExpression,
+            newRightExpression
+        )
         val newExpression = generator.createParenthesizedExpression(LanguageLevel.PYTHON36, myExpression)
         commandsStorage.safePerformCommand({ expression.replace(newExpression) }, "Apply De Morgan's law")
         return newExpression
     }
 }
-
 
 internal object NegationConjunctionRule : DeMorganNotEliminationRule() {
     override val allowedBinaryOperator: PyElementType = PyTokenTypes.AND_KEYWORD
