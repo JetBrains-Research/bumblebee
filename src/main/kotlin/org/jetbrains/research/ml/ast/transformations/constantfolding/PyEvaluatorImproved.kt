@@ -17,7 +17,10 @@ import com.jetbrains.python.psi.PySequenceExpression
 import com.jetbrains.python.psi.PyStringLiteralExpression
 import com.jetbrains.python.psi.PyTupleExpression
 import com.jetbrains.python.psi.impl.PyBuiltinCache
+import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
+import com.jetbrains.python.psi.types.PyModuleType
 import com.jetbrains.python.psi.types.TypeEvalContext
+import org.jetbrains.research.ml.ast.transformations.util.PsiUtil.isComment
 import java.math.BigInteger
 import kotlin.test.fail
 
@@ -104,12 +107,27 @@ class PyEvaluatorImproved(file: PyFile) {
             null
         }
 
+    // Indicate if the current expression is a part of the module's expression.
+    // For example: if __name__ == '__main__'
+    // TODO: should we check all possible instance members or is __name__ enough for us?
+    private val PyStringLiteralExpression.isModuleMember: Boolean
+        get() = run {
+            val moduleMember = this.parent.children.firstOrNull { it is PyReferenceExpression } ?: return@run false
+            PyModuleType.getPossibleInstanceMembers().contains((moduleMember as PyReferenceExpressionImpl).name)
+        }
+
     private fun evaluateLiteral(expression: PyLiteralExpression): PyEvaluationResult? =
         when (expression) {
             is PyBoolLiteralExpression -> PyBool(expression.value)
             is PyNumericLiteralExpression ->
                 expression.takeIf { it.isIntegerLiteral }?.bigIntegerValue?.let { PyInt(it) }
-            is PyStringLiteralExpression -> PyString(expression.stringValue)
+            is PyStringLiteralExpression -> {
+                if (expression.isComment || expression.isModuleMember) {
+                    null
+                } else {
+                    PyString(expression.stringValue)
+                }
+            }
             else -> null
         }
 
