@@ -78,11 +78,11 @@ class IfRedundantLinesRemover(
     private fun moveCommonPart(
         ifStatement: PyIfStatement,
         simplifyDelayed: (() -> StatementRange)?,
-        statement: StatementRange.() -> PyStatement
+        statement: StatementRange.() -> PyStatement,
+        isBefore: Boolean
     ): PyStatement {
         return if (simplifyDelayed != null) {
-            val newPrefixRange = simplifyDelayed()
-            newPrefixRange.move(ifStatement, true, commandStorage).statement()
+            simplifyDelayed().move(ifStatement, isBefore, commandStorage).statement()
         } else ifStatement
     }
 
@@ -200,7 +200,7 @@ class IfRedundantLinesRemover(
             // Handle all sub-statements excluding duplicates
             val ifStatements = statementLists.first()
             val simplifyPrefix = simplifyStatementListDelayed(ifStatements.take(prefixLength), prefixLength)
-            val simplifySuffix = simplifyStatementListDelayed(ifStatements.takeLast(prefixLength), prefixLength)
+            val simplifySuffix = simplifyStatementListDelayed(ifStatements.takeLast(suffixLength), suffixLength)
 
             val uniqueStatementLists = statementLists.map { it.drop(prefixLength).dropLast(suffixLength) }
             val simplifyUniqueStatements = uniqueStatementLists.map {
@@ -211,8 +211,8 @@ class IfRedundantLinesRemover(
 
             return {
                 // Handle common prefix and suffix
-                var newFirst = moveCommonPart(ifStatement, simplifyPrefix, StatementRange::first)
-                val newLast = moveCommonPart(ifStatement, simplifySuffix, StatementRange::last)
+                var newFirst = moveCommonPart(ifStatement, simplifyPrefix, StatementRange::first, true)
+                val newLast = moveCommonPart(ifStatement, simplifySuffix, StatementRange::last, false)
 
                 // Remove the duplicate parts from all if/else parts
                 removeDuplicates(statementLists.drop(1), prefixLength, suffixLength)
@@ -243,9 +243,9 @@ class IfRedundantLinesRemover(
 
     private fun simplifyStatementListDelayed(
         statements: List<PyStatement>,
-        prefixLength: Int
+        prefixOrSuffixLength: Int
     ): (() -> StatementRange)? {
-        return if (prefixLength > 0) {
+        return if (prefixOrSuffixLength > 0) {
             simplifyStatementListDelayed(statements)
         } else null
     }
