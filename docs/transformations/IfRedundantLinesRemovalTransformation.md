@@ -57,7 +57,7 @@ print(y)
 
 ## Exceptions
 
-If the common part is in the middle of the statements list the statement does not change,
+- If the common part is in the middle of the statements list the statement does not change,
 because in this case, the length of the common suffix and prefix is zero.
 An example of unchanged code:
 
@@ -75,3 +75,6 @@ else:
     b = a + a
     print('bar1')
 ```
+
+- The `PyStatment` comparison is done using the `textMatches` function, 
+  which compares the text within these statements
