@@ -2,12 +2,7 @@ package org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.siblings
-import com.jetbrains.python.psi.PyElementGenerator
-import com.jetbrains.python.psi.PyElsePart
-import com.jetbrains.python.psi.PyFile
-import com.jetbrains.python.psi.PyIfPart
-import com.jetbrains.python.psi.PyIfStatement
-import com.jetbrains.python.psi.PyStatement
+import com.jetbrains.python.psi.*
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PyUtils
 import org.jetbrains.research.ml.ast.transformations.constantfolding.PyEvaluatorImproved
@@ -38,14 +33,158 @@ class IfRedundantLinesRemover(
         return { simplifySubStatements.forEach { it() } }
     }
 
-    private class StatementRange(val first: PyStatement, val last: PyStatement)
+    private data class StatementRange(val first: PyStatement, val last: PyStatement) {
+        fun move(
+            anchor: PsiElement,
+            before: Boolean,
+            commandStorage: PerformedCommandStorage?
+        ): StatementRange {
+            val indexOfLast = first.nextStatements().indexOf(last)
+            val anchorParent = anchor.parent
+            val newFirst = commandStorage.safePerformCommandWithResult(
+                {
+                    if (before) {
+                        anchorParent.addRangeBefore(first, last, anchor)
+                    } else {
+                        anchorParent.addRangeAfter(first, last, anchor)
+                    } as PyStatement
+                },
+                "Insert duplicate statements to new position"
+            )
+            val newLast = newFirst.nextStatements().elementAt(indexOfLast)
+            commandStorage.safePerformCommand(
+                { first.parent.deleteChildRange(first, last) },
+                "Remove original duplicate statements"
+            )
+            return StatementRange(newFirst, newLast)
+        }
+    }
+
+    private val PyIfStatement.hasAllConditions: Boolean
+        get() = this.elsePart != null &&
+            this.ifPart.condition != null &&
+            this.elifParts.all { it.condition != null }
+
+    private fun getPrefixLength(
+        statementLists: List<List<PyStatement>>,
+        allConditionsArePure: Boolean,
+        maxAllowedPrefixLength: Int
+    ): Int {
+        return if (allConditionsArePure) {
+            minOf(getCommonPrefixLength(statementLists), maxAllowedPrefixLength)
+        } else 0
+    }
+
+    private fun moveCommonPart(
+        ifStatement: PyIfStatement,
+        simplifyDelayed: (() -> StatementRange)?,
+        statement: StatementRange.() -> PyStatement
+    ): PyStatement {
+        return if (simplifyDelayed != null) {
+            val newPrefixRange = simplifyDelayed()
+            newPrefixRange.move(ifStatement, true, commandStorage).statement()
+        } else ifStatement
+    }
+
+    private fun removeDuplicates(statementLists: List<List<PyStatement>>, prefixLength: Int, suffixLength: Int) {
+        for (statementList in statementLists) {
+            if (prefixLength > 0) {
+                commandStorage.safePerformCommand(
+                    {
+                        statementList.first().parent.deleteChildRange(
+                            statementList.first(),
+                            statementList[prefixLength - 1]
+                        )
+                    },
+                    "Remove duplicate statements"
+                )
+            }
+            if (suffixLength > 0) {
+                commandStorage.safePerformCommand(
+                    {
+                        statementList.last().parent.deleteChildRange(
+                            statementList[statementList.size - suffixLength],
+                            statementList.last()
+                        )
+                    },
+                    "Remove duplicate statements"
+                )
+            }
+        }
+    }
+
+    private fun removeIfParts(partsToRemoveIds: List<Int>,
+                              conditions: List<PyExpression>,
+                              statementParts: List<PyStatementPart>) {
+        for (index in partsToRemoveIds) {
+            if (conditions.getOrNull(index)?.let { evaluator.canBeProvenPure(it) } != false) {
+                commandStorage.safePerformCommand(
+                    { statementParts[index].delete() },
+                    "Remove redundant part of if statement"
+                )
+            } else {
+                commandStorage.safePerformCommand(
+                    {
+                        statementParts[index].add(generator.createPassStatement())
+                    }, "Replace statements with a single 'pass' in part of if with impure condition"
+                )
+            }
+        }
+    }
+
+    private fun removeIfStatement(ifStatement: PyIfStatement,
+                                  conditions: List<PyExpression>,
+                                  firstStatement: PyStatement,
+                                  allConditionsArePure: Boolean): PyStatement {
+        var newFirst = firstStatement
+        // All statements have been selected as parts of a suffix
+        if (allConditionsArePure) {
+            newFirst = newFirst.nextStatements().first()
+            commandStorage.safePerformCommand({ ifStatement.delete() }, "Delete redundant 'if' statement")
+        } else {
+            val disjunction = generator.createBinaryOperandList("or", conditions)
+            val disjunctionStatement = generator.createExpressionStatement(disjunction)
+            newFirst = commandStorage.safePerformCommandWithResult(
+                {
+                    ifStatement.replace(disjunctionStatement)
+                },
+                "Replace 'if' with just the conditions"
+            ) as PyStatement
+        }
+        return newFirst
+    }
+
+    private fun restoreIfCorrectness(conditions: List<PyExpression>,
+                                     firstToKeep: PyStatementPart,
+                                     simplifiedFirstRange: StatementRange) {
+        val replacementPart = when (firstToKeep) {
+            is PyIfPart -> {
+                generator.createIfPartFromIfPart(firstToKeep)
+            }
+            is PyElsePart -> {
+                val disjunction = generator.createBinaryOperandList("or", conditions)
+                val notDisjunction = generator.createPrefixExpression(
+                    "not",
+                    PyUtils.braceExpression(disjunction)
+                )
+                generator.createIfPart(
+                    notDisjunction,
+                    simplifiedFirstRange.first.nextStatements()
+                        .takeWhile { it != simplifiedFirstRange.last }
+                        .toList() + simplifiedFirstRange.last
+                )
+            }
+            else -> fail("Unexpected type of if part encountered")
+        }
+        commandStorage.safePerformCommand(
+            { firstToKeep.replace(replacementPart) },
+            "Replace a part to restore 'if' correctness"
+        )
+    }
 
     private fun simplifyStatementDelayed(statement: PyStatement): () -> StatementRange {
         val ifStatement = statement as? PyIfStatement
-        if (ifStatement != null &&
-            ifStatement.elsePart != null &&
-            ifStatement.ifPart.condition != null &&
-            ifStatement.elifParts.all { it.condition != null }
+        if (ifStatement != null && ifStatement.hasAllConditions
         ) {
             val ifParts = listOf(ifStatement.ifPart) + ifStatement.elifParts
             val statementParts = ifParts + ifStatement.elsePart!!
@@ -56,18 +195,12 @@ class IfRedundantLinesRemover(
             val maxAllowedPrefixLength = statementLists.map { it.size - suffixLength }.minOrNull()!!
             val conditions = ifParts.map { it.condition!! }
             val allConditionsArePure = conditions.all { evaluator.canBeProvenPure(it) }
-            val prefixLength = if (allConditionsArePure) {
-                minOf(getCommonPrefixLength(statementLists), maxAllowedPrefixLength)
-            } else 0
+            val prefixLength = getPrefixLength(statementLists, allConditionsArePure, maxAllowedPrefixLength)
 
             // Handle all sub-statements excluding duplicates
             val ifStatements = statementLists.first()
-            val simplifyPrefix = if (prefixLength > 0) {
-                simplifyStatementListDelayed(ifStatements.take(prefixLength))
-            } else null
-            val simplifySuffix = if (suffixLength > 0) {
-                simplifyStatementListDelayed(ifStatements.takeLast(suffixLength))
-            } else null
+            val simplifyPrefix = simplifyStatementListDelayed(ifStatements.take(prefixLength), prefixLength)
+            val simplifySuffix = simplifyStatementListDelayed(ifStatements.takeLast(prefixLength), prefixLength)
 
             val uniqueStatementLists = statementLists.map { it.drop(prefixLength).dropLast(suffixLength) }
             val simplifyUniqueStatements = uniqueStatementLists.map {
@@ -78,103 +211,25 @@ class IfRedundantLinesRemover(
 
             return {
                 // Handle common prefix and suffix
-                var newFirst = if (simplifyPrefix != null) {
-                    val newPrefixRange = simplifyPrefix()
-                    moveStatementsRange(newPrefixRange, ifStatement, true).first
-                } else ifStatement
-                val newLast = if (simplifySuffix != null) {
-                    val newSuffixRange = simplifySuffix()
-                    moveStatementsRange(newSuffixRange, ifStatement, false).last
-                } else ifStatement
+                var newFirst = moveCommonPart(ifStatement, simplifyPrefix, StatementRange::first)
+                val newLast = moveCommonPart(ifStatement, simplifySuffix, StatementRange::last)
 
                 // Remove the duplicate parts from all if/else parts
-                for (statementList in statementLists.drop(1)) {
-                    if (prefixLength > 0) {
-                        commandStorage.safePerformCommand(
-                            {
-                                statementList.first().parent.deleteChildRange(
-                                    statementList.first(),
-                                    statementList[prefixLength - 1]
-                                )
-                            },
-                            "Remove duplicate statements"
-                        )
-                    }
-                    if (suffixLength > 0) {
-                        commandStorage.safePerformCommand(
-                            {
-                                statementList.last().parent.deleteChildRange(
-                                    statementList[statementList.size - suffixLength],
-                                    statementList.last()
-                                )
-                            },
-                            "Remove duplicate statements"
-                        )
-                    }
-                }
+                removeDuplicates(statementLists.drop(1), prefixLength, suffixLength)
 
                 // Remove the whole if when necessary
                 // and make sure the first remaining part is always "if ...:"
                 if (partsToKeepIds.isEmpty()) {
-                    // All statements have been selected as parts of a suffix
-                    if (allConditionsArePure) {
-                        newFirst = newFirst.nextStatements().first()
-                        commandStorage.safePerformCommand({ ifStatement.delete() }, "Delete redundant if statement")
-                    } else {
-                        val disjunction = generator.createBinaryOperandList("or", conditions)
-                        val disjunctionStatement = generator.createExpressionStatement(disjunction)
-                        newFirst = commandStorage.safePerformCommandWithResult(
-                            {
-                                ifStatement.replace(disjunctionStatement)
-                            },
-                            "Replace if with just the conditions"
-                        ) as PyStatement
-                    }
+                    newFirst = removeIfStatement(ifStatement, conditions, newFirst, allConditionsArePure)
                 } else {
                     val firstToKeepId = partsToKeepIds.first()
                     val firstToKeep = statementParts[firstToKeepId]
                     val simplifiedFirstRange = simplifyUniqueStatements.map { it?.let { it() } }[firstToKeepId]!!
-                    val replacementPart = when (firstToKeep) {
-                        is PyIfPart -> {
-                            generator.createIfPartFromIfPart(firstToKeep)
-                        }
-                        is PyElsePart -> {
-                            val disjunction = generator.createBinaryOperandList("or", conditions)
-                            val notDisjunction = generator.createPrefixExpression(
-                                "not",
-                                PyUtils.braceExpression(disjunction)
-                            )
-                            generator.createIfPart(
-                                notDisjunction,
-                                simplifiedFirstRange.first.nextStatements()
-                                    .takeWhile { it != simplifiedFirstRange.last }
-                                    .toList() + simplifiedFirstRange.last
-                            )
-                        }
-                        else -> fail("Unexpected type of if part encountered")
-                    }
-                    commandStorage.safePerformCommand(
-                        { firstToKeep.replace(replacementPart) },
-                        "Replace a part to restore if correctness"
-                    )
+                    restoreIfCorrectness(conditions, firstToKeep, simplifiedFirstRange)
                 }
 
                 // Remove whole parts when necessary
-                for (index in partsToRemoveIds) {
-                    if (conditions.getOrNull(index)?.let { evaluator.canBeProvenPure(it) } != false) {
-                        commandStorage.safePerformCommand(
-                            { statementParts[index].delete() },
-                            "Remove redundant part of if statement"
-                        )
-                    } else {
-                        commandStorage.safePerformCommand(
-                            {
-                                statementParts[index].add(generator.createPassStatement())
-                            }, "Replace statements with a single 'pass' in part of if with impure condition"
-                        )
-                    }
-                }
-
+                removeIfParts(partsToRemoveIds, conditions, statementParts)
                 StatementRange(newFirst, newLast)
             }
         }
@@ -184,6 +239,15 @@ class IfRedundantLinesRemover(
             simplifySubStatements()
             StatementRange(statement, statement)
         }
+    }
+
+    private fun simplifyStatementListDelayed(
+        statements: List<PyStatement>,
+        prefixLength: Int
+    ): (() -> StatementRange)? {
+        return if (prefixLength > 0) {
+            simplifyStatementListDelayed(statements)
+        } else null
     }
 
     private fun simplifyStatementListDelayed(statements: List<PyStatement>): () -> StatementRange {
@@ -212,31 +276,6 @@ class IfRedundantLinesRemover(
     // PsiEquivalenceUtil.areElementsEquivalent(first, second)
         // TODO: replace with something more sensible
         first.textMatches(second)
-
-    private fun moveStatementsRange(
-        range: StatementRange,
-        anchor: PsiElement,
-        before: Boolean
-    ): StatementRange {
-        val indexOfLast = range.first.nextStatements().indexOf(range.last)
-        val anchorParent = anchor.parent
-        val newFirst = commandStorage.safePerformCommandWithResult(
-            {
-                if (before) {
-                    anchorParent.addRangeBefore(range.first, range.last, anchor)
-                } else {
-                    anchorParent.addRangeAfter(range.first, range.last, anchor)
-                } as PyStatement
-            },
-            "Insert duplicate statements to new position"
-        )
-        val newLast = newFirst.nextStatements().elementAt(indexOfLast)
-        commandStorage.safePerformCommand(
-            { range.first.parent.deleteChildRange(range.first, range.last) },
-            "Remove original duplicate statements"
-        )
-        return StatementRange(newFirst, newLast)
-    }
 
     companion object {
         fun PyStatement.nextStatements() = siblings(forward = true, withSelf = true).filterIsInstance<PyStatement>()
