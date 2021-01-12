@@ -113,9 +113,11 @@ class IfRedundantLinesRemover(
         }
     }
 
-    private fun removeIfParts(partsToRemoveIds: List<Int>,
-                              conditions: List<PyExpression>,
-                              statementParts: List<PyStatementPart>) {
+    private fun removeIfParts(
+        partsToRemoveIds: List<Int>,
+        conditions: List<PyExpression>,
+        statementParts: List<PyStatementPart>
+    ) {
         for (index in partsToRemoveIds) {
             if (conditions.getOrNull(index)?.let { evaluator.canBeProvenPure(it) } != false) {
                 commandStorage.safePerformCommand(
@@ -126,16 +128,19 @@ class IfRedundantLinesRemover(
                 commandStorage.safePerformCommand(
                     {
                         statementParts[index].add(generator.createPassStatement())
-                    }, "Replace statements with a single 'pass' in part of if with impure condition"
+                    },
+                    "Replace statements with a single 'pass' in part of if with impure condition"
                 )
             }
         }
     }
 
-    private fun removeIfStatement(ifStatement: PyIfStatement,
-                                  conditions: List<PyExpression>,
-                                  firstStatement: PyStatement,
-                                  allConditionsArePure: Boolean): PyStatement {
+    private fun removeIfStatement(
+        ifStatement: PyIfStatement,
+        conditions: List<PyExpression>,
+        firstStatement: PyStatement,
+        allConditionsArePure: Boolean
+    ): PyStatement {
         var newFirst = firstStatement
         // All statements have been selected as parts of a suffix
         if (allConditionsArePure) {
@@ -154,9 +159,11 @@ class IfRedundantLinesRemover(
         return newFirst
     }
 
-    private fun restoreIfCorrectness(conditions: List<PyExpression>,
-                                     firstToKeep: PyStatementPart,
-                                     simplifiedFirstRange: StatementRange) {
+    private fun restoreIfCorrectness(
+        conditions: List<PyExpression>,
+        firstToKeep: PyStatementPart,
+        simplifiedFirstRange: StatementRange
+    ) {
         val replacementPart = when (firstToKeep) {
             is PyIfPart -> {
                 generator.createIfPartFromIfPart(firstToKeep)
@@ -273,7 +280,7 @@ class IfRedundantLinesRemover(
         statements.all { it != null && areStatementsEquivalent(it, statements.first()!!) }
 
     private fun areStatementsEquivalent(first: PyStatement, second: PyStatement): Boolean =
-    // PsiEquivalenceUtil.areElementsEquivalent(first, second)
+        // PsiEquivalenceUtil.areElementsEquivalent(first, second)
         // TODO: replace with something more sensible
         first.textMatches(second)
 

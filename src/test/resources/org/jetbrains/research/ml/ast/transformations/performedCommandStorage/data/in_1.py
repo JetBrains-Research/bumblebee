@@ -27,6 +27,19 @@ def main():
     d *= 2 + 2
 
     e = int(input())
+    # If redundant lines
+    if c + e > 14:
+        print(c)
+        print(e)
+        d *= 2 + 2
+    elif c + d > 15:
+        print(d)
+        print(e)
+        d *= 2 + 2
+    else:
+        print(a)
+        print(e)
+        d *= 2 + 2
 
     # Multiple Operator Comparison
     if a <= e <= d <= c:

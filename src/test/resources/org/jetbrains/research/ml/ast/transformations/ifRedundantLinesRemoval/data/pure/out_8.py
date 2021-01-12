@@ -1,6 +1,4 @@
-y = 5
-
-def impure_foo(s):
+def pure_foo(s, y):
     x = 1
     y = x
     print(y)

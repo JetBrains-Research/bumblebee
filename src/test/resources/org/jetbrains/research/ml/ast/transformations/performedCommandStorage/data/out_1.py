@@ -16,6 +16,14 @@ def f2():
     f2_v4 = f2_v4 * (2 + 2)
 
     f2_v5 = int(input())
+    if f2_v3 + f2_v5 > 14:
+        print(f2_v3)
+    elif f2_v3 + f2_v4 > 15:
+        print(f2_v4)
+    else:
+        print(f2_v1)
+    print(f2_v5)
+    f2_v4 = f2_v4 * (2 + 2)
 
     if (f2_v1 <= f2_v5 and f2_v5 <= f2_v4 and f2_v4 <= f2_v3):
         print(f2_v5)
