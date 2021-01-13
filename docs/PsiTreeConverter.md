@@ -64,27 +64,22 @@ Consider all used cases in the `PsiElement.label` function:
  
 - `PyBinaryExpression` has the name `null`, but we need to distinguish between operations depending on the action they
 perform. For example, the nodes with expressions `a + b` and `a - b` have the same PSI structure,
-but the operators are different. In this case we store `operator` or `specialMethodName` for the operator if it exists.
-For example, in the expression `a + b` we have `PyBinaryExpression` with the operator's `specialMethodName` `__add__`,
-but the operator is `Py:PLUS`.
+but the operators are different. In this case we store the string representation of the `operator`.
+For example, in the expression `a + b` we have `PyBinaryExpression` with the operator `Py:PLUS` 
+  and string representation `+`.
  
 - `PyPrefixExpression` has the name `null`, but we also need to distinguish between operations depending on the action
-they perform. An example of this expression is `-1` or `not True`. It does not have the `specialMethodName` field,
-but it has the `operator` field.
+they perform. An example of this expression is `-1` or `not True`. In this case we also store the 
+  string representation of the `operator`.
  
 - `PyAugAssignmentStatement` supports the operators like `+=`, `-=`, and so on. We store `operation.text` which lists
 the action like `+=` or `-=` if it exists.
  
 - `PyFormattedStringElement` supports [f-strings](https://docs.python.org/3/reference/lexical_analysis.html#f-strings).
 We did not find a way to separate text content from the variables, and so we store full content like `f"text {1}"`
-We have a `todo` about this.
  
 - `PyImportElement` has a name, but it stores the name of the library twice -- in this node and in a child.
 So we use an empty name for this node and store the name only in the child node.
- 
-- `PyYieldExpression` can have the prefix `from` if you use a collection: `yield from [1, 2, 3]` and `yield 3`.
-However, we can not get this information from the PSI node (only from the text). We need to distinguish these cases in the
-GumTree and so we store the label `from` if it is `yield` for a collection.
  
 In most cases, we can use the name of the node or an empty label.
 For example, almost all elements that inherit from `PyBaseElementImpl<*>` have a defining (or empty) name.
@@ -102,10 +97,6 @@ To create this list of cases we considered all types of the Py PSI items and dec
  
 **Note:** we don't support the following cases:
 - `async` keyword;
-- type annotations;
- 
-This means that if these cases occur in the processed code, the converter will work, but the tree can be the same for the following cases:
-- `a: int = 1`
-- `a: float = 1`
+ - `yield` keyword;
  
 We are going to support these cases in the future.

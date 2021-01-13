@@ -10,7 +10,7 @@
 " typeLabel="WHITE_SPACE"></tree>
     <tree type="-139656624" typeLabel="Py:WHILE_STATEMENT">
       <tree type="1855731282" typeLabel="Py:WHILE_PART">
-        <tree type="-13310331" label="__gt__" typeLabel="Py:BINARY_EXPRESSION">
+        <tree type="-13310331" label="&gt;" typeLabel="Py:BINARY_EXPRESSION">
           <tree type="2049746141" label="i" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
           <tree type="698675450" label="5" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
         </tree>

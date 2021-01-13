@@ -18,7 +18,7 @@
       <tree type="-1861175352" typeLabel="Py:CALL_EXPRESSION">
         <tree type="2049746141" label="print" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
         <tree type="-609747633" typeLabel="Py:ARGUMENT_LIST">
-          <tree type="-13310331" label="__add__" typeLabel="Py:BINARY_EXPRESSION">
+          <tree type="-13310331" label="+" typeLabel="Py:BINARY_EXPRESSION">
             <tree type="2049746141" label="a" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
             <tree type="2049746141" label="b" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
           </tree>

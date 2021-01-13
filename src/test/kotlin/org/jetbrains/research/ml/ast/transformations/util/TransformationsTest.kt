@@ -13,6 +13,7 @@ import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.util.FileTestUtil
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
+import org.jetbrains.research.ml.ast.util.getPsiFile
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.runners.Parameterized
@@ -109,7 +110,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     }
 
     protected fun getPsiFile(file: File, toReformatFile: Boolean = true): PsiFile {
-        val psiFile = myFixture.configureByFile(file.path)
+        val psiFile = myFixture.getPsiFile(file)
         if (toReformatFile) {
             formatPsiFile(psiFile)
         }
