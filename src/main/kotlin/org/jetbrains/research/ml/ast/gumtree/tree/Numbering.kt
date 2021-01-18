@@ -26,6 +26,10 @@ abstract class Numbering {
                     t.putCopyableUserData(psiId, i)
                 }
             }
+
+            fun PsiElement.setId(id: Int?) {
+                this.putCopyableUserData(psiId, id)
+            }
         }
     }
 

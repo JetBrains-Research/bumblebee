@@ -4,9 +4,12 @@ import com.github.gumtreediff.actions.ActionUtil
 import com.github.gumtreediff.io.TreeIoUtils
 import com.github.gumtreediff.tree.TreeContext
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.psi.PsiElement
+import com.intellij.psi.codeStyle.CodeStyleManager
 import org.jetbrains.research.ml.ast.gumtree.Util
 import org.jetbrains.research.ml.ast.gumtree.tree.PostOrderNumbering
 import org.jetbrains.research.ml.ast.util.*
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -60,6 +63,8 @@ class PsiElementTransformerTest : ParametrizedBaseTest(getResourcesRootPath(::Ps
         return false
     }
 
+    private fun deleteAllEmptyRows(str: String): String = str.replace("(?m)^[ \t]*\r?\n".toRegex(), "").removeSuffix("\n")
+
     private fun convertSrcToDst(srcFile: File, dstFile: File) {
         if (inFailFolder(srcFile)) {
             return
@@ -71,15 +76,16 @@ class PsiElementTransformerTest : ParametrizedBaseTest(getResourcesRootPath(::Ps
         val dstContext = Util.getTreeContext(dstPsi, numbering)
         val matcher = Matcher(srcContext, dstContext)
         val actions = matcher.getEditActions()
-        val srcXml = TreeIoUtils.toXml(srcContext).toString().removeSuffix("\n")
-        val dstXml = TreeIoUtils.toXml(dstContext).toString().removeSuffix("\n")
-
-        val new = ActionUtil.apply(srcContext, actions)
-        val newXml = TreeIoUtils.toXml(new).toString().removeSuffix("\n")
+//        val srcXml = TreeIoUtils.toXml(srcContext).toString().removeSuffix("\n")
+//        val dstXml = TreeIoUtils.toXml(dstContext).toString().removeSuffix("\n")
+//
+//        val new = ActionUtil.apply(srcContext, actions)
+//        val newXml = TreeIoUtils.toXml(new).toString().removeSuffix("\n")
         val w = PsiElementTransformer(project, srcPsi, dstPsi, numbering)
         WriteCommandAction.runWriteCommandAction(project) {
             w.applyActions(actions)
         }
-        assertEquals(expectedCode, srcPsi.text)
+        assertEquals(deleteAllEmptyRows(expectedCode), deleteAllEmptyRows(srcPsi.text))
     }
+
 }
