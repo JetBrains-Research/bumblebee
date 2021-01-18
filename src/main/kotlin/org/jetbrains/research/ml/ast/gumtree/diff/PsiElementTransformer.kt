@@ -1,7 +1,6 @@
 package org.jetbrains.research.ml.ast.gumtree.diff
 
 import com.github.gumtreediff.actions.model.*
-import com.github.gumtreediff.tree.ITree
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -11,8 +10,6 @@ import com.jetbrains.python.psi.PyElementGenerator
 import org.jetbrains.research.ml.ast.gumtree.tree.Numbering
 import org.jetbrains.research.ml.ast.gumtree.tree.Numbering.PsiTreeUtils.Companion.id
 import org.jetbrains.research.ml.ast.gumtree.tree.Numbering.PsiTreeUtils.Companion.setId
-import java.util.*
-import kotlin.collections.HashSet
 
 class PsiElementTransformer(
     project: Project,
@@ -47,6 +44,7 @@ class PsiElementTransformer(
         }
     }
 
+    // TODO: it seems we should use simple <applyAction>
     fun applyActions(actions: List<Action>) {
         val nodesObserver = NodesObserver()
         actions.forEach {
@@ -90,16 +88,21 @@ class PsiElementTransformer(
         errorMessagePrefix: String = "",
         nodesObserver: NodesObserver
     ) {
-        val parentNode = if (parentId in nodesObserver.insertedNodesIds) {
-            dstPsiNodes[parentId]
-        } else {
-            srcPsiNodes[parentId]
-        }
+        val parentNode =
+            if ((parentId in nodesObserver.insertedNodesIds && parentId < dstPsiNodes.size) ||
+                parentId >= srcPsiNodes.size
+            ) {
+                dstPsiNodes[parentId]
+            } else {
+                srcPsiNodes[parentId]
+            }
         val psiElement = this.getPsiElementById(psiNodes, errorMessagePrefix)
         executeInsert(psiElement, parentNode, position, nodesObserver)
     }
 
-    private fun Insert.apply(nodesObserver: NodesObserver) = this.applyInsert(dstPsiNodes, this.parent.id, this.position, "Destination ", nodesObserver)
+    private fun Insert.apply(nodesObserver: NodesObserver) {
+        this.applyInsert(dstPsiNodes, this.parent.id, this.position, "Destination ", nodesObserver)
+    }
 
     private fun Move.apply(nodesObserver: NodesObserver) {
         this.applyInsert(srcPsiNodes, this.parent.id, this.position, "Source ", nodesObserver)

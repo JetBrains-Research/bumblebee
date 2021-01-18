@@ -1,20 +1,15 @@
 package org.jetbrains.research.ml.ast.gumtree.diff
 
-import com.github.gumtreediff.actions.ActionUtil
-import com.github.gumtreediff.io.TreeIoUtils
-import com.github.gumtreediff.tree.TreeContext
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.psi.PsiElement
-import com.intellij.psi.codeStyle.CodeStyleManager
 import org.jetbrains.research.ml.ast.gumtree.Util
 import org.jetbrains.research.ml.ast.gumtree.tree.PostOrderNumbering
 import org.jetbrains.research.ml.ast.util.*
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
 
+// TODO: add more test cases
 @RunWith(Parameterized::class)
 class PsiElementTransformerTest : ParametrizedBaseTest(getResourcesRootPath(::PsiElementTransformerTest)) {
     private val numbering = PostOrderNumbering
@@ -40,21 +35,14 @@ class PsiElementTransformerTest : ParametrizedBaseTest(getResourcesRootPath(::Ps
     @Parameterized.Parameter(1)
     var dstFile: File? = null
 
-    // TODO: does not work for case
-    //  src:
-    //  a1 = False or False
-    //  a2 = False and False
-    //  and dst:
-    //  a1 = False and False
-    //  a2 = False or False
     @Test
     fun `apply src to dst actions`() = convertSrcToDst(srcFile!!, dstFile!!)
 
     @Test
     fun `apply dst to src actions`() = convertSrcToDst(dstFile!!, srcFile!!)
 
-    // In the <fail> folder cases are stored which are incorrect even with GumTree trees
-    // and GumTree internal actions
+    // TODO: In the <fail> folder cases are stored which are incorrect even with GumTree trees
+    //  and GumTree internal actions
     private fun inFailFolder(file: File): Boolean {
         val parent = file.parentFile
         if (parent.isDirectory && parent.nameWithoutExtension == "fail") {
@@ -63,7 +51,9 @@ class PsiElementTransformerTest : ParametrizedBaseTest(getResourcesRootPath(::Ps
         return false
     }
 
-    private fun deleteAllEmptyRows(str: String): String = str.replace("(?m)^[ \t]*\r?\n".toRegex(), "").removeSuffix("\n")
+    private fun deleteAllEmptyRows(str: String): String {
+        return str.replace("(?m)^[ \t]*\r?\n".toRegex(), "").removeSuffix("\n")
+    }
 
     private fun convertSrcToDst(srcFile: File, dstFile: File) {
         if (inFailFolder(srcFile)) {
@@ -76,16 +66,10 @@ class PsiElementTransformerTest : ParametrizedBaseTest(getResourcesRootPath(::Ps
         val dstContext = Util.getTreeContext(dstPsi, numbering)
         val matcher = Matcher(srcContext, dstContext)
         val actions = matcher.getEditActions()
-//        val srcXml = TreeIoUtils.toXml(srcContext).toString().removeSuffix("\n")
-//        val dstXml = TreeIoUtils.toXml(dstContext).toString().removeSuffix("\n")
-//
-//        val new = ActionUtil.apply(srcContext, actions)
-//        val newXml = TreeIoUtils.toXml(new).toString().removeSuffix("\n")
         val w = PsiElementTransformer(project, srcPsi, dstPsi, numbering)
         WriteCommandAction.runWriteCommandAction(project) {
             w.applyActions(actions)
         }
         assertEquals(deleteAllEmptyRows(expectedCode), deleteAllEmptyRows(srcPsi.text))
     }
-
 }
