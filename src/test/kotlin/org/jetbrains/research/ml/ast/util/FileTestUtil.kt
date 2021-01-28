@@ -57,4 +57,15 @@ object FileTestUtil {
         return folders.sortedBy { it.name }.map { getInAndOutFilesMap(it.absolutePath, inFormat, outFormat) }
             .fold(inAndOutFilesMap, { a, e -> a.plus(e) })
     }
+
+    // TODO: can we move some code into a common function?
+    fun getTestFiles(
+        folder: String,
+        format: TestFileFormat = TestFileFormat("in", Extension.Py, Type.Input)
+    ): List<File> {
+        val (files, folders) = File(folder).listFiles().orEmpty().partition { it.isFile }
+        val filesByFormat = files.mapNotNull { format.check(it)?.file }
+        return folders.sortedBy { it.name }.map { getTestFiles(it.absolutePath, format) }
+            .fold(filesByFormat, { a, e -> a.plus(e) })
+    }
 }
