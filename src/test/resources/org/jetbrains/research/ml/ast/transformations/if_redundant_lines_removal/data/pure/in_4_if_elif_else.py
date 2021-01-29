@@ -1,4 +1,5 @@
 s = input()
+z = input()
 
 if s:
     a = 2
@@ -7,7 +8,7 @@ if s:
     x = 1
     y = x
     print(y)
-elif s:
+elif z:
     a = 2
     b = a + a
     print('bar')

@@ -37,7 +37,8 @@ fun PyElementGenerator.createPrefixExpression(operator: String, operand: PyExpre
     val whitespace = if (operator.last() !in "+-~") " " else ""
     val prefixExpression =
         createExpressionFromText(defaultLanguageLevel, "${operator}${whitespace}1") as PyPrefixExpression
-    prefixExpression.operand!!.replace(operand)
+    require(prefixExpression.operand != null) { "The operand of the prefixExpression can not be null" }
+    prefixExpression.operand?.replace(operand)
     return prefixExpression
 }
 
@@ -49,13 +50,19 @@ fun PyElementGenerator.createIfPart(
     val ifStatement =
         createFromText(defaultLanguageLevel, PyIfStatement::class.java, "if 1:\n\tpass\nelif 2:\n\tpass")
     val ifPart = if (makeElifPart) ifStatement.elifParts[0] else ifStatement.ifPart
-    ifPart.condition!!.replace(condition)
+    require(ifPart.condition != null) { "The condition of the ifPart can not be null" }
+    ifPart.condition?.replace(condition)
     repopulateStatementList(ifPart.statementList, statements)
     return ifPart
 }
 
-fun PyElementGenerator.createIfPartFromIfPart(originalPart: PyIfPart, makeElifPart: Boolean = false): PyIfPart =
-    createIfPart(originalPart.condition!!, originalPart.statementList.statements.toList(), makeElifPart)
+// We can break the IfPart during transformations
+// and then we would like to be sure the first remaining part is always "if ...:"
+// So we use this function to restore if correctness
+fun PyElementGenerator.createIfPartFromIfPart(originalPart: PyIfPart, makeElifPart: Boolean = false): PyIfPart {
+    require(originalPart.condition != null) { "The condition of the ifPart can not be null" }
+    return createIfPart(originalPart.condition!!, originalPart.statementList.statements.toList(), makeElifPart)
+}
 
 fun PyElementGenerator.createExpressionStatement(expression: PyExpression): PyExpressionStatement {
     val expressionStatement = createFromText(defaultLanguageLevel, PyExpressionStatement::class.java, "1")

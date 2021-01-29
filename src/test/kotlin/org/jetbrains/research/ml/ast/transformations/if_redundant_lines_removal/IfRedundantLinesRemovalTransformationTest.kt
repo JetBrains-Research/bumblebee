@@ -1,4 +1,4 @@
-package org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval
+package org.jetbrains.research.ml.ast.transformations.if_redundant_lines_removal
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.junit.Test

@@ -1,10 +1,11 @@
 s = input()
+z = input()
 
 a = 2
 b = a + a
 if s:
     print('foo')
-elif s:
+elif z:
     print('bar')
 else:
     print('baz')

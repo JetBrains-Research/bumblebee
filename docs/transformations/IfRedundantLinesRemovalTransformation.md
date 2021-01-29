@@ -2,7 +2,8 @@
 
 ## Overview
 
-The goal of this transformation is to move to before or after the operator all redundant lines from `if` statement.
+The goal of this transformation is to extract all common lines from `if` branches 
+and move them before or after the statement.
 
 ## Example
 
@@ -48,7 +49,7 @@ print(y)
 
 2. Calculate the length of the common suffix and prefix
 
-3. Move before and after of the operator the common suffix and prefix 
+3. Move the common suffix and prefix before or after the operator respectively
 
 4. Remove the common parts from the `if` operator
 
