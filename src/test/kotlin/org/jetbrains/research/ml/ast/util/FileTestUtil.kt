@@ -38,34 +38,39 @@ object FileTestUtil {
      * inPrefix and outPrefix are set in [inFormat] and [outFormat] together with extensions,
      * i is a number; two corresponding input and output files should have the same number,
      * suffixes can by any symbols not necessary the same for the corresponding files.
+     *
+     * The values in the returned map can be null only if the [outFormat] is also null
      */
     fun getInAndOutFilesMap(
         folder: String,
         inFormat: TestFileFormat = TestFileFormat("in", Extension.Py, Type.Input),
-        outFormat: TestFileFormat = TestFileFormat("out", Extension.Py, Type.Output)
-    ): Map<File, File> {
+        outFormat: TestFileFormat? = null
+    ): Map<File, File?> {
         val (files, folders) = File(folder).listFiles().orEmpty().partition { it.isFile }
-//      Process files in the given folder
-        val inAndOutFilesGrouped = files.mapNotNull { inFormat.check(it) ?: outFormat.check(it) }.groupBy { it.number }
+
+        // Process files in the given folder
+        val inAndOutFilesGrouped = files.mapNotNull { inFormat.check(it) ?: outFormat?.check(it) }.groupBy { it.number }
         val inAndOutFilesMap = inAndOutFilesGrouped.map { (number, fileInfoList) ->
-            require(fileInfoList.size == 2) { "There are less or more than 2 test files with number $number" }
-            val (f1, f2) = fileInfoList.sortedBy { it.type }.zipWithNext().first()
-            require(inFormat.match(f1) && outFormat.match(f2)) { "Test files aren't paired with each other" }
-            f1.file to f2.file
+            val (f1, f2) = if (outFormat == null) {
+                require(fileInfoList.size == 1) { "There are less or more than 1 test files with number $number" }
+                Pair(fileInfoList.first(), null)
+            } else {
+                require(fileInfoList.size == 2) { "There are less or more than 2 test files with number $number" }
+                fileInfoList.sortedBy { it.type }.zipWithNext().first()
+            }
+            require(inFormat.match(f1)) { "The input file does not match the input format" }
+            outFormat?.let {
+                require(f2 != null && outFormat.match(f2)) { "The output file does not match the output format" }
+            }
+            f1.file to f2?.file
         }.sortedBy { it.first.name }.toMap()
-//      Process all other nested files
+
+        outFormat?.let {
+            require(inAndOutFilesMap.values.mapNotNull { it }.size == inAndOutFilesMap.values.size) { "Output tests" }
+        }
+
+        // Process all other nested files
         return folders.sortedBy { it.name }.map { getInAndOutFilesMap(it.absolutePath, inFormat, outFormat) }
             .fold(inAndOutFilesMap, { a, e -> a.plus(e) })
-    }
-
-    // TODO: can we move some code into a common function?
-    fun getTestFiles(
-        folder: String,
-        format: TestFileFormat = TestFileFormat("in", Extension.Py, Type.Input)
-    ): List<File> {
-        val (files, folders) = File(folder).listFiles().orEmpty().partition { it.isFile }
-        val filesByFormat = files.mapNotNull { format.check(it)?.file }
-        return folders.sortedBy { it.name }.map { getTestFiles(it.absolutePath, format) }
-            .fold(filesByFormat, { a, e -> a.plus(e) })
     }
 }

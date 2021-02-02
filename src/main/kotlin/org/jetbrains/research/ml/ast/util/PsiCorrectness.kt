@@ -8,7 +8,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SyntaxTraverser
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.python.psi.impl.references.PyOperatorReference
-import org.jetbrains.annotations.Nullable
 
 fun PsiElement.isCorrect(): Boolean {
     if (this.hasSyntaxError() || !this.canBeResolved()) {
@@ -29,7 +28,6 @@ private fun PsiElement.countPsiErrorElements(): Int {
 
 // Find unresolved references errors
 fun PsiElement.canBeResolved(): Boolean {
-    this as @Nullable PsiFile
     return ApplicationManager.getApplication().runReadAction<Boolean> {
         SyntaxTraverser.psiTraverser()
             .withRoot(this)
