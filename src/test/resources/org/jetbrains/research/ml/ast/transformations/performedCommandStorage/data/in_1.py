@@ -1,4 +1,3 @@
-
 def some_dead_code():
     if 5 == 4:
         print("5 = 4")
@@ -33,6 +32,11 @@ def main():
         print(e)
     else:
         print("hello")
+
+    # Comparison Unification
+    if a < e or b <= c:
+        print(d)
+
 
 if __name__ == '__main__':
     main()
