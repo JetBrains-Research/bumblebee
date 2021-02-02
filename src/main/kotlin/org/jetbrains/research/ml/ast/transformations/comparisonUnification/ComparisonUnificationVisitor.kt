@@ -18,12 +18,25 @@ internal class ComparisonUnificationVisitor(private val commandsStorage: Perform
     }
 
     private fun handleBinaryExpression(node: PyBinaryExpression) {
-        if (!comparisonTokenMap.containsKey(node.operator)) {
-            return
+        if (node.isReplacable()) {
+            node.swapExpressions()
         }
-
-        node.swapExpressions()
     }
+
+    private fun PyBinaryExpression.isComparison(): Boolean = PyTokenTypes.COMPARISON_OPERATIONS.contains(operator)
+
+    private fun PyBinaryExpression.isMultipleOperatorComparison(): Boolean {
+        when (operator) {
+            PyTokenTypes.AND_KEYWORD, PyTokenTypes.OR_KEYWORD -> return false
+            else -> {
+                val leftBinaryExpression = leftExpression as? PyBinaryExpression ?: return false
+                return leftBinaryExpression.isComparison() && this.isComparison()
+            }
+        }
+    }
+
+    private fun PyBinaryExpression.isReplacable(): Boolean =
+        comparisonTokenMap.containsKey(operator) && !isMultipleOperatorComparison()
 
     private fun PyBinaryExpression.swapExpressions() {
         val binOperator = comparisonTokenMap[operator] ?: return
