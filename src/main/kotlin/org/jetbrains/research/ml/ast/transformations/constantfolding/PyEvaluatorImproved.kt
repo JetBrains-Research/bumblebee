@@ -184,7 +184,7 @@ class PyEvaluatorImproved(file: PyFile) {
 
     private fun evaluateAsImpureBoolean(expression: PyExpression?): Boolean? = asBoolean(evaluate(expression))
 
-    private fun canBeProvenPure(expression: PyExpression?): Boolean =
+    fun canBeProvenPure(expression: PyExpression?): Boolean =
         purityResults.getOrPut(expression) { canBeProvenPureNoCache(expression) }
 
     private fun canBeProvenPureNoCache(expression: PyExpression?): Boolean =
