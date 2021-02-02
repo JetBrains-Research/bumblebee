@@ -11,9 +11,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
-import org.jetbrains.research.ml.ast.util.FileTestUtil
-import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
-import org.jetbrains.research.ml.ast.util.getPsiFile
+import org.jetbrains.research.ml.ast.util.*
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.runners.Parameterized
@@ -43,8 +41,11 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
             cls: KFunction<TransformationsTest>,
             resourcesRootName: String = resourcesRoot,
         ): List<Array<File>> {
-            val inAndOutFilesMap = FileTestUtil.getInAndOutFilesMap(getResourcesRootPath(cls, resourcesRootName))
-            return inAndOutFilesMap.entries.map { (inFile, outFile) -> arrayOf(inFile, outFile) }
+            val inAndOutFilesMap = FileTestUtil.getInAndOutFilesMap(
+                getResourcesRootPath(cls, resourcesRootName),
+                outFormat = TestFileFormat("out", Extension.Py, Type.Output)
+            )
+            return inAndOutFilesMap.entries.map { (inFile, outFile) -> arrayOf(inFile, outFile!!) }
         }
     }
 
@@ -110,7 +111,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     }
 
     protected fun getPsiFile(file: File, toReformatFile: Boolean = true): PsiFile {
-        val psiFile = myFixture.getPsiFile(file)
+        val psiFile = myFixture.configureByFile(file.path)
         if (toReformatFile) {
             formatPsiFile(psiFile)
         }
