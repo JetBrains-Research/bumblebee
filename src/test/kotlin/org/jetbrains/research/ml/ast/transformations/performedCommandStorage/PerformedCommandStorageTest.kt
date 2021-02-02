@@ -8,6 +8,7 @@ import org.jetbrains.research.ml.ast.transformations.commentsRemoval.CommentsRem
 import org.jetbrains.research.ml.ast.transformations.deadcode.DeadCodeRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleOperatorComparison.MultipleOperatorComparisonTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment.MultipleTargetAssignmentTransformation
+import org.jetbrains.research.ml.ast.transformations.outerNotElimination.OuterNotEliminationTransformation
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,7 +31,8 @@ class PerformedCommandStorageTest : TransformationsTest(getResourcesRootPath(::P
             AugmentedAssignmentTransformation,
             DeadCodeRemovalTransformation,
             MultipleOperatorComparisonTransformation,
-            MultipleTargetAssignmentTransformation
+            MultipleTargetAssignmentTransformation,
+            OuterNotEliminationTransformation
         )
         val inPsiFile = getPsiFile(inFile!!)
         val outPsiFile = getPsiFile(outFile!!)

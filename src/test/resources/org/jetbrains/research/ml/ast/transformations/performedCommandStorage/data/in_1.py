@@ -1,4 +1,3 @@
-
 def some_dead_code():
     if 5 == 4:
         print("5 = 4")
@@ -33,6 +32,10 @@ def main():
         print(e)
     else:
         print("hello")
+
+    if not ((a and b) or (c or d)):
+        print(e)
+
 
 if __name__ == '__main__':
     main()
