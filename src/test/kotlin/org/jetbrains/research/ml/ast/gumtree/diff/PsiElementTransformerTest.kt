@@ -23,7 +23,7 @@ class PsiElementTransformerTest : ParametrizedBaseTest(getResourcesRootPath(::Ps
                 inFormat = TestFileFormat("src", Extension.Py, Type.Input),
                 outFormat = TestFileFormat("dst", Extension.Py, Type.Output)
             )
-            return files.map { f -> arrayOf(f.key, f.value) }
+            return files.map { f -> arrayOf(f.key, f.value!!) }
         }
     }
 
@@ -66,9 +66,10 @@ class PsiElementTransformerTest : ParametrizedBaseTest(getResourcesRootPath(::Ps
         val dstContext = Util.getTreeContext(dstPsi, numbering)
         val matcher = Matcher(srcContext, dstContext)
         val actions = matcher.getEditActions()
-        val w = PsiElementTransformer(project, srcPsi, dstPsi, numbering)
+        val w = PsiElementTransformer(project)
+        val transformation = PsiTransformation(srcPsi, dstPsi, numbering)
         WriteCommandAction.runWriteCommandAction(project) {
-            w.applyActions(actions)
+            w.applyActions(actions, transformation)
         }
         assertEquals(deleteAllEmptyRows(expectedCode), deleteAllEmptyRows(srcPsi.text))
     }

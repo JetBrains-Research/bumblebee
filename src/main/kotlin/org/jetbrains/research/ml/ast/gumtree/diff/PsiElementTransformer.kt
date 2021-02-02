@@ -11,45 +11,48 @@ import org.jetbrains.research.ml.ast.gumtree.tree.Numbering
 import org.jetbrains.research.ml.ast.gumtree.tree.Numbering.PsiTreeUtils.Companion.id
 import org.jetbrains.research.ml.ast.gumtree.tree.Numbering.PsiTreeUtils.Companion.setId
 
-class PsiElementTransformer(
-    project: Project,
-    srcPsi: PsiElement,
-    dstPsi: PsiElement,
-    private val numbering: Numbering
+data class PsiTransformation(
+    private val srcPsi: PsiElement,
+    private val dstPsi: PsiElement,
+    private val numbering: Numbering,
+    var srcPsiNodes: MutableList<PsiElement> = ArrayList(),
+    var dstPsiNodes: MutableList<PsiElement> = ArrayList(),
+    val insertedNodesIds: MutableSet<Int> = HashSet()
 ) {
-    private val generator = PyElementGenerator.getInstance(project)
-
-    private val srcPsiNodes = getPsiNodes(srcPsi)
-    private val dstPsiNodes = getPsiNodes(dstPsi)
+    init {
+        srcPsiNodes = getPsiNodes(srcPsi)
+        dstPsiNodes = getPsiNodes(dstPsi)
+    }
 
     private fun getPsiNodes(psi: PsiElement): MutableList<PsiElement> {
         return ApplicationManager.getApplication().runReadAction<MutableList<PsiElement>> {
             numbering.iterable(psi).toMutableList()
         }
     }
+}
 
-    private data class NodesObserver(
-        val insertedNodesIds: MutableSet<Int> = HashSet()
-    )
+class PsiElementTransformer(
+    project: Project
+) {
+    private val generator = PyElementGenerator.getInstance(project)
 
     // Should be run in WriteAction
-    private fun applyAction(action: Action, nodesObserver: NodesObserver) {
+    private fun applyAction(action: Action, transformation: PsiTransformation) {
         // TODO: should we store actions to compare with transformations actions??
         when (action) {
-            is Delete -> action.applyDelete()
-            is Insert -> action.apply(nodesObserver)
-            is Update -> action.apply()
-            is Move -> action.apply(nodesObserver)
+            is Delete -> action.applyDelete(transformation)
+            is Insert -> action.apply(transformation)
+            is Update -> action.apply(transformation)
+            is Move -> action.apply(transformation)
             else -> error("Unknown GumTree action ${action.name}")
         }
     }
 
     // TODO: it seems we should use simple <applyAction>
-    fun applyActions(actions: List<Action>) {
-        val nodesObserver = NodesObserver()
+    fun applyActions(actions: List<Action>, transformation: PsiTransformation) {
         actions.forEach {
             try {
-                applyAction(it, nodesObserver)
+                applyAction(it, transformation)
             } catch (e: IncorrectOperationException) {
                 println("Try execute action ${it.name} with node: id=${it.node.id}, label=${it.node.label}, but fail")
             }
@@ -62,7 +65,12 @@ class PsiElementTransformer(
         return psiElements[id]
     }
 
-    private fun executeInsert(element: PsiElement, parent: PsiElement, position: Int, nodesObserver: NodesObserver) {
+    private fun executeInsert(
+        element: PsiElement,
+        parent: PsiElement,
+        position: Int,
+        transformation: PsiTransformation
+    ) {
         if (!element.isValid || !parent.isValid) {
             return
         }
@@ -72,11 +80,11 @@ class PsiElementTransformer(
             parent.lastChild
         }
         parent.addAfter(element, child)
-        nodesObserver.insertedNodesIds.add(element.id!!)
+        transformation.insertedNodesIds.add(element.id!!)
     }
 
-    private fun Action.applyDelete() {
-        val psiElement = this.getPsiElementById(srcPsiNodes, "Source ")
+    private fun Action.applyDelete(transformation: PsiTransformation) {
+        val psiElement = this.getPsiElementById(transformation.srcPsiNodes, "Source ")
         psiElement.safeDelete()
     }
 
@@ -86,36 +94,36 @@ class PsiElementTransformer(
         parentId: Int,
         position: Int,
         errorMessagePrefix: String = "",
-        nodesObserver: NodesObserver
+        transformation: PsiTransformation
     ) {
         val parentNode =
-            if ((parentId in nodesObserver.insertedNodesIds && parentId < dstPsiNodes.size) ||
-                parentId >= srcPsiNodes.size
+            if ((parentId in transformation.insertedNodesIds && parentId < transformation.dstPsiNodes.size) ||
+                parentId >= transformation.srcPsiNodes.size
             ) {
-                dstPsiNodes[parentId]
+                transformation.dstPsiNodes[parentId]
             } else {
-                srcPsiNodes[parentId]
+                transformation.srcPsiNodes[parentId]
             }
         val psiElement = this.getPsiElementById(psiNodes, errorMessagePrefix)
-        executeInsert(psiElement, parentNode, position, nodesObserver)
+        executeInsert(psiElement, parentNode, position, transformation)
     }
 
-    private fun Insert.apply(nodesObserver: NodesObserver) {
-        this.applyInsert(dstPsiNodes, this.parent.id, this.position, "Destination ", nodesObserver)
+    private fun Insert.apply(transformation: PsiTransformation) {
+        this.applyInsert(transformation.dstPsiNodes, this.parent.id, this.position, "Destination ", transformation)
     }
 
-    private fun Move.apply(nodesObserver: NodesObserver) {
-        this.applyInsert(srcPsiNodes, this.parent.id, this.position, "Source ", nodesObserver)
-        this.applyDelete()
+    private fun Move.apply(transformation: PsiTransformation) {
+        this.applyInsert(transformation.srcPsiNodes, this.parent.id, this.position, "Source ", transformation)
+        this.applyDelete(transformation)
     }
 
-    private fun Update.apply() {
-        val psiElement = this.getPsiElementById(srcPsiNodes, "Source ")
+    private fun Update.apply(transformation: PsiTransformation) {
+        val psiElement = this.getPsiElementById(transformation.srcPsiNodes, "Source ")
         val newText = psiElement.text.replace(this.node.label, this.value)
         val newElement = generator.createFromText(LanguageLevel.getDefault(), PsiElement::class.java, newText)
         if (newElement.isValid) {
             newElement.setId(psiElement.id)
-            srcPsiNodes[this.node.id] = psiElement.replace(newElement)
+            transformation.srcPsiNodes[this.node.id] = psiElement.replace(newElement)
         }
     }
 
