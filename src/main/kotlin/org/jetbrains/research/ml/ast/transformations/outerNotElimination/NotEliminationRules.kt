@@ -81,8 +81,8 @@ internal abstract class DeMorganNotEliminationRule : NotEliminationRule() {
         val inner = expression.innerOperand as? PyBinaryExpression ?: return expression
         val generator = PyElementGenerator.getInstance(expression.project)
         val rightExpression = inner.rightExpression ?: return expression
-        val myLeftExpression = generator.createNegationExpression(LanguageLevel.PYTHON36, inner.leftExpression)
-        val myRightExpression = generator.createNegationExpression(LanguageLevel.PYTHON36, rightExpression)
+        val myLeftExpression = generator.createNegationExpression(LanguageLevel.getDefault(), inner.leftExpression)
+        val myRightExpression = generator.createNegationExpression(LanguageLevel.getDefault(), rightExpression)
         val newLeftExpression = CompositeNotEliminationRule.applyIfNeeded(myLeftExpression, commandsStorage)
         val newRightExpression = CompositeNotEliminationRule.applyIfNeeded(myRightExpression, commandsStorage)
         val myExpression = generator.createBinaryExpression(
@@ -90,7 +90,7 @@ internal abstract class DeMorganNotEliminationRule : NotEliminationRule() {
             newLeftExpression,
             newRightExpression
         )
-        val newExpression = generator.createParenthesizedExpression(LanguageLevel.PYTHON36, myExpression)
+        val newExpression = generator.createParenthesizedExpression(LanguageLevel.getDefault(), myExpression)
         commandsStorage.safePerformCommand({ expression.replace(newExpression) }, "Apply De Morgan's law")
         return newExpression
     }

@@ -7,7 +7,7 @@ operator.
 
 ## Algorithm
 
-Find the prefix `not` node with conjunction/disjunction inner binary expression. Propagate the not using the De Morgan's
+Find the prefix `not` node with conjunction/disjunction inner binary expression. Propagate the `not` using the De Morgan's
 laws. Repeat the process with the left and right binary expression operands.
 
 ## Example
