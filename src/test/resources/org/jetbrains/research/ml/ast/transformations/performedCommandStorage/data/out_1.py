@@ -21,6 +21,9 @@ def f2():
     else:
         print("hello")
 
+    if ((not f2_v1 or not f2_v2) and (not f2_v3 and not f2_v4)):
+        print(f2_v5)
+
     if f2_v5 > f2_v1 or f2_v3 >= f2_v2:
         print(f2_v4)
 

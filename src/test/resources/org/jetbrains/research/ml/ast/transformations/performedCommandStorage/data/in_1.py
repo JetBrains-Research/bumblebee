@@ -33,6 +33,10 @@ def main():
     else:
         print("hello")
 
+    # Outer Not Elimination
+    if not ((a and b) or (c or d)):
+        print(e)
+
     # Comparison Unification
     if a < e or b <= c:
         print(d)
