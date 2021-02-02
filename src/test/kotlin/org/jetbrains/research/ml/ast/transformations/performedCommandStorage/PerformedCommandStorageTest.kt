@@ -5,6 +5,7 @@ import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.anonymization.AnonymizationTransformation
 import org.jetbrains.research.ml.ast.transformations.augmentedAssignment.AugmentedAssignmentTransformation
 import org.jetbrains.research.ml.ast.transformations.commentsRemoval.CommentsRemovalTransformation
+import org.jetbrains.research.ml.ast.transformations.comparisonUnification.ComparisonUnificationTransformation
 import org.jetbrains.research.ml.ast.transformations.deadcode.DeadCodeRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleOperatorComparison.MultipleOperatorComparisonTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment.MultipleTargetAssignmentTransformation
@@ -32,6 +33,7 @@ class PerformedCommandStorageTest : TransformationsTest(getResourcesRootPath(::P
             DeadCodeRemovalTransformation,
             MultipleOperatorComparisonTransformation,
             MultipleTargetAssignmentTransformation,
+            ComparisonUnificationTransformation,
             OuterNotEliminationTransformation
         )
         val inPsiFile = getPsiFile(inFile!!)

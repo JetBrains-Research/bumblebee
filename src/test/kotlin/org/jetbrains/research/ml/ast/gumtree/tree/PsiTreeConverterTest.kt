@@ -29,7 +29,7 @@ class PsiTreeConverterTest : ParametrizedBaseTest(getResourcesRootPath(::PsiTree
                 outFormat = TestFileFormat("out", Extension.Xml, Type.Output)
             )
             val numberings = listOf(PreOrderNumbering, PostOrderNumbering)
-            return files.flatMap { f -> numberings.map { n -> arrayOf(f.key, f.value, n) } }.toList()
+            return files.flatMap { f -> numberings.map { n -> arrayOf(f.key, f.value!!, n) } }.toList()
         }
     }
 
