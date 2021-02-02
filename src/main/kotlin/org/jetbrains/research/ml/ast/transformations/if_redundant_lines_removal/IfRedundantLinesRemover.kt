@@ -217,10 +217,10 @@ class IfRedundantLinesRemover(
             ifStatement: PyIfStatement,
             simplifyDelayed: (() -> StatementRange)?,
             statement: StatementRange.() -> PyStatement,
-            isBefore: Boolean
+            doBefore: Boolean
         ): PyStatement {
             return if (simplifyDelayed != null) {
-                simplifyDelayed().move(ifStatement, isBefore, commandStorage).statement()
+                simplifyDelayed().move(ifStatement, doBefore, commandStorage).statement()
             } else ifStatement
         }
 

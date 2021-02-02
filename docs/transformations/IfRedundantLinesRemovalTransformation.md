@@ -2,8 +2,8 @@
 
 ## Overview
 
-The goal of this transformation is to extract all common lines from `if` branches 
-and move them before or after the statement.
+The goal of this transformation is to extract all common lines from `if-else` 
+branches and move them before or after the statement.
 
 ## Example
 
