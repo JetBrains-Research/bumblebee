@@ -15,10 +15,11 @@ data class PsiTransformation(
     private val srcPsi: PsiElement,
     private val dstPsi: PsiElement,
     private val numbering: Numbering,
-    var srcPsiNodes: MutableList<PsiElement> = ArrayList(),
-    var dstPsiNodes: MutableList<PsiElement> = ArrayList(),
     val insertedNodesIds: MutableSet<Int> = HashSet()
 ) {
+    var srcPsiNodes: MutableList<PsiElement> = ArrayList()
+    var dstPsiNodes: MutableList<PsiElement> = ArrayList()
+
     init {
         srcPsiNodes = getPsiNodes(srcPsi)
         dstPsiNodes = getPsiNodes(dstPsi)
