@@ -5,14 +5,7 @@ import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.PyFile
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
-import org.jetbrains.research.ml.ast.transformations.PyUtils
-import org.jetbrains.research.ml.ast.transformations.createBinaryOperandList
-import org.jetbrains.research.ml.ast.transformations.createBoolLiteralExpression
-import org.jetbrains.research.ml.ast.transformations.createExpressionFromNumber
-import org.jetbrains.research.ml.ast.transformations.createPrefixExpression
-import org.jetbrains.research.ml.ast.transformations.safePerformCommandWithResult
-import kotlin.test.fail
+import org.jetbrains.research.ml.ast.transformations.*
 
 class ConstantFolder(
     private val commandsStorage: PerformedCommandStorage?,
@@ -38,7 +31,7 @@ class ConstantFolder(
         when (val result = evaluator.evaluate(expression)) {
             is PyEvaluatorImproved.PyIntLike -> { ->
                 commandsStorage.safePerformCommandWithResult(
-                    { expression.replace(createIntOrBoolExpression(generator, result)) },
+                    { expression.replace(generator.createIntOrBoolExpression(result)) },
                     "Evaluate integer-like constant"
                 )
             }
@@ -90,7 +83,7 @@ class ConstantFolder(
                     commandsStorage.safePerformCommandWithResult(
                         {
                             val valueOperand =
-                                listOfNotNull(result.evaluatedValue?.let { createIntOrBoolExpression(generator, it) })
+                                listOfNotNull(result.evaluatedValue?.let { generator.createIntOrBoolExpression(it) })
                             val newExpression = PyUtils.braceExpression(
                                 generator.createBinaryOperandList(
                                     result.operator,
@@ -118,13 +111,3 @@ class ConstantFolder(
             else -> null
         }
 }
-
-private fun createIntOrBoolExpression(
-    generator: PyElementGenerator,
-    result: PyEvaluatorImproved.PyIntLike
-): PyExpression =
-    when (result) {
-        is PyEvaluatorImproved.PyInt -> generator.createExpressionFromNumber(result.value)
-        is PyEvaluatorImproved.PyBool -> generator.createBoolLiteralExpression(result.value)
-        else -> fail("result should be of type PyInt or PyBool")
-    }

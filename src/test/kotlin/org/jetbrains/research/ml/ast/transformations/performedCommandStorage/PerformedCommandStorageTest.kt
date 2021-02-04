@@ -33,12 +33,10 @@ class PerformedCommandStorageTest : TransformationsTest(getResourcesRootPath(::P
             AnonymizationTransformation,
             AugmentedAssignmentTransformation,
             DeadCodeRemovalTransformation,
+            ConstantFoldingTransformation,
             MultipleOperatorComparisonTransformation,
             MultipleTargetAssignmentTransformation,
             IfRedundantLinesRemovalTransformation,
-            MultipleTargetAssignmentTransformation,
-            ConstantFoldingTransformation,
-            MultipleTargetAssignmentTransformation,
             ComparisonUnificationTransformation,
             OuterNotEliminationTransformation
         )

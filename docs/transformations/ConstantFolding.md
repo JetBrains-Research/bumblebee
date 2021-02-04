@@ -13,7 +13,7 @@ as possible.
 
 ### Working cases
 
-#### Fully constant integral/boolean expressions in any context
+#### Fully evaluating constant integral/boolean expressions in any context
 
 For example:
 - `1 + 2 * 3 - 8 // 3 + 7 ^ 3 | 11` is replaced with `15`
@@ -24,7 +24,7 @@ can be much larger than the size of its operands. Because of this,
 `**` is only evaluated when both its operands and its result fit into
 the JVM Long type (64-bits signed integer).
 
-#### Maximal (by inclusion) subexpressions of non-constant expressions
+#### Maximal (by inclusion) evaluating subexpressions of non-constant expressions
 
 For example:
 - `1 + 2 + x` is replaced with `3 + x`
