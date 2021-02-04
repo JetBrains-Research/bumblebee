@@ -9,8 +9,8 @@
           <tree type="-2114376046" label="b" typeLabel="Py:NAMED_PARAMETER"></tree>
           <tree type="-2114376046" label="c" typeLabel="Py:NAMED_PARAMETER"></tree>
         </tree>
-        <tree type="-13310331" label="__add__" typeLabel="Py:BINARY_EXPRESSION">
-          <tree type="-13310331" label="__add__" typeLabel="Py:BINARY_EXPRESSION">
+        <tree type="-13310331" label="+" typeLabel="Py:BINARY_EXPRESSION">
+          <tree type="-13310331" label="+" typeLabel="Py:BINARY_EXPRESSION">
             <tree type="2049746141" label="a" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
             <tree type="2049746141" label="b" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
           </tree>

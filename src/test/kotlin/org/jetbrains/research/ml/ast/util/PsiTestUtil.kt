@@ -4,10 +4,13 @@ import com.github.gumtreediff.tree.ITree
 import com.github.gumtreediff.tree.TreeContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.util.elementType
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.research.ml.ast.gumtree.psi.label
 import org.jetbrains.research.ml.ast.gumtree.psi.preOrder
 import org.jetbrains.research.ml.ast.gumtree.tree.Numbering.PsiTreeUtils.Companion.id
+import java.io.File
 
 object PsiTestUtil {
     fun PsiElement.equalTreeStructure(treeCtx: TreeContext, toCompareNumbering: Boolean = true): Boolean {
@@ -55,3 +58,5 @@ object PsiTestUtil {
         return true
     }
 }
+
+fun CodeInsightTestFixture.getPsiFile(file: File): PsiFile = this.configureByFile(file.path)
