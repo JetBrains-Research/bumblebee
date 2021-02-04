@@ -10,7 +10,7 @@ object PyUtils {
         require(ifElsePart.isElif) { "Illegal if part. Only `elif` part supported." }
         val generator = PyElementGenerator.getInstance(ifElsePart.project)
         val ifStatement = generator.createFromText(
-            LanguageLevel.PYTHON36,
+            LanguageLevel.getDefault(),
             PyIfStatement::class.java,
             "if ${ifElsePart.condition?.text ?: ""}:\n\t${ifElsePart.statementList.text}"
         )
@@ -19,13 +19,13 @@ object PyUtils {
 
     fun braceExpression(expression: PyExpression): PyExpression {
         val generator = PyElementGenerator.getInstance(expression.project)
-        return generator.createExpressionFromText(LanguageLevel.PYTHON36, "(${expression.text})")
+        return generator.createExpressionFromText(LanguageLevel.getDefault(), "(${expression.text})")
     }
 
     fun createAssignment(target: PsiElement, value: PsiElement): PyAssignmentStatement {
         val generator = PyElementGenerator.getInstance(target.project)
         return generator.createFromText(
-            LanguageLevel.PYTHON36,
+            LanguageLevel.getDefault(),
             PyAssignmentStatement::class.java,
             "${target.text} = ${value.text}"
         )
@@ -40,7 +40,7 @@ object PyUtils {
         var value = assignment.value ?: throw IllegalArgumentException("Value is required")
         value = braceValueIfNeeded(value)
         return generator.createFromText(
-            LanguageLevel.PYTHON36,
+            LanguageLevel.getDefault(),
             PyAssignmentStatement::class.java,
             "$assignmentTargetText = $assignmentTargetText ${operation.text} ${value.text}"
         )
@@ -53,7 +53,7 @@ object PyUtils {
         }
         if (operationLeafElement != null) {
             val generator = PyElementGenerator.getInstance(operation.project)
-            return generator.createExpressionFromText(LanguageLevel.PYTHON36, "(${operation.text})")
+            return generator.createExpressionFromText(LanguageLevel.getDefault(), "(${operation.text})")
         }
         return operation
     }

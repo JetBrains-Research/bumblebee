@@ -5,11 +5,13 @@ import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.anonymization.AnonymizationTransformation
 import org.jetbrains.research.ml.ast.transformations.augmentedAssignment.AugmentedAssignmentTransformation
 import org.jetbrains.research.ml.ast.transformations.commentsRemoval.CommentsRemovalTransformation
+import org.jetbrains.research.ml.ast.transformations.comparisonUnification.ComparisonUnificationTransformation
 import org.jetbrains.research.ml.ast.transformations.constantfolding.ConstantFoldingTransformation
 import org.jetbrains.research.ml.ast.transformations.deadcode.DeadCodeRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.if_redundant_lines_removal.IfRedundantLinesRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleOperatorComparison.MultipleOperatorComparisonTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment.MultipleTargetAssignmentTransformation
+import org.jetbrains.research.ml.ast.transformations.outerNotElimination.OuterNotEliminationTransformation
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,7 +37,10 @@ class PerformedCommandStorageTest : TransformationsTest(getResourcesRootPath(::P
             MultipleTargetAssignmentTransformation,
             IfRedundantLinesRemovalTransformation,
             MultipleTargetAssignmentTransformation,
-            ConstantFoldingTransformation
+            ConstantFoldingTransformation,
+            MultipleTargetAssignmentTransformation,
+            ComparisonUnificationTransformation,
+            OuterNotEliminationTransformation
         )
         val inPsiFile = getPsiFile(inFile!!)
         val outPsiFile = getPsiFile(outFile!!)

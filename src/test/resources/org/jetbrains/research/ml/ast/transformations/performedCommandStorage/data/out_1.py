@@ -1,4 +1,3 @@
-
 def f1():
     f1_v1 = 4
     f1_v2 = 5
@@ -25,10 +24,17 @@ def f2():
     print(f2_v5)
     f2_v4 = f2_v4 * 4
 
-    if (f2_v1 <= f2_v5 and f2_v5 <= f2_v4 and f2_v4 <= f2_v3):
+    if (f2_v5 >= f2_v1 and f2_v4 >= f2_v5 and f2_v3 >= f2_v4):
         print(f2_v5)
     else:
         print("hello")
+
+    if ((not f2_v1 or not f2_v2) and (not f2_v3 and not f2_v4)):
+        print(f2_v5)
+
+    if f2_v5 > f2_v1 or f2_v3 >= f2_v2:
+        print(f2_v4)
+
 
 if __name__ == '__main__':
     f2()
