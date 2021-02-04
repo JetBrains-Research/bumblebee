@@ -16,14 +16,9 @@ data class PsiTransformation(
     private val dstPsi: PsiElement,
     private val numbering: Numbering
 ) {
-    var srcPsiNodes: MutableList<PsiElement> = ArrayList()
-    var dstPsiNodes: MutableList<PsiElement> = ArrayList()
+    val srcPsiNodes: MutableList<PsiElement> = getPsiNodes(srcPsi)
+    var dstPsiNodes: MutableList<PsiElement> = getPsiNodes(dstPsi)
     val insertedNodesIds: MutableSet<Int> = HashSet()
-
-    init {
-        srcPsiNodes = getPsiNodes(srcPsi)
-        dstPsiNodes = getPsiNodes(dstPsi)
-    }
 
     private fun getPsiNodes(psi: PsiElement): MutableList<PsiElement> {
         return ApplicationManager.getApplication().runReadAction<MutableList<PsiElement>> {
