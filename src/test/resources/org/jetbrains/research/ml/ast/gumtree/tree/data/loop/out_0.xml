@@ -14,7 +14,7 @@
         <tree type="-1632177409" typeLabel="Py:STATEMENT_LIST">
           <tree type="-1722403234" typeLabel="Py:IF_STATEMENT">
             <tree type="-565244178" typeLabel="Py:IF_IF">
-              <tree type="-13310331" label="__gt__" typeLabel="Py:BINARY_EXPRESSION">
+              <tree type="-13310331" label="&gt;" typeLabel="Py:BINARY_EXPRESSION">
                 <tree type="2049746141" label="i" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
                 <tree type="698675450" label="5" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
               </tree>

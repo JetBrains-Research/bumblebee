@@ -17,7 +17,7 @@
         <tree type="2049746141" label="a" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
         <tree type="698675450" label="0" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
       </tree>
-      <tree type="754002772" label="Py:MINUS" typeLabel="Py:PREFIX_EXPRESSION">
+      <tree type="754002772" label="-" typeLabel="Py:PREFIX_EXPRESSION">
         <tree type="698675450" label="1" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
       </tree>
     </tree>

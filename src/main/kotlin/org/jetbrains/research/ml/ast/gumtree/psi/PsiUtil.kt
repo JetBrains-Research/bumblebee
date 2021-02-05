@@ -2,43 +2,61 @@ package org.jetbrains.research.ml.ast.gumtree.psi
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
+import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.psi.impl.*
 
 val PsiElement.isLeaf: Boolean
     get() = this.children.isEmpty()
 
-// TODO: we don't store "in" keyword for loops in labels. Is it ok?
-// TODO: it does not support async keyword now and type annotations
+// TODO: it does not support async and yield keywords
 val PsiElement.intermediateElementLabel: String
     get() = ApplicationManager.getApplication().runReadAction<String> {
         when (this) {
-            // TODO: is it ok that I use operator?.specialMethodName (__add__ for example) for PyBinaryExpressionImpl
-            //  and operator.toString() (PY:PLUS for example) for PyPrefixExpressionImpl??
-            is PyBinaryExpressionImpl -> operator?.specialMethodName ?: operator.toString()
+            is PyBinaryExpressionImpl -> getSymbolByStringRepresentation(operator.toString())
             // Expression like -1 or not a
-            is PyPrefixExpressionImpl -> operator.toString()
+            is PyPrefixExpressionImpl -> getSymbolByStringRepresentation(operator.toString())
             // Expression like +=, -= and so on, for example a += 5
-            // TODO: is it ok to get text?
-            is PyAugAssignmentStatementImpl -> operation?.text ?: ""
-            // TODO: is it ok to store content: f"text {1}"
+            is PyAugAssignmentStatementImpl -> getSymbolByStringRepresentation(operation?.text ?: "")
             is PyFormattedStringElementImpl -> content
             is PyImportElementImpl -> ""
-            // We should separate the cases <yield from [1, 2, 3]> and <yield 3> in the GumTree tree
-            is PyYieldExpressionImpl -> if ("from" in text) "from" else ""
             is PyBaseElementImpl<*> -> name ?: ""
             else -> ""
         }
     }
+
+private fun getSymbolByStringRepresentation(stringRepr: String): String {
+    return when (stringRepr) {
+        PyTokenTypes.PLUS.toString() -> "+"
+        PyTokenTypes.MINUS.toString() -> "-"
+        PyTokenTypes.MULT.toString() -> "*"
+        PyTokenTypes.EXP.toString() -> "**"
+        PyTokenTypes.DIV.toString() -> "/"
+        PyTokenTypes.FLOORDIV.toString() -> "//"
+        PyTokenTypes.PERC.toString() -> "%"
+        PyTokenTypes.LTLT.toString() -> "<<"
+        PyTokenTypes.GTGT.toString() -> ">>"
+        PyTokenTypes.TILDE.toString() -> "~"
+        PyTokenTypes.LT.toString() -> "<"
+        PyTokenTypes.GT.toString() -> ">"
+        PyTokenTypes.LE.toString() -> "<="
+        PyTokenTypes.GE.toString() -> ">="
+        PyTokenTypes.EQEQ.toString() -> "=="
+        PyTokenTypes.EQ.toString() -> "="
+        PyTokenTypes.NOT_KEYWORD.toString() -> "not"
+        PyTokenTypes.AND_KEYWORD.toString() -> "and"
+        PyTokenTypes.OR_KEYWORD.toString() -> "or"
+        else -> stringRepr
+    }
+}
 
 /*
 * See the [docs/PsiTreeConverter.md] document for more details
 * */
 val PsiElement.label: String
     get() = ApplicationManager.getApplication().runReadAction<String> {
-        val label = if (this.isLeaf) {
+        if (this.isLeaf) {
             this.text
         } else {
             this.intermediateElementLabel
         }
-        label
     }

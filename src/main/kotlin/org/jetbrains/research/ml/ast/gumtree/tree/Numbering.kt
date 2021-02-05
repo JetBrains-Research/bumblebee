@@ -26,19 +26,23 @@ abstract class Numbering {
                     t.putCopyableUserData(psiId, i)
                 }
             }
+
+            fun PsiElement.setId(id: Int?) {
+                this.putCopyableUserData(psiId, id)
+            }
         }
     }
 
-    protected abstract fun PsiElement.iterable(): Iterable<PsiElement>
-    protected abstract fun ITree.iterable(): Iterable<ITree>
+    abstract fun iterable(psiElement: PsiElement): Iterable<PsiElement>
+    abstract fun iterable(tree: ITree): Iterable<ITree>
 
-    fun number(psiElement: PsiElement) {
-        PsiTreeUtils.numbering(psiElement.iterable())
+    private fun number(psiElement: PsiElement) {
+        PsiTreeUtils.numbering(iterable(psiElement))
     }
 
-    fun number(gumTreeContext: TreeContext) {
+    private fun number(gumTreeContext: TreeContext) {
         gumTreeContext.root.refresh()
-        TreeUtils.numbering(gumTreeContext.root.iterable())
+        TreeUtils.numbering(iterable(gumTreeContext.root))
     }
 
     fun number(psiElement: PsiElement, gumTreeContext: TreeContext) {
@@ -48,11 +52,11 @@ abstract class Numbering {
 }
 
 object PreOrderNumbering : Numbering() {
-    override fun PsiElement.iterable(): Iterable<PsiElement> = this.preOrder()
-    override fun ITree.iterable(): Iterable<ITree> = this.preOrder()
+    override fun iterable(psiElement: PsiElement): Iterable<PsiElement> = psiElement.preOrder()
+    override fun iterable(tree: ITree): Iterable<ITree> = tree.preOrder()
 }
 
 object PostOrderNumbering : Numbering() {
-    override fun PsiElement.iterable(): Iterable<PsiElement> = this.postOrder()
-    override fun ITree.iterable(): Iterable<ITree> = this.postOrder()
+    override fun iterable(psiElement: PsiElement): Iterable<PsiElement> = psiElement.postOrder()
+    override fun iterable(tree: ITree): Iterable<ITree> = tree.postOrder()
 }

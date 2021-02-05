@@ -79,3 +79,5 @@ class PsiFileHandler(private val fixture: CodeInsightTestFixture, private val pr
         }
     }
 }
+
+fun CodeInsightTestFixture.getPsiFile(file: File): PsiFile = this.configureByFile(file.path)

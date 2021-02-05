@@ -25,7 +25,7 @@
           </tree>
         </tree>
         <tree type="-512204239" typeLabel="Py:RETURN_STATEMENT">
-          <tree type="-13310331" label="__add__" typeLabel="Py:BINARY_EXPRESSION">
+          <tree type="-13310331" label="+" typeLabel="Py:BINARY_EXPRESSION">
             <tree type="2049746141" label="a" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
             <tree type="2049746141" label="b" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
           </tree>

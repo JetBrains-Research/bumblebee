@@ -1,17 +1,12 @@
 package org.jetbrains.research.ml.ast.gumtree.tree
 
 import com.github.gumtreediff.io.TreeIoUtils
-import com.github.gumtreediff.tree.TreeContext
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.psi.PsiFile
 import junit.framework.TestCase
-import org.jetbrains.research.ml.ast.util.Extension
+import org.jetbrains.research.ml.ast.gumtree.Util.getTreeContext
+import org.jetbrains.research.ml.ast.util.*
 import org.jetbrains.research.ml.ast.util.FileTestUtil.content
 import org.jetbrains.research.ml.ast.util.FileTestUtil.getInAndOutFilesMap
-import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
 import org.jetbrains.research.ml.ast.util.PsiTestUtil.equalTreeStructure
-import org.jetbrains.research.ml.ast.util.TestFileFormat
-import org.jetbrains.research.ml.ast.util.Type
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -47,25 +42,17 @@ class PsiTreeConverterTest : ParametrizedBaseTest(getResourcesRootPath(::PsiTree
 
     @Test
     fun `compare tree structure test`() {
-        val inFilePsi = getInFilePsi()
-        TestCase.assertTrue(inFilePsi.equalTreeStructure(getInTreeContext(inFilePsi)))
+        val inFilePsi = myFixture.getPsiFile(inSourceFile!!)
+        TestCase.assertTrue(inFilePsi.equalTreeStructure(getTreeContext(inFilePsi, numbering!!)))
     }
 
     @Test
     fun `compare xml test`() {
-        val inContext = getInTreeContext(getInFilePsi())
+        val inContext = getTreeContext(myFixture.getPsiFile(inSourceFile!!), numbering!!)
         val expectedXml = outXmlFile!!.content
+        // Note: the LE and GE operators are stored correctly (<=, >=), but the XML contains &lt;= and &gt;=
+        // TODO: should we fix the formatter??
         val actualXml = TreeIoUtils.toXml(inContext).toString().removeSuffix("\n")
         TestCase.assertEquals(actualXml, expectedXml)
-    }
-
-    private fun getInFilePsi(): PsiFile {
-        return myFixture.configureByFile(inSourceFile!!.absolutePath.replace(testDataPath, ""))
-    }
-
-    private fun getInTreeContext(psiFile: PsiFile): TreeContext {
-        return ApplicationManager.getApplication().runReadAction<TreeContext> {
-            PsiTreeConverter.convertTree(psiFile, numbering!!)
-        }
     }
 }
