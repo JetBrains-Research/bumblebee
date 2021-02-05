@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.util.FileTestUtil
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
 import org.jetbrains.research.ml.ast.util.PsiFileHandler
@@ -20,6 +21,17 @@ interface ITransformationsTest {
         outFile: File,
         transformation: (PsiElement, Boolean) -> Unit
     )
+
+    fun assertBackwardTransformation(
+        inFile: File,
+        forwardTransformation: (PsiElement, PerformedCommandStorage?) -> Unit
+    )
+
+    fun assertForwardTransformation(
+        inFile: File,
+        outFile: File,
+        transformation: (PsiElement) -> Unit
+    )
 }
 
 /**
@@ -28,7 +40,7 @@ interface ITransformationsTest {
 object TransformationsTestHelper {
     private val logger = Logger.getLogger(javaClass.name)
 
-    fun getInAndOutArray(cls: KFunction<ParametrizedBaseTest>, resourcesRootName: String): List<Array<File>> {
+    fun getInAndOutArray(cls: KFunction<ParametrizedBaseTest>, resourcesRootName: String): List<Array<File?>> {
         val inAndOutFilesMap = FileTestUtil.getInAndOutFilesMap(
             ParametrizedBaseTest.getResourcesRootPath(cls, resourcesRootName)
         )

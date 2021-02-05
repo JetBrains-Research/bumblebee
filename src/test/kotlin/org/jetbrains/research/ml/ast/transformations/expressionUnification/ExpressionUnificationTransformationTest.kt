@@ -1,7 +1,5 @@
 package org.jetbrains.research.ml.ast.transformations.expressionUnification
 
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getInAndOutArray
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestWithSdk
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
 import org.junit.Test

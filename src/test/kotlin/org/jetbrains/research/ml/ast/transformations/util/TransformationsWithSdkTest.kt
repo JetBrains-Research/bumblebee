@@ -19,8 +19,23 @@ import java.io.File
 import kotlin.reflect.KFunction
 
 @Ignore
-open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(testDataRoot), ITransformationsTest {
+open class TransformationsWithSdkTest(testDataRoot: String) :
+    ParametrizedBaseWithSdkTest(testDataRoot),
+    ITransformationsTest {
     lateinit var codeStyleManager: CodeStyleManager
+
+    companion object {
+        fun getInAndOutArray(
+            cls: KFunction<TransformationsWithSdkTest>,
+            resourcesRootName: String = resourcesRoot,
+        ): List<Array<File>> {
+            val inAndOutFilesMap = FileTestUtil.getInAndOutFilesMap(
+                getResourcesRootPath(cls, resourcesRootName),
+                outFormat = TestFileFormat("out", Extension.Py, Type.Output)
+            )
+            return inAndOutFilesMap.entries.map { (inFile, outFile) -> arrayOf(inFile, outFile!!) }
+        }
+    }
 
     @JvmField
     @Parameterized.Parameter(0)
@@ -36,35 +51,6 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         codeStyleManager = CodeStyleManager.getInstance(project)
     }
 
-    companion object {
-        fun getInAndOutArray(
-            cls: KFunction<TransformationsTest>,
-            resourcesRootName: String = resourcesRoot,
-        ): List<Array<File>> {
-            val inAndOutFilesMap = FileTestUtil.getInAndOutFilesMap(
-                getResourcesRootPath(cls, resourcesRootName),
-                outFormat = TestFileFormat("out", Extension.Py, Type.Output)
-            )
-            return inAndOutFilesMap.entries.map { (inFile, outFile) -> arrayOf(inFile, outFile!!) }
-        }
-    }
-
-    private fun applyTransformation(
-        psiFile: PsiFile,
-        transformation: (PsiFile, PerformedCommandStorage?) -> PsiElement?,
-        commandStorage: PerformedCommandStorage? = null
-    ): String {
-        lateinit var actualSrc: String
-        ApplicationManager.getApplication().invokeAndWait {
-            val actualPsiFile = transformation(psiFile, commandStorage)
-            require(actualPsiFile != null) { "Got null instead actual psi file!" }
-            PsiTestUtil.checkFileStructure(psiFile)
-            formatPsiFile(actualPsiFile)
-            actualSrc = actualPsiFile.text
-        }
-        return actualSrc
-    }
-
     override fun assertCodeTransformation(
         inFile: File,
         outFile: File,
@@ -77,12 +63,6 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
             PsiFileHandler(myFixture, project),
             toCheckFileStructure = false
         )
-    }
-
-    private fun assertCode(expectedSrc: String, actualSrc: String) {
-        LOG.info("The expected code is:\n$expectedSrc")
-        LOG.info("The actual code is:\n$actualSrc")
-        assertEquals(expectedSrc, actualSrc)
     }
 
     override fun assertForwardTransformation(
@@ -122,6 +102,28 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
         )
         // Expected Psi should be the same as the input Psi
         assertCode(psiInFile.text, actualSrc)
+    }
+
+    private fun assertCode(expectedSrc: String, actualSrc: String) {
+        LOG.info("The expected code is:\n$expectedSrc")
+        LOG.info("The actual code is:\n$actualSrc")
+        assertEquals(expectedSrc, actualSrc)
+    }
+
+    private fun applyTransformation(
+        psiFile: PsiFile,
+        transformation: (PsiFile, PerformedCommandStorage?) -> PsiElement?,
+        commandStorage: PerformedCommandStorage? = null
+    ): String {
+        lateinit var actualSrc: String
+        ApplicationManager.getApplication().invokeAndWait {
+            val actualPsiFile = transformation(psiFile, commandStorage)
+            require(actualPsiFile != null) { "Got null instead actual psi file!" }
+            PsiTestUtil.checkFileStructure(psiFile)
+            formatPsiFile(actualPsiFile)
+            actualSrc = actualPsiFile.text
+        }
+        return actualSrc
     }
 
     protected fun getPsiFile(file: File, toReformatFile: Boolean = true): PsiFile {
