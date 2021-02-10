@@ -12,13 +12,13 @@ import org.jetbrains.research.ml.ast.transformations.if_redundant_lines_removal.
 import org.jetbrains.research.ml.ast.transformations.multipleOperatorComparison.MultipleOperatorComparisonTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment.MultipleTargetAssignmentTransformation
 import org.jetbrains.research.ml.ast.transformations.outerNotElimination.OuterNotEliminationTransformation
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class PerformedCommandStorageTest : TransformationsTest(getResourcesRootPath(::PerformedCommandStorageTest)) {
+class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootPath(::PerformedCommandStorageTest)) {
 
     companion object {
         @JvmStatic

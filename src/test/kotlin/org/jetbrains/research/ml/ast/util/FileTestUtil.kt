@@ -38,8 +38,6 @@ object FileTestUtil {
      * inPrefix and outPrefix are set in [inFormat] and [outFormat] together with extensions,
      * i is a number; two corresponding input and output files should have the same number,
      * suffixes can by any symbols not necessary the same for the corresponding files.
-     *
-     * The values in the returned map can be null only if the [outFormat] is also null
      */
     fun getInAndOutFilesMap(
         folder: String,

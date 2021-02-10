@@ -1,12 +1,15 @@
 package org.jetbrains.research.ml.ast.transformations.if_redundant_lines_removal
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class IfRedundantLinesRemovalTransformationTest : TransformationsTest(getResourcesRootPath(::TransformationsTest)) {
+class IfRedundantLinesRemovalTransformationTest : TransformationsWithSdkTest(
+    getResourcesRootPath(::TransformationsTest)
+) {
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
