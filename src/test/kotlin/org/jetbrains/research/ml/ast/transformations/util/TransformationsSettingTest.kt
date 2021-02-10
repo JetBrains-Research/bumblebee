@@ -4,7 +4,8 @@
 
 package org.jetbrains.research.ml.ast.transformations.util
 
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getInAndOutArray
+import com.intellij.psi.PsiElement
+import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -25,6 +26,9 @@ class TransformationsSettingTest : TransformationsTest(getResourcesRootPath(::Tr
     @Test
     fun `transformations setting test`() {
         // We are sure that inFile != null and outFile != null
-        assertForwardTransformation(inFile!!, outFile!!) { println("Empty transformation") }
+        assertCodeTransformation(
+            inFile!!,
+            outFile!!
+        ) { _: PsiElement, _: PerformedCommandStorage? -> println("Empty transformation") }
     }
 }
