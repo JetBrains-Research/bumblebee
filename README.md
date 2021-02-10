@@ -17,3 +17,19 @@ To run the plugin run `runIde` Gradle task provided by [gradle-intellij-plugin](
 
 To add `git hook` for auto-formatting the project according to the code style guide before each commit 
 run `./gradlew addKtlintFormatGitPreCommitHook`. As the result, the `.git` folder will contain the necessary hook.
+
+--------------
+
+## Available transformations
+
+- [x] [Anonymization](./docs/transformations/Anonymization.md)
+- [x] [Augmented Assignment](./docs/transformations/AugmentedAssignment.md)
+- [x] [Comments Removal](./docs/transformations/CommentsRemoval.md)
+- [x] [Comparison Unification](./docs/transformations/ComparisonUnification.md)
+- [x] [Constant folding](./docs/transformations/ConstantFolding.md)
+- [x] [Dead Code Removal](./docs/transformations/DeadCodeRemoval.md)
+- [x] [Expression Unification](./docs/transformations/ExpressionUnification.md)
+- [x] [If Statement Redundant Lines Removal](./docs/transformations/IfRedundantLinesRemovalTransformation.md)
+- [x] [Multiple Operator Comparison](./docs/transformations/MultipleOperatorComparison.md)
+- [x] [Multiple Target Assignment](./docs/transformations/MultipleTargetAssignmentTransformation.md)
+- [x] [Outer Not Elimination](./docs/transformations/OuterNotElimination.md)
