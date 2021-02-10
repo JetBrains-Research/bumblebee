@@ -1,12 +1,13 @@
 package org.jetbrains.research.ml.ast.transformations.constantfolding
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class ConstantFoldingTransformationTest : TransformationsTest(getResourcesRootPath(::TransformationsTest)) {
+class ConstantFoldingTransformationTest : TransformationsWithSdkTest(getResourcesRootPath(::TransformationsTest)) {
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
