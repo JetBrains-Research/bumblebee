@@ -10,7 +10,7 @@ plugins {
     kotlin("plugin.serialization") version "1.4.20"
 }
 
-group = "io.github.nbirillo.ast.transformations"
+group = "org.jetbrains.research.ml.ast.transformations"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -48,4 +48,25 @@ tasks.withType<KotlinCompile> {
 
 ktlint {
     enableExperimentalRules.set(true)
+}
+
+tasks {
+    runIde {
+        val input: String? by project
+        val output: String? by project
+        val yaml: String? by project
+        args = listOfNotNull(
+            "python-transformations",
+            input?.let { "--input_path=$it" },
+            output?.let { "--output_path=$it" },
+            yaml?.let { "--yaml_path=$it" }
+        )
+        jvmArgs = listOf("-Djava.awt.headless=true", "--add-exports", "java.base/jdk.internal.vm=ALL-UNNAMED")
+        standardInput = System.`in`
+        standardOutput = System.`out`
+    }
+
+    register("cli") {
+        dependsOn("runIde")
+    }
 }
