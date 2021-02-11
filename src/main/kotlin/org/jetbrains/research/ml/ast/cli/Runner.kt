@@ -9,8 +9,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.jetbrains.python.PythonFileType
 import com.xenomachina.argparser.ArgParser
-import org.jetbrains.research.ml.ast.cli.Runner.applyTransformations
-import org.jetbrains.research.ml.ast.cli.Runner.createPsiFile
 import org.jetbrains.research.ml.ast.transformations.Transformation
 import org.jetbrains.research.ml.ast.util.createFile
 import org.jetbrains.research.ml.ast.util.createFolder
@@ -81,7 +79,7 @@ object Runner : ApplicationStarter {
     }
 
     private fun PsiFile.applyTransformations(transformations: List<Transformation>) {
-        ApplicationManager.getApplication().invokeAndWait{
+        ApplicationManager.getApplication().invokeAndWait {
             ApplicationManager.getApplication().runWriteAction {
                 transformations.forEach {
                     it.forwardApply(this)
