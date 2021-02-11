@@ -40,11 +40,13 @@ internal class MultipleOperatorComparisonVisitor(private val commandsStorage: Pe
         }
 
         val leftBinaryExpression = node.leftExpression as PyBinaryExpression
+        val rightExpression = node.rightExpression ?: return node
         val nodeOperator = node.psiOperator ?: return node
+
         val newRightExpression = generator.createBinaryExpression(
             nodeOperator.text,
             leftBinaryExpression.rightExpression,
-            node.rightExpression
+            rightExpression
         )
 
         val newLeftBinaryExpression = transformMultipleComparisonExpression(leftBinaryExpression, generator)
