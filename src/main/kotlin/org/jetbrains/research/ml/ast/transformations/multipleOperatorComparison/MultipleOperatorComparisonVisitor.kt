@@ -23,7 +23,7 @@ internal class MultipleOperatorComparisonVisitor(private val commandsStorage: Pe
         }
 
         val generator = PyElementGenerator.getInstance(node.project)
-        val newBinaryExpression = transformMultipleComparisonExpression(node, generator)
+        val newBinaryExpression = transformMultipleComparisonExpression(node, generator) ?: return
         val newBracedExpression = PyUtils.braceExpression(newBinaryExpression)
         commandsStorage.safePerformCommand(
             { node.replace(newBracedExpression) },
@@ -34,14 +34,14 @@ internal class MultipleOperatorComparisonVisitor(private val commandsStorage: Pe
     private fun transformMultipleComparisonExpression(
         node: PyBinaryExpression,
         generator: PyElementGenerator
-    ): PyBinaryExpression {
+    ): PyBinaryExpression? {
         if (!node.isMultipleOperatorComparison()) {
-            return node
+            return null
         }
 
         val leftBinaryExpression = node.leftExpression as PyBinaryExpression
-        val rightExpression = node.rightExpression ?: return node
-        val nodeOperator = node.psiOperator ?: return node
+        val rightExpression = node.rightExpression ?: return null
+        val nodeOperator = node.psiOperator ?: return null
 
         val newRightExpression = generator.createBinaryExpression(
             nodeOperator.text,
