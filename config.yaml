@@ -1,0 +1,6 @@
+n transformations: 5
+transformations:
+  - key: "key1"
+    p: 1.0
+  - key: "anonymization"
+    p: 0.5

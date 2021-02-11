@@ -22,8 +22,13 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     implementation("com.github.gumtreediff", "core", "2.1.2")
+
+    // Need for CLI
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc-218")
     implementation("com.charleskorn.kaml:kaml:0.27.0")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.20")
+    implementation("org.reflections:reflections:0.9.12")
+    implementation("com.xenomachina:kotlin-argparser:2.0.7")
 }
 
 intellij {
