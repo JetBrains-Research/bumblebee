@@ -1,6 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.anonymization
 
 import com.intellij.psi.PsiElement
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.refactoring.rename.RenamePsiElementProcessor
 import com.intellij.usageView.UsageInfo
 
@@ -15,7 +16,7 @@ object RenameUtil {
 
     private fun renameSingleElementDelayed(definition: PsiElement, newName: String): () -> Unit {
         val processor = RenamePsiElementProcessor.forElement(definition)
-        val useScope = definition.useScope
+        val useScope = GlobalSearchScope.allScope(definition.project)
         val references = processor.findReferences(definition, useScope, false)
         val usages = references.map { UsageInfo(it) }.toTypedArray()
 
