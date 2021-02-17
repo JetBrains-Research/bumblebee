@@ -15,6 +15,8 @@ import java.io.File
 import java.util.logging.Logger
 import kotlin.reflect.KFunction
 
+typealias TransformationDelayed = (PsiElement, PerformedCommandStorage?) -> Unit
+
 /**
  * We want to ensure that all tests classes for transformations have the required functionality
  */
@@ -24,7 +26,7 @@ interface ITransformationsTest {
     fun assertCodeTransformation(
         inFile: File,
         outFile: File,
-        transformation: (PsiElement, PerformedCommandStorage?) -> Unit
+        transformation: TransformationDelayed
     )
 }
 
@@ -44,7 +46,7 @@ object TransformationsTestHelper {
     fun assertCodeTransformation(
         inFile: File,
         outFile: File,
-        transformation: (PsiElement, PerformedCommandStorage?) -> Unit,
+        transformation: TransformationDelayed,
         fileHandler: PsiFileHandler,
         cs: PerformedCommandStorage? = null
     ) {
@@ -65,16 +67,18 @@ object TransformationsTestHelper {
     }
 
     fun getForwardTransformationWrapper(
-        forwardTransformation: (PsiElement) -> Unit
-    ): (PsiElement, PerformedCommandStorage?) -> Unit =
-        { psi: PsiElement, _: PerformedCommandStorage? -> forwardTransformation(psi) }
+        forwardTransformation: (PsiElement, cs: PerformedCommandStorage?) -> Unit,
+        commandStorage: PerformedCommandStorage? = null
+    ): TransformationDelayed =
+        { psi: PsiElement, _: PerformedCommandStorage? -> forwardTransformation(psi, commandStorage) }
 
-    fun getBackwardTransformation(
-        forwardTransformation: (PsiElement) -> Unit
-    ): (PsiElement, PerformedCommandStorage?) -> Unit =
-        { psi: PsiElement, cs: PerformedCommandStorage? ->
-            getForwardTransformationWrapper(forwardTransformation)(psi, cs)
+    fun getBackwardTransformationWrapper(
+        forwardTransformation: (PsiElement, cs: PerformedCommandStorage?) -> Unit
+    ): TransformationDelayed =
+        { psi: PsiElement, _: PerformedCommandStorage? ->
+            val commandStorage = PerformedCommandStorage(psi)
+            getForwardTransformationWrapper(forwardTransformation, commandStorage)(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as @NotNull PsiFile)
-            cs?.undoPerformedCommands()
+            commandStorage.undoPerformedCommands()
         }
 }

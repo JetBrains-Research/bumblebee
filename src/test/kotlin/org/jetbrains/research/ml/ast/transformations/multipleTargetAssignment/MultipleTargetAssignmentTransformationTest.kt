@@ -1,7 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformation
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getForwardTransformationWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,8 +28,8 @@ class MultipleTargetAssignmentTransformationTest : TransformationsTest(getResour
     fun testBackwardTransformation() {
         assertCodeTransformation(
             inFile!!,
-            outFile!!,
-            getBackwardTransformation(MultipleTargetAssignmentTransformation::forwardApply)
+            inFile!!,
+            getBackwardTransformationWrapper(MultipleTargetAssignmentTransformation::forwardApply)
         )
     }
 }
