@@ -51,7 +51,7 @@ object Runner : ApplicationStarter {
     }
 
     private fun getTmpProjectDir(): String {
-        val path = "${System.getProperty("java.io.tmpdir")}/tmpProject"
+        val path = "${System.getProperty("java.io.tmpdir")}/astTransformationsTmp"
         createFolder(path)
         return path
     }

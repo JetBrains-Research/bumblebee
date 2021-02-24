@@ -1,4 +1,4 @@
-n transformations: 1
+n apply: 1
 transformations:
   - key: "Anonymization"
     p: 1.0

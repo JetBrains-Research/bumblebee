@@ -30,7 +30,7 @@ data class CliTransformation(
 
 @Serializable
 data class Configuration(
-    @SerialName("n transformations")
+    @SerialName("n apply")
     val numTransformations: Int,
     val transformations: List<CliTransformation>
 ) {

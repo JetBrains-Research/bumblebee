@@ -31,14 +31,22 @@ Just clone the repo by `git clone https://github.com/JetBrains-Research/ast-tran
 
 Run the command `./gradlew :cli -Pinput=<Input directory with python files> -Poutput=<Output directory> -Pyaml=<YAML config path>`.
 The YAML configuration file example can be found [here](./config.yaml).
-Set of the transformations is applied `n transformations` times. Each round for each transformation the random  
-number between `0.0` and `1.0` is generated. If this value less than `p` for the current transformation,
-the transformation will be applied. The result for each round is stored in the separated folder.
+Set of the transformations is applied `n apply` times. Each round for each transformation the random  
+number between `0.0` and `1.0` is generated. If this value is less than `p` for the current transformation,
+the transformation will be applied to the source files. The result for each round is stored in the separated folder.
+
+For example, the source files are stored in the `source` folder, `n apply` is `5`, and we have list 
+of the `3` transformations. `5` times will be executing the following steps:
+1. Get list of the transformations for the current round according to the probability. 
+   The size of the list is not more than `3`;
+2. Apply the list of the transformations to the files from the `source` folder. 
+   **Note**, we create new files to store the result and the files in the `source` folder does not change.
+3. Save the result
 
 
 ## Getting started as a library
 
-Import the plugin in your plugin:
+You can use this plugin as a library in your plugin by importing it in `settings.gradle.kts` and `build.gradle.kts files`:
 
 1. File `settings.gradle.kts`:
 

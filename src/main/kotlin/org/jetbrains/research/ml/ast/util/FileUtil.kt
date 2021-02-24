@@ -18,9 +18,6 @@ fun createFolder(path: String) {
 
 fun createFile(path: String, content: String = ""): File {
     val file = File(path)
-    if (file.exists()) {
-        file.delete()
-    }
     ApplicationManager.getApplication().invokeAndWait {
         ApplicationManager.getApplication().runWriteAction {
             FileUtil.createIfDoesntExist(file)
