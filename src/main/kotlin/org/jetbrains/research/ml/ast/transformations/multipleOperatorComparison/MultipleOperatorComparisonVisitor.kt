@@ -50,7 +50,10 @@ internal class MultipleOperatorComparisonVisitor(private val commandsStorage: Pe
             rightExpression
         )
 
-        val newLeftBinaryExpression = transformMultipleComparisonExpression(leftBinaryExpression, generator) ?: return null
+        val newLeftBinaryExpression = transformMultipleComparisonExpression(
+            leftBinaryExpression,
+            generator
+        ) ?: return null
 
         return generator.createBinaryExpression("and", newLeftBinaryExpression, newRightExpression)
     }
