@@ -10,10 +10,8 @@ import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
 internal class MultipleOperatorComparisonVisitor(private val commandsStorage: PerformedCommandStorage?) :
     PyElementVisitor() {
-    override fun visitPyBinaryExpression(node: PyBinaryExpression?) {
-        if (node != null) {
-            handleBinaryExpression(node)
-        }
+    override fun visitPyBinaryExpression(node: PyBinaryExpression) {
+        handleBinaryExpression(node)
         super.visitPyBinaryExpression(node)
     }
 

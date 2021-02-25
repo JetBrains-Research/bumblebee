@@ -8,14 +8,14 @@ transformations:
     p: 1.0
   - key: "ComparisonUnification"
     p: 1.0
-  - key: "ConstantFolding"
-    p: 1.0
+#  - key: "ConstantFolding"
+#    p: 1.0
   - key: "DeadCodeRemoval"
     p: 1.0
-  - key: "ExpressionUnification"
-    p: 1.0
-  - key: "IfRedundantLinesRemoval"
-    p: 1.0
+#  - key: "ExpressionUnification"
+#    p: 1.0
+#  - key: "IfRedundantLinesRemoval"
+#    p: 1.0
   - key: "MultipleOperatorComparison"
     p: 1.0
   - key: "MultipleTargetAssigment"

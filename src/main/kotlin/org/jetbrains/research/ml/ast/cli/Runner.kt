@@ -8,6 +8,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.jetbrains.python.PythonFileType
+import com.jetbrains.python.sdk.PythonSdkUtil
 import com.xenomachina.argparser.ArgParser
 import org.jetbrains.research.ml.ast.transformations.Transformation
 import org.jetbrains.research.ml.ast.util.createFile
@@ -52,7 +53,7 @@ object Runner : ApplicationStarter {
 
     private fun getTmpProjectDir(): String {
         val path = "${System.getProperty("java.io.tmpdir")}/astTransformationsTmp"
-        createFolder(path)
+//        createFolder(path)
         return path
     }
 
@@ -88,7 +89,7 @@ object Runner : ApplicationStarter {
         }
     }
 
-    override fun main(args: Array<out String>) {
+    override fun main(args: List<String>) {
         try {
             ArgParser(args.drop(1).toTypedArray()).parseInto(::TransformationsRunnerArgs).run {
                 inputDir = Paths.get(input).toString()
@@ -96,6 +97,11 @@ object Runner : ApplicationStarter {
                 yaml_config = Paths.get(yaml).toString()
             }
             project = ProjectUtil.openOrImport(getTmpProjectDir(), null, true)
+            println("SDKS: ${PythonSdkUtil.getAllSdks()}")
+            println("${System.getProperty("java.io.tmpdir")}/astTransformationsTmp")
+
+//            PyProjectVirtualEnvConfiguration
+
             project?.let {
                 val fileFactory = PsiFileFactory.getInstance(project)
                 createFolder(outputDir)

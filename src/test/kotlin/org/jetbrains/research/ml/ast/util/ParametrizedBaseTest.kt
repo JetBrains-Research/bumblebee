@@ -41,13 +41,13 @@ open class ParametrizedBaseTest(private val testDataRoot: String) : BasePlatform
     *  Older JUnit was calling this setUp method automatically, and newer one stopped to do that, and now requires
     *  an explicit @Before annotation.
     * */
-    @Before
+//    @Before
     open fun mySetUp() {
-        super.setUp()
+//        super.setUp()
     }
 
-    @After
+//    @After
     open fun myDispose() {
-        super.tearDown()
+//        super.tearDown()
     }
 }

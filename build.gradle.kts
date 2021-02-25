@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     java
     kotlin("jvm") version "1.4.20"
-    id("org.jetbrains.intellij") version "0.6.3"
+    id("org.jetbrains.intellij") version "0.7.2"
     id("com.github.johnrengelman.shadow") version "5.1.0"
     id("org.jetbrains.dokka") version "0.10.1"
     id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
@@ -33,9 +33,9 @@ dependencies {
 
 intellij {
     type = "PC"
-    version = "2020.2.3"
+    version = "2020.3"
     downloadSources = false
-    setPlugins("PythonCore:202.7660.27")
+    setPlugins("PythonCore")
 }
 
 configure<JavaPluginConvention> {

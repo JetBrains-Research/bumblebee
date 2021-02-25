@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.psi.impl.*
+import com.jetbrains.python.psi.impl.stubs.PyDecoratorCallElementType
 
 val PsiElement.isLeaf: Boolean
     get() = this.children.isEmpty()
@@ -18,7 +19,7 @@ val PsiElement.intermediateElementLabel: String
             // Expression like +=, -= and so on, for example a += 5
             is PyAugAssignmentStatementImpl -> getSymbolByStringRepresentation(operation?.text ?: "")
             is PyFormattedStringElementImpl -> content
-            is PyImportElementImpl -> ""
+            is PyImportElementImpl, is PyDecoratorImpl -> ""
             is PyBaseElementImpl<*> -> name ?: ""
             else -> ""
         }
