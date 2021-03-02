@@ -4,7 +4,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.psi.impl.*
-import com.jetbrains.python.psi.impl.stubs.PyDecoratorCallElementType
 
 val PsiElement.isLeaf: Boolean
     get() = this.children.isEmpty()
