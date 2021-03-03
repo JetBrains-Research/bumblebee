@@ -8,7 +8,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.codeStyle.CodeStyleManager
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.util.*
-import org.junit.Before
 import org.junit.Ignore
 import org.junit.runners.Parameterized
 import java.io.File
@@ -25,12 +24,6 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     @JvmField
     @Parameterized.Parameter(1)
     var outFile: File? = null
-
-    @Before
-    override fun mySetUp() {
-        super.mySetUp()
-        codeStyleManager = CodeStyleManager.getInstance(project)
-    }
 
     companion object {
         fun getInAndOutArray(

@@ -7,10 +7,8 @@ import org.jetbrains.research.ml.ast.transformations.PyUtils
 import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
 internal class AugmentedAssignmentVisitor(private val commandsStorage: PerformedCommandStorage?) : PyElementVisitor() {
-    override fun visitPyAugAssignmentStatement(node: PyAugAssignmentStatement?) {
-        if (node != null) {
-            handleAugAssignment(node)
-        }
+    override fun visitPyAugAssignmentStatement(node: PyAugAssignmentStatement) {
+        handleAugAssignment(node)
         super.visitPyAugAssignmentStatement(node)
     }
 

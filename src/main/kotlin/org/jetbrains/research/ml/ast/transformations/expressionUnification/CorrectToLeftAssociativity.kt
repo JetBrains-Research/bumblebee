@@ -10,8 +10,8 @@ import org.jetbrains.research.ml.ast.util.fold1
 
 internal class CorrectToLeftAssociativity(private val commandsStorage: PerformedCommandStorage?) :
     PyRecursiveElementVisitor() {
-    override fun visitPyBinaryExpression(node: PyBinaryExpression?) {
-        if (node?.isCorrectionNeeded() == true) {
+    override fun visitPyBinaryExpression(node: PyBinaryExpression) {
+        if (node.isCorrectionNeeded()) {
             val expressions = collectAllRightAssociativityExpression(node)
             if (expressions.isNotEmpty()) {
                 val operator = ExpressionUnificationVisitor.commutativeTokenMap[node.operator] ?: return

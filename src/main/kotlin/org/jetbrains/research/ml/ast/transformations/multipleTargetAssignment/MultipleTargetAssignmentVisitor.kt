@@ -7,10 +7,8 @@ import org.jetbrains.research.ml.ast.transformations.PyUtils
 import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
 class MultipleTargetAssignmentVisitor(private val commandsStorage: PerformedCommandStorage?) : PyElementVisitor() {
-    override fun visitPyAssignmentStatement(node: PyAssignmentStatement?) {
-        if (node != null) {
-            processAssignment(node)
-        }
+    override fun visitPyAssignmentStatement(node: PyAssignmentStatement) {
+        processAssignment(node)
         super.visitPyAssignmentStatement(node)
     }
 

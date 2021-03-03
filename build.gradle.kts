@@ -2,8 +2,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     java
-    kotlin("jvm") version "1.4.20"
-    id("org.jetbrains.intellij") version "0.6.3"
+    kotlin("jvm") version "1.4.30"
+    id("org.jetbrains.intellij") version "0.7.2"
     id("com.github.johnrengelman.shadow") version "5.1.0"
     id("org.jetbrains.dokka") version "0.10.1"
     id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
@@ -22,6 +22,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     implementation("com.github.gumtreediff", "core", "2.1.2")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
 
     // Need for CLI
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc-218")
@@ -33,17 +34,10 @@ dependencies {
 
 intellij {
     type = "PC"
-    version = "2020.2.3"
+    version = "2020.3.3"
     downloadSources = false
-    setPlugins("PythonCore:202.7660.27")
-}
-
-configure<JavaPluginConvention> {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    setPlugins("PythonCore")
+    updateSinceUntilBuild = true
 }
 
 ktlint {
@@ -51,6 +45,14 @@ ktlint {
 }
 
 tasks {
+    withType<JavaCompile> {
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
+    }
+    withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = "11"
+    }
+
     runIde {
         val input: String? by project
         val output: String? by project
@@ -70,3 +72,8 @@ tasks {
         dependsOn("runIde")
     }
 }
+
+// Accorsing to this topic:
+// https://intellij-support.jetbrains.com/hc/en-us/community/posts/360010164960-Build-Intellij-plugin-in-IDEA-2019-1-2020-3?page=1#community_comment_360002517940
+tasks.withType<org.jetbrains.intellij.tasks.BuildSearchableOptionsTask>()
+    .forEach { it.enabled = false }

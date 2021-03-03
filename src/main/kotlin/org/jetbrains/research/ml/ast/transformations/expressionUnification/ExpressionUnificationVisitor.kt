@@ -13,10 +13,8 @@ internal class ExpressionUnificationVisitor(
     private val typeEvalContext: TypeEvalContext,
     private val commandsStorage: PerformedCommandStorage?
 ) : PyRecursiveElementVisitor() {
-    override fun visitPyBinaryExpression(node: PyBinaryExpression?) {
-        if (node != null) {
-            handleBinaryExpression(node)
-        }
+    override fun visitPyBinaryExpression(node: PyBinaryExpression) {
+        handleBinaryExpression(node)
         super.visitPyBinaryExpression(node)
     }
 

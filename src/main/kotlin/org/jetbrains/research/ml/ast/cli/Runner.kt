@@ -5,21 +5,19 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ApplicationStarter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.PsiManager
 import com.jetbrains.python.PythonFileType
 import com.xenomachina.argparser.ArgParser
 import org.jetbrains.research.ml.ast.transformations.Transformation
-import org.jetbrains.research.ml.ast.util.createFile
-import org.jetbrains.research.ml.ast.util.createFolder
-import org.jetbrains.research.ml.ast.util.getContentFromFile
-import org.jetbrains.research.ml.ast.util.getFilesFormFolder
+import org.jetbrains.research.ml.ast.util.*
+import org.jetbrains.research.ml.ast.util.sdk.setSdkToProject
 import java.io.File
 import java.nio.file.Paths
 import kotlin.random.Random.Default.nextDouble
 import kotlin.system.exitProcess
 
-// TODO: test it with different transformations sets
 object Runner : ApplicationStarter {
     private lateinit var inputDir: String
     private lateinit var outputDir: String
@@ -50,12 +48,6 @@ object Runner : ApplicationStarter {
         )
     }
 
-    private fun getTmpProjectDir(): String {
-        val path = "${System.getProperty("java.io.tmpdir")}/astTransformationsTmp"
-        createFolder(path)
-        return path
-    }
-
     // Filter transformations according to the probability
     private fun filterTransformations(config: Configuration): List<Transformation> {
         val transformationsToApply: MutableList<Transformation> = ArrayList()
@@ -70,11 +62,14 @@ object Runner : ApplicationStarter {
         return transformationsToApply
     }
 
-    private fun File.createPsiFile(fileFactory: PsiFileFactory): PsiFile {
+    private fun File.createPsiFile(psiManager: PsiManager): PsiFile {
         return ApplicationManager.getApplication().runWriteAction<PsiFile> {
+            val basePath = getTmpProjectDir(toCreateFolder = false)
             val fileName = "dummy." + PythonFileType.INSTANCE.defaultExtension
-            val fileType = PythonFileType.INSTANCE
-            fileFactory.createFileFromText(fileName, fileType, getContentFromFile(this.absolutePath))
+            val content = getContentFromFile(this.absolutePath)
+            val file = addPyFileToProject(basePath, fileName, content)
+            val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
+            psiManager.findFile(virtualFile!!)
         }
     }
 
@@ -88,16 +83,18 @@ object Runner : ApplicationStarter {
         }
     }
 
-    override fun main(args: Array<out String>) {
+    override fun main(args: List<String>) {
         try {
             ArgParser(args.drop(1).toTypedArray()).parseInto(::TransformationsRunnerArgs).run {
                 inputDir = Paths.get(input).toString()
                 outputDir = Paths.get(output).toString().removeSuffix("/")
                 yaml_config = Paths.get(yaml).toString()
             }
+
             project = ProjectUtil.openOrImport(getTmpProjectDir(), null, true)
             project?.let {
-                val fileFactory = PsiFileFactory.getInstance(project)
+                setSdkToProject(it, getTmpProjectDir())
+                val psiManager = PsiManager.getInstance(it)
                 createFolder(outputDir)
                 val config = Configuration.parseYamlConfig(getContentFromFile(yaml_config))
                 // TODO: should we handle all nested folders and save the folders structure
@@ -106,11 +103,10 @@ object Runner : ApplicationStarter {
                     val currentPath = "$outputDir/${num}_transformation"
                     createFolder(currentPath)
                     val transformationsToApply = filterTransformations(config)
-                    inputFiles.forEach {
-                        val psi = it.createPsiFile(fileFactory)
+                    inputFiles.forEach { file ->
+                        val psi = file.createPsiFile(psiManager)
                         psi.applyTransformations(transformationsToApply)
-                        println("$currentPath/${it.name}")
-                        createFile("$currentPath/${it.name}", psi.text)
+                        createFile("$currentPath/${file.name}", psi.text)
                     }
                 }
             } ?: error("Internal error: the temp project was not created")

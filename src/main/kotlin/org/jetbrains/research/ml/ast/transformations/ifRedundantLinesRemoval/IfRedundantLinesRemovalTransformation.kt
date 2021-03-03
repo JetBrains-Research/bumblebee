@@ -1,4 +1,4 @@
-package org.jetbrains.research.ml.ast.transformations.if_redundant_lines_removal
+package org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval
 
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
