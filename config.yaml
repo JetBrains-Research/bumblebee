@@ -1,24 +1,24 @@
 n apply: 1
 transformations:
-  - key: "Anonymization"
-    p: 1.0
-  - key: "AugmentedAssignment"
-    p: 1.0
-  - key: "CommentsRemoval"
-    p: 1.0
-  - key: "ComparisonUnification"
-    p: 1.0
+#  - key: "Anonymization"
+#    p: 1.0
+#  - key: "AugmentedAssignment"
+#    p: 1.0
+#  - key: "CommentsRemoval"
+#    p: 1.0
+#  - key: "ComparisonUnification"
+#    p: 1.0
 #  - key: "ConstantFolding"
 #    p: 1.0
-  - key: "DeadCodeRemoval"
-    p: 1.0
+#  - key: "DeadCodeRemoval"
+#    p: 1.0
 #  - key: "ExpressionUnification"
 #    p: 1.0
-#  - key: "IfRedundantLinesRemoval"
+  - key: "IfRedundantLinesRemoval"
+    p: 1.0
+#  - key: "MultipleOperatorComparison"
 #    p: 1.0
-  - key: "MultipleOperatorComparison"
-    p: 1.0
-  - key: "MultipleTargetAssigment"
-    p: 1.0
-  - key: "OuterNotElimination"
-    p: 1.0
+#  - key: "MultipleTargetAssigment"
+#    p: 1.0
+#  - key: "OuterNotElimination"
+#    p: 1.0

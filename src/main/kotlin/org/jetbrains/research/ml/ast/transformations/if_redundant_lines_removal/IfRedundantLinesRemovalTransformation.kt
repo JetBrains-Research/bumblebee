@@ -12,11 +12,17 @@ object IfRedundantLinesRemovalTransformation : Transformation() {
 
     override fun forwardApply(psiTree: PsiElement, commandsStorage: PerformedCommandStorage?) {
         val project = psiTree.project
+        println("Project: $project")
+        println("CommandStorage: ${commandsStorage}")
+        println("PyElementGenerator: ${PyElementGenerator.getInstance(project)}")
+        println("File: ${psiTree.containingFile as PyFile}")
+
         val remover = IfRedundantLinesRemover(
             commandsStorage,
             PyElementGenerator.getInstance(project),
             psiTree.containingFile as PyFile
         )
+        println("Remover: $remover")
         val simplify = remover.simplifyAllDelayed(psiTree)
         WriteCommandAction.runWriteCommandAction(project) { simplify() }
     }

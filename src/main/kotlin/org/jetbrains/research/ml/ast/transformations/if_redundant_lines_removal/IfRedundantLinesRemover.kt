@@ -16,6 +16,10 @@ class IfRedundantLinesRemover(
     private val simplifier = StatementSimplifier()
     private val remover = StatementRemover()
 
+    init {
+        println("init IfRedundantLinesRemover")
+    }
+
     companion object {
         fun PyStatement.nextStatements() = siblings(forward = true, withSelf = true).filterIsInstance<PyStatement>()
     }
