@@ -2,7 +2,6 @@ package org.jetbrains.research.ml.ast.transformations.augmentedAssignment
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getForwardTransformationWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -21,7 +20,7 @@ class AugmentedAssignmentTransformationTest :
         assertCodeTransformation(
             inFile!!,
             outFile!!,
-            getForwardTransformationWrapper(AugmentedAssignmentTransformation::forwardApply)
+            AugmentedAssignmentTransformation::forwardApply
         )
     }
 

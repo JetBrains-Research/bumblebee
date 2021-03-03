@@ -2,7 +2,6 @@ package org.jetbrains.research.ml.ast.transformations.expressionUnification
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getForwardTransformationWrapper
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,7 +21,7 @@ class ExpressionUnificationTransformationTest :
         assertCodeTransformation(
             inFile!!,
             outFile!!,
-            getForwardTransformationWrapper(ExpressionUnificationTransformation::forwardApply)
+            ExpressionUnificationTransformation::forwardApply
         )
     }
 
