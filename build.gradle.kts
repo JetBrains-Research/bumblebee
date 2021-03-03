@@ -35,7 +35,7 @@ dependencies {
 intellij {
     type = "PC"
     version = "2020.3.3"
-    downloadSources = true
+    downloadSources = false
     setPlugins("PythonCore")
 }
 
@@ -72,6 +72,7 @@ tasks {
     }
 }
 
-// This task does not work on Ubuntu OS: Not found document '/META-INF/tips-pycharm-community.xml'
+// Accorsing to this topic:
+// https://intellij-support.jetbrains.com/hc/en-us/community/posts/360010164960-Build-Intellij-plugin-in-IDEA-2019-1-2020-3?page=1#community_comment_360002517940
 tasks.withType<org.jetbrains.intellij.tasks.BuildSearchableOptionsTask>()
     .forEach { it.enabled = false }
