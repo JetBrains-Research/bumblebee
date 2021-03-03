@@ -22,6 +22,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     implementation("com.github.gumtreediff", "core", "2.1.2")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
 
     // Need for CLI
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc-218")

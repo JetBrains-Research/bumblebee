@@ -7,13 +7,24 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.jetbrains.python.configuration.PyConfigurableInterpreterList
 import com.jetbrains.python.sdk.PythonSdkType
 import com.jetbrains.python.sdk.configuration.PyProjectVirtualEnvConfiguration
+import org.apache.commons.lang3.SystemUtils
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 private fun createBaseSdk(project: Project): Sdk {
     val myInterpreterList = PyConfigurableInterpreterList.getInstance(project)
     val myProjectSdksModel = myInterpreterList.model
     val pySdkType = PythonSdkType.getInstance()
-    // TODO: change it
-    return myProjectSdksModel.createSdk(pySdkType, "/usr/bin/python3")
+    return myProjectSdksModel.createSdk(pySdkType, getPythonPath())
+}
+
+private fun getPythonPath(): String {
+    val python = "python3"
+    val pythonBin = if (SystemUtils.IS_OS_WINDOWS) listOf("where", python) else listOf("which", python)
+    val builder = ProcessBuilder(pythonBin)
+    builder.redirectErrorStream(true)
+    val p = builder.start()
+    return BufferedReader(InputStreamReader(p.inputStream)).readLines().joinToString(separator = "\n") { it }
 }
 
 private fun createSdk(project: Project, baseSdk: Sdk, venvRoot: String): Sdk {
