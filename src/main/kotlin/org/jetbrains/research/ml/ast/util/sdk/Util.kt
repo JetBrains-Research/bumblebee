@@ -24,10 +24,10 @@ private fun getPythonPath(): String {
     val builder = ProcessBuilder(pythonBin)
     builder.redirectErrorStream(true)
     val p = builder.start()
-    return BufferedReader(InputStreamReader(p.inputStream)).readLines().joinToString(separator = "\n") { it }
+    return BufferedReader(InputStreamReader(p.inputStream)).readLines().joinToString(separator = "\n")
 }
 
-private fun createSdk(project: Project, baseSdk: Sdk, venvRoot: String): Sdk {
+private fun createVirtualEnvSdk(project: Project, baseSdk: Sdk, venvRoot: String): Sdk {
     var sdk: Sdk? = null
     ApplicationManager.getApplication().invokeAndWait {
         sdk = PyProjectVirtualEnvConfiguration.createVirtualEnvSynchronously(
@@ -44,7 +44,7 @@ private fun createSdk(project: Project, baseSdk: Sdk, venvRoot: String): Sdk {
 
 fun setSdkToProject(project: Project, venvRoot: String) {
     val baseSdk = createBaseSdk(project)
-    val sdk = createSdk(project, baseSdk, venvRoot)
+    val sdk = createVirtualEnvSdk(project, baseSdk, venvRoot)
 
     val projectManager = ProjectRootManager.getInstance(project)
     val sdkConfigurer = SdkConfigurer(project, projectManager)
