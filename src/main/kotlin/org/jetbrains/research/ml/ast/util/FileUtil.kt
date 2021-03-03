@@ -28,3 +28,24 @@ fun createFile(path: String, content: String = ""): File {
 }
 
 fun getFilesFormFolder(path: String) = File(path).listFiles().orEmpty().filter { it.isFile }
+
+fun getTmpProjectDir(toCreateFolder: Boolean = true): String {
+    val tmpDirPath = System.getProperty("java.io.tmpdir").removeSuffix("/")
+    val path = "$tmpDirPath/astTransformationsTmp"
+    if (toCreateFolder) {
+        createFolder(path)
+    }
+    return path
+}
+
+fun addPyFileToProject(
+    projectPath: String,
+    fileName: String,
+    fileContext: String = ""
+): File {
+    val filePath = "$projectPath/$fileName"
+    val file = File(filePath)
+    file.createNewFile()
+    file.writeText(fileContext)
+    return file
+}

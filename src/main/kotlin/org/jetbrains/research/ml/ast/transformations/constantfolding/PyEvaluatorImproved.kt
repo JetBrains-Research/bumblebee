@@ -22,7 +22,6 @@ import com.jetbrains.python.psi.types.PyModuleType
 import com.jetbrains.python.psi.types.TypeEvalContext
 import org.jetbrains.research.ml.ast.transformations.util.PsiUtil.isComment
 import java.math.BigInteger
-import kotlin.test.fail
 
 class PyEvaluatorImproved(file: PyFile) {
     // Cache evaluation results to avoid re-evaluating the same expression twice

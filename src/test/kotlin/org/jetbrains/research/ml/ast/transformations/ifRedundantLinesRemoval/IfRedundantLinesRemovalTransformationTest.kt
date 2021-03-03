@@ -1,6 +1,5 @@
 package org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval
 
-import org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval.IfRedundantLinesRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformation
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getForwardTransformationWrapper

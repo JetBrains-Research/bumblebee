@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootManager
+import org.jetbrains.research.ml.ast.util.sdk.SdkConfigurer
 import org.junit.Ignore
 
 @Ignore
