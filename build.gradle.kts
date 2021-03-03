@@ -71,3 +71,7 @@ tasks {
         dependsOn("runIde")
     }
 }
+
+// This task does not work on Ubuntu OS: Not found document '/META-INF/tips-pycharm-community.xml'
+tasks.withType<org.jetbrains.intellij.tasks.BuildSearchableOptionsTask>()
+    .forEach { it.enabled = false }
