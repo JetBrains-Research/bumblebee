@@ -19,19 +19,34 @@ jobs:
           sudo apt update
           sudo apt install python3-pip
           python -m pip install virtualenv
+          
+      # Cache Gradle dependencies
+      - name: Setup Gradle Dependencies Cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', 'gradle.properties') }}
 
-#       - name: Cache Gradle packages
-#         uses: actions/cache@v2
-#         with:
-#           path: ~/.gradle/caches
-#           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-#           restore-keys: ${{ runner.os }}-gradle
+      # Cache Gradle Wrapper
+      - name: Setup Gradle Wrapper Cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+
 
 
   build:
     needs: setup
     runs-on: ubuntu-latest
     steps:
+    
+      # Setup Java 1.8 environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+    
       - uses: actions/checkout@v2
       - run: ./gradlew build
       
@@ -48,6 +63,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      # Setup Java 1.8 environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
       - uses: actions/checkout@v2
       - name: Run tests
         run: ./gradlew test
@@ -57,5 +77,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      # Setup Java 1.8 environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
       - uses: actions/checkout@v2
       - run: ./gradlew ktlintCheck
