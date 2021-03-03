@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     java
-    kotlin("jvm") version "1.4.20"
+    kotlin("jvm") version "1.4.30"
     id("org.jetbrains.intellij") version "0.7.2"
     id("com.github.johnrengelman.shadow") version "5.1.0"
     id("org.jetbrains.dokka") version "0.10.1"
@@ -37,14 +37,7 @@ intellij {
     version = "2020.3.3"
     downloadSources = false
     setPlugins("PythonCore")
-}
-
-configure<JavaPluginConvention> {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    updateSinceUntilBuild = true
 }
 
 ktlint {
@@ -52,6 +45,14 @@ ktlint {
 }
 
 tasks {
+    withType<JavaCompile> {
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
+    }
+    withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = "11"
+    }
+
     runIde {
         val input: String? by project
         val output: String? by project
