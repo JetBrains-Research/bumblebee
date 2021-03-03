@@ -40,7 +40,7 @@ jobs:
         with:
           name: test-report
           path: |
-            ast-transformations/build/reports/tests/**/*
+            build/reports/tests/**/*
 
 
   test:
