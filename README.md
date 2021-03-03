@@ -35,12 +35,12 @@ Set of the transformations is applied `n apply` times. Each round for each trans
 number between `0.0` and `1.0` is generated. If this value is less than `p` for the current transformation,
 the transformation will be applied to the source files. The result for each round is stored in the separated folder.
 
-For example, the source files are stored in the `source` folder, `n apply` is `5`, and we have list 
-of the `3` transformations. `5` times will be executing the following steps:
-1. Get list of the transformations for the current round according to the probability. 
-   The size of the list is not more than `3`;
+For example, the source files are stored in the `source` folder, `n apply` is `5`, and
+we have a list of `3` transformations. The following steps will be executed `5` times:
+1. Get list of the transformations for the current round according to generated probability. 
+   The size of the list is no more than `3`;
 2. Apply the list of the transformations to the files from the `source` folder. 
-   **Note**, we create new files to store the result and the files in the `source` folder does not change.
+   **Note**, we create new files to store the result and the files in the `source` folder do not change.
 3. Save the result
 
 

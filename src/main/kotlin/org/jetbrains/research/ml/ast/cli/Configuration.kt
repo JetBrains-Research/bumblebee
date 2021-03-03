@@ -31,7 +31,7 @@ data class CliTransformation(
 @Serializable
 data class Configuration(
     @SerialName("n apply")
-    val numTransformations: Int,
+    val nApply: Int,
     val transformations: List<CliTransformation>
 ) {
     companion object {

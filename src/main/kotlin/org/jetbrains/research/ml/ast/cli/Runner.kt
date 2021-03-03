@@ -102,7 +102,7 @@ object Runner : ApplicationStarter {
                 val config = Configuration.parseYamlConfig(getContentFromFile(yaml_config))
                 // TODO: should we handle all nested folders and save the folders structure
                 val inputFiles = getFilesFormFolder(inputDir)
-                repeat(config.numTransformations) { num ->
+                repeat(config.nApply) { num ->
                     val currentPath = "$outputDir/${num}_transformation"
                     createFolder(currentPath)
                     val transformationsToApply = filterTransformations(config)
