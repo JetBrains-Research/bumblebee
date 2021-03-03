@@ -5,18 +5,17 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ApplicationStarter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.PsiManager
 import com.jetbrains.python.PythonFileType
 import com.jetbrains.python.configuration.PyConfigurableInterpreterList
-import com.jetbrains.python.sdk.*
+import com.jetbrains.python.sdk.PythonSdkType
 import com.jetbrains.python.sdk.configuration.PyProjectVirtualEnvConfiguration
-import com.jetbrains.python.statistics.modules
 import com.xenomachina.argparser.ArgParser
+import org.jetbrains.annotations.NotNull
 import org.jetbrains.research.ml.ast.transformations.Transformation
 import org.jetbrains.research.ml.ast.util.*
 import java.io.File
@@ -55,9 +54,11 @@ object Runner : ApplicationStarter {
         )
     }
 
-    private fun getTmpProjectDir(): String {
-        val path = "${System.getProperty("java.io.tmpdir")}/astTransformationsTmp"
-        createFolder(path)
+    private fun getTmpProjectDir(toCreateFolder: Boolean = true): String {
+        val path = "${System.getProperty("java.io.tmpdir").removeSuffix("/")}/astTransformationsTmp"
+        if (toCreateFolder) {
+            createFolder(path)
+        }
         return path
     }
 
@@ -75,11 +76,14 @@ object Runner : ApplicationStarter {
         return transformationsToApply
     }
 
-    private fun File.createPsiFile(fileFactory: PsiFileFactory): PsiFile {
+    private fun File.createPsiFile(psiManager: PsiManager): PsiFile {
         return ApplicationManager.getApplication().runWriteAction<PsiFile> {
+            val basePath = getTmpProjectDir(toCreateFolder = false)
             val fileName = "dummy." + PythonFileType.INSTANCE.defaultExtension
-            val fileType = PythonFileType.INSTANCE
-            fileFactory.createFileFromText(fileName, fileType, getContentFromFile(this.absolutePath))
+            val content = getContentFromFile(this.absolutePath)
+            val file = addPyFileToProject(basePath, fileName, content)
+            val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
+            psiManager.findFile(virtualFile!!)
         }
     }
 
@@ -105,20 +109,27 @@ object Runner : ApplicationStarter {
                 project = project,
                 module = null
             )
-            println("sdk: $sdk")
         }
         return sdk ?: error("Internal error: SDK for temp project was not created")
     }
 
-    fun addPyFileToProject(
-        project: Project,
-        fileName: String = "main.py",
-        fileContext: String = "print(\"Hello World\")"
-    ) {
-        val filePath = "${project.basePath}/$fileName"
+    private fun addPyFileToProject(
+        projectPath: String,
+        fileName: String,
+        fileContext: String = ""
+    ): File {
+        val filePath = "$projectPath/$fileName"
         val file = File(filePath)
         file.createNewFile()
         file.writeText(fileContext)
+        return file
+    }
+
+    private fun createBaseSdk(project: Project): Sdk {
+        val myInterpreterList = PyConfigurableInterpreterList.getInstance(project)
+        val myProjectSdksModel = myInterpreterList.model
+        val pySdkType = PythonSdkType.getInstance()
+        return myProjectSdksModel.createSdk(pySdkType, "/usr/bin/python3")
     }
 
     override fun main(args: List<String>) {
@@ -129,68 +140,32 @@ object Runner : ApplicationStarter {
                 yaml_config = Paths.get(yaml).toString()
             }
 
-//            ApplicationManager.getApplication().invokeAndWait {
-                project = ProjectUtil.openOrImport(getTmpProjectDir(), null, true)
-                println("SDKS: ${PythonSdkUtil.getAllSdks()}")
-                println("${System.getProperty("java.io.tmpdir")}/astTransformationsTmp")
+            project = ProjectUtil.openOrImport(getTmpProjectDir(), null, true)
 
-                project?.let {
+            project?.let {
+                val baseSdk = createBaseSdk(it)
 
-                    addPyFileToProject(it)
+                val projectManager = ProjectRootManager.getInstance(it)
+                val sdk = createSdk(it, baseSdk)
+                val sdkConfigurer = SdkConfigurer(it, projectManager)
+                sdkConfigurer.setProjectSdk(sdk)
 
-
-                    val myInterpreterList = PyConfigurableInterpreterList.getInstance(it)
-                    val myProjectSdksModel = myInterpreterList.model
-
-//                Just trying to somehow obtain sdk list automatically but with no success
-//                var sdks: List<Sdk> = myProjectSdksModel.sdks.toList()
-//                println("sdks: ${sdks.size}")
-//                sdks = myInterpreterList.getAllPythonSdks(it)
-//                println("sdks: ${sdks.size}")
-//                sdks = PyConfigurableInterpreterList.getInstance(null).allPythonSdks
-//                println("sdks: ${sdks.size}")
-//                sdks = ProjectJdkTable.getInstance().allJdks.toList()
-//                println("sdks: ${sdks.size}")
-
-//            Todo: Somehow get SDK from python bin?? see PythonSdkType, PySdkProvider
-//            "/usr/bin/python3"
-
-                    val pySdkType = PythonSdkType.getInstance()
-                    val baseSdk = myProjectSdksModel.createSdk(pySdkType, "/usr/bin/python3")
-                    println(baseSdk)
-
-                    val projectManager = ProjectRootManager.getInstance(it)
-                    val sdk = createSdk(it, baseSdk)
-                    val sdkConfigurer = SdkConfigurer(it, projectManager)
-                    sdkConfigurer.setProjectSdk(sdk)
-                    println("Project sdk: ${it.pythonSdk}")
-                    it.modules.forEachIndexed { i, module ->
-                        println("Module-$i sdk: ${module.pythonSdk}")
+                val psiManager = PsiManager.getInstance(it)
+                createFolder(outputDir)
+                val config = Configuration.parseYamlConfig(getContentFromFile(yaml_config))
+                // TODO: should we handle all nested folders and save the folders structure
+                val inputFiles = getFilesFormFolder(inputDir)
+                repeat(config.numTransformations) { num ->
+                    val currentPath = "$outputDir/${num}_transformation"
+                    createFolder(currentPath)
+                    val transformationsToApply = filterTransformations(config)
+                    inputFiles.forEach { file ->
+                        val psi = file.createPsiFile(psiManager)
+                        psi.applyTransformations(transformationsToApply)
+                        createFile("$currentPath/${file.name}", psi.text)
                     }
-
-                    val fileFactory = PsiFileFactory.getInstance(it)
-                    createFolder(outputDir)
-                    val config = Configuration.parseYamlConfig(getContentFromFile(yaml_config))
-                    // TODO: should we handle all nested folders and save the folders structure
-                    val inputFiles = getFilesFormFolder(inputDir)
-                    println("Num transformations: ${config.numTransformations}")
-                    repeat(config.numTransformations) { num ->
-                        val currentPath = "$outputDir/${num}_transformation"
-                        createFolder(currentPath)
-                        val transformationsToApply = filterTransformations(config)
-                        println("Transformations to apply: ${transformationsToApply.size}")
-                        inputFiles.forEach { file ->
-                            val psi = file.createPsiFile(fileFactory)
-                            println(("Psi project: ${psi.project.name}"))
-                            println("Psi name: ${psi.name}")
-                            psi.applyTransformations(transformationsToApply)
-                            println("Psi name 2: ${psi.name}")
-                            println("$currentPath/${file.name}")
-                            createFile("$currentPath/${file.name}", psi.text)
-                        }
-                    }
-                } ?: error("Internal error: the temp project was not created")
-//            }
+                }
+            } ?: error("Internal error: the temp project was not created")
         } catch (ex: Exception) {
             logger.error(ex)
         } finally {

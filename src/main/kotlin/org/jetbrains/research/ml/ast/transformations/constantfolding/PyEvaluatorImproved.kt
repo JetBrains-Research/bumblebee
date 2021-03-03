@@ -36,8 +36,7 @@ class PyEvaluatorImproved(file: PyFile) {
     private val boolType = builtinsCache.boolType ?: failNoSDK()
     private val integerLikeTypes = listOf(builtinsCache.intType ?: failNoSDK(), boolType)
 
-    private fun failNoSDK(): Nothing =
-        fail("A working Python SDK is required to use PyEvaluatorImproved")
+    private fun failNoSDK(): Nothing = error("A working Python SDK is required to use PyEvaluatorImproved")
 
     interface PyEvaluationResult
     interface PyIntLike : PyEvaluationResult {

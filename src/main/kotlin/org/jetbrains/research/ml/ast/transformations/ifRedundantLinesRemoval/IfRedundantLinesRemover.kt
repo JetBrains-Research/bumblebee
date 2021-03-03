@@ -1,4 +1,4 @@
-package org.jetbrains.research.ml.ast.transformations.if_redundant_lines_removal
+package org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.siblings
@@ -15,10 +15,6 @@ class IfRedundantLinesRemover(
     private val evaluator = PyEvaluatorImproved(file)
     private val simplifier = StatementSimplifier()
     private val remover = StatementRemover()
-
-    init {
-        println("init IfRedundantLinesRemover")
-    }
 
     companion object {
         fun PyStatement.nextStatements() = siblings(forward = true, withSelf = true).filterIsInstance<PyStatement>()

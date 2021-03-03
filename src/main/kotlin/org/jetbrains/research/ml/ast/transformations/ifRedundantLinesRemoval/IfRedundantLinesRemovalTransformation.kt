@@ -1,4 +1,4 @@
-package org.jetbrains.research.ml.ast.transformations.if_redundant_lines_removal
+package org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval
 
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
@@ -12,17 +12,11 @@ object IfRedundantLinesRemovalTransformation : Transformation() {
 
     override fun forwardApply(psiTree: PsiElement, commandsStorage: PerformedCommandStorage?) {
         val project = psiTree.project
-        println("Project: $project")
-        println("CommandStorage: ${commandsStorage}")
-        println("PyElementGenerator: ${PyElementGenerator.getInstance(project)}")
-        println("File: ${psiTree.containingFile as PyFile}")
-
         val remover = IfRedundantLinesRemover(
             commandsStorage,
             PyElementGenerator.getInstance(project),
             psiTree.containingFile as PyFile
         )
-        println("Remover: $remover")
         val simplify = remover.simplifyAllDelayed(psiTree)
         WriteCommandAction.runWriteCommandAction(project) { simplify() }
     }
