@@ -1,6 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.outerNotElimination
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -16,14 +17,19 @@ class OuterNotEliminationTransformationTest : TransformationsTest(getResourcesRo
 
     @Test
     fun testForwardTransformation() {
-        assertForwardTransformation(inFile!!, outFile!!, OuterNotEliminationTransformation::forwardApply)
+        assertCodeTransformation(
+            inFile!!,
+            outFile!!,
+            OuterNotEliminationTransformation::forwardApply
+        )
     }
 
     @Test
     fun testBackwardTransformation() {
-        assertBackwardTransformation(
+        assertCodeTransformation(
             inFile!!,
-            OuterNotEliminationTransformation::forwardApply
+            inFile!!,
+            getBackwardTransformationWrapper(OuterNotEliminationTransformation::forwardApply)
         )
     }
 }

@@ -1,6 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.deadcode
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -15,14 +16,19 @@ class DeadCodeRemovalTransformationTest : TransformationsTest(getResourcesRootPa
 
     @Test
     fun testForwardTransformation() {
-        assertForwardTransformation(inFile!!, outFile!!, DeadCodeRemovalTransformation::forwardApply)
+        assertCodeTransformation(
+            inFile!!,
+            outFile!!,
+            DeadCodeRemovalTransformation::forwardApply
+        )
     }
 
     @Test
     fun testBackwardTransformation() {
-        assertBackwardTransformation(
+        assertCodeTransformation(
             inFile!!,
-            DeadCodeRemovalTransformation::forwardApply
+            inFile!!,
+            getBackwardTransformationWrapper(DeadCodeRemovalTransformation::forwardApply)
         )
     }
 }

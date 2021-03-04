@@ -1,6 +1,7 @@
-package org.jetbrains.research.ml.ast.transformations.if_redundant_lines_removal
+package org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,11 +19,19 @@ class IfRedundantLinesRemovalTransformationTest : TransformationsWithSdkTest(
 
     @Test
     fun testForwardTransformation() {
-        assertForwardTransformation(inFile!!, outFile!!, IfRedundantLinesRemovalTransformation::forwardApply)
+        assertCodeTransformation(
+            inFile!!,
+            outFile!!,
+            IfRedundantLinesRemovalTransformation::forwardApply
+        )
     }
 
     @Test
     fun testBackwardTransformation() {
-        assertBackwardTransformation(inFile!!, IfRedundantLinesRemovalTransformation::forwardApply)
+        assertCodeTransformation(
+            inFile!!,
+            inFile!!,
+            getBackwardTransformationWrapper(IfRedundantLinesRemovalTransformation::forwardApply)
+        )
     }
 }

@@ -1,6 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.constantfolding
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,11 +17,19 @@ class ConstantFoldingTransformationTest : TransformationsWithSdkTest(getResource
 
     @Test
     fun testForwardTransformation() {
-        assertForwardTransformation(inFile!!, outFile!!, ConstantFoldingTransformation::forwardApply)
+        assertCodeTransformation(
+            inFile!!,
+            outFile!!,
+            ConstantFoldingTransformation::forwardApply
+        )
     }
 
     @Test
     fun testBackwardTransformation() {
-        assertBackwardTransformation(inFile!!, ConstantFoldingTransformation::forwardApply)
+        assertCodeTransformation(
+            inFile!!,
+            inFile!!,
+            getBackwardTransformationWrapper(ConstantFoldingTransformation::forwardApply)
+        )
     }
 }

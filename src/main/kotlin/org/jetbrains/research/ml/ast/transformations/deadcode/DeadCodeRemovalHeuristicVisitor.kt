@@ -15,17 +15,13 @@ import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
 internal class DeadCodeRemovalHeuristicVisitor(private val commandsStorage: PerformedCommandStorage?) :
     PyElementVisitor() {
-    override fun visitPyIfStatement(node: PyIfStatement?) {
-        if (node != null) {
-            handleIfFalseStatement(node)
-        }
+    override fun visitPyIfStatement(node: PyIfStatement) {
+        handleIfFalseStatement(node)
         super.visitPyIfStatement(node)
     }
 
-    override fun visitPyWhileStatement(node: PyWhileStatement?) {
-        if (node != null) {
-            handleWhileFalseStatement(node)
-        }
+    override fun visitPyWhileStatement(node: PyWhileStatement) {
+        handleWhileFalseStatement(node)
         super.visitPyWhileStatement(node)
     }
 

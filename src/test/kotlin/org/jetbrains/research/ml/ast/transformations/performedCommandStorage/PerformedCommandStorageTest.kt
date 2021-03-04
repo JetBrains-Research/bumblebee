@@ -8,11 +8,12 @@ import org.jetbrains.research.ml.ast.transformations.commentsRemoval.CommentsRem
 import org.jetbrains.research.ml.ast.transformations.comparisonUnification.ComparisonUnificationTransformation
 import org.jetbrains.research.ml.ast.transformations.constantfolding.ConstantFoldingTransformation
 import org.jetbrains.research.ml.ast.transformations.deadcode.DeadCodeRemovalTransformation
-import org.jetbrains.research.ml.ast.transformations.if_redundant_lines_removal.IfRedundantLinesRemovalTransformation
+import org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval.IfRedundantLinesRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleOperatorComparison.MultipleOperatorComparisonTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment.MultipleTargetAssignmentTransformation
 import org.jetbrains.research.ml.ast.transformations.outerNotElimination.OuterNotEliminationTransformation
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
+import org.jetbrains.research.ml.ast.util.PsiFileHandler
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -40,8 +41,10 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
             ComparisonUnificationTransformation,
             OuterNotEliminationTransformation
         )
-        val inPsiFile = getPsiFile(inFile!!)
-        val outPsiFile = getPsiFile(outFile!!)
+        val psiHandler = PsiFileHandler(myFixture, project)
+
+        val inPsiFile = psiHandler.getPsiFile(inFile!!)
+        val outPsiFile = psiHandler.getPsiFile(outFile!!)
         val commandStorage = PerformedCommandStorage(inPsiFile)
 
         lateinit var actualAfterForwardTransformations: String
@@ -53,7 +56,7 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
             transformations.forEach { it.forwardApply(inPsiFile, commandStorage) }
             actualAfterForwardTransformations = inPsiFile.text
             val psiAfterBackwardTransformations = commandStorage.undoPerformedCommands()
-            formatPsiFile(psiAfterBackwardTransformations)
+            psiHandler.formatPsiFile(psiAfterBackwardTransformations)
             actualAfterBackwardTransformations = psiAfterBackwardTransformations.text
         }
         assertEquals(expectedAfterForwardTransformations, actualAfterForwardTransformations)

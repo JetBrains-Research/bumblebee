@@ -1,6 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.comparisonUnification
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -15,14 +16,19 @@ class ComparisonUnificationTransformationTest : TransformationsTest(getResources
 
     @Test
     fun testForwardTransformation() {
-        assertForwardTransformation(inFile!!, outFile!!, ComparisonUnificationTransformation::forwardApply)
+        assertCodeTransformation(
+            inFile!!,
+            outFile!!,
+            ComparisonUnificationTransformation::forwardApply
+        )
     }
 
     @Test
     fun testBackwardTransformation() {
-        assertBackwardTransformation(
+        assertCodeTransformation(
             inFile!!,
-            ComparisonUnificationTransformation::forwardApply
+            inFile!!,
+            getBackwardTransformationWrapper(ComparisonUnificationTransformation::forwardApply)
         )
     }
 }

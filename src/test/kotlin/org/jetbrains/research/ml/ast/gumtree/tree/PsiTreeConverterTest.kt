@@ -53,6 +53,6 @@ class PsiTreeConverterTest : ParametrizedBaseTest(getResourcesRootPath(::PsiTree
         // Note: the LE and GE operators are stored correctly (<=, >=), but the XML contains &lt;= and &gt;=
         // TODO: should we fix the formatter??
         val actualXml = TreeIoUtils.toXml(inContext).toString().removeSuffix("\n")
-        TestCase.assertEquals(actualXml, expectedXml)
+        TestCase.assertEquals(expectedXml, actualXml)
     }
 }
