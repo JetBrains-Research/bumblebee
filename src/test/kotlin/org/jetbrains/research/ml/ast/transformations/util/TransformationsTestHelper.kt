@@ -51,7 +51,11 @@ object TransformationsTestHelper {
         logger.info("The current input file is: ${inFile.path}")
         logger.info("The current output file is: ${outFile.path}")
         val psiInFile = fileHandler.getPsiFile(inFile)
-        val expectedPsiInFile = fileHandler.getPsiFile(outFile)
+        val expectedPsiInFile = if (inFile.path == outFile.path) {
+            psiInFile
+        } else {
+            fileHandler.getPsiFile(outFile)
+        }
         val expectedSrc = expectedPsiInFile.text
         logger.info("The expected code is:\n$expectedSrc")
         ApplicationManager.getApplication().invokeAndWait {
