@@ -6,7 +6,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
-import org.jetbrains.annotations.NotNull
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.util.FileTestUtil
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
@@ -14,6 +13,8 @@ import org.jetbrains.research.ml.ast.util.PsiFileHandler
 import java.io.File
 import java.util.logging.Logger
 import kotlin.reflect.KFunction
+
+typealias TransformationDelayed = (PsiElement) -> Unit
 
 /**
  * We want to ensure that all tests classes for transformations have the required functionality
@@ -24,7 +25,7 @@ interface ITransformationsTest {
     fun assertCodeTransformation(
         inFile: File,
         outFile: File,
-        transformation: (PsiElement, PerformedCommandStorage?) -> Unit
+        transformation: TransformationDelayed
     )
 }
 
@@ -44,9 +45,8 @@ object TransformationsTestHelper {
     fun assertCodeTransformation(
         inFile: File,
         outFile: File,
-        transformation: (PsiElement, PerformedCommandStorage?) -> Unit,
-        fileHandler: PsiFileHandler,
-        cs: PerformedCommandStorage? = null
+        transformation: TransformationDelayed,
+        fileHandler: PsiFileHandler
     ) {
         logger.info("The current input file is: ${inFile.path}")
         logger.info("The current output file is: ${outFile.path}")
@@ -55,7 +55,7 @@ object TransformationsTestHelper {
         val expectedSrc = expectedPsiInFile.text
         logger.info("The expected code is:\n$expectedSrc")
         ApplicationManager.getApplication().invokeAndWait {
-            transformation(psiInFile, cs)
+            transformation(psiInFile)
             PsiTestUtil.checkFileStructure(psiInFile)
         }
         fileHandler.formatPsiFile(psiInFile)
@@ -64,17 +64,13 @@ object TransformationsTestHelper {
         BasePlatformTestCase.assertEquals(expectedSrc, actualSrc)
     }
 
-    fun getForwardTransformationWrapper(
-        forwardTransformation: (PsiElement) -> Unit
-    ): (PsiElement, PerformedCommandStorage?) -> Unit =
-        { psi: PsiElement, _: PerformedCommandStorage? -> forwardTransformation(psi) }
-
-    fun getBackwardTransformation(
-        forwardTransformation: (PsiElement) -> Unit
-    ): (PsiElement, PerformedCommandStorage?) -> Unit =
-        { psi: PsiElement, cs: PerformedCommandStorage? ->
-            getForwardTransformationWrapper(forwardTransformation)(psi, cs)
-            PsiTestUtil.checkFileStructure(psi as @NotNull PsiFile)
-            cs?.undoPerformedCommands()
+    fun getBackwardTransformationWrapper(
+        forwardTransformation: (PsiElement, cs: PerformedCommandStorage?) -> Unit
+    ): TransformationDelayed =
+        { psi: PsiElement ->
+            val commandStorage = PerformedCommandStorage(psi)
+            forwardTransformation(psi, commandStorage)
+            PsiTestUtil.checkFileStructure(psi as PsiFile)
+            commandStorage.undoPerformedCommands()
         }
 }

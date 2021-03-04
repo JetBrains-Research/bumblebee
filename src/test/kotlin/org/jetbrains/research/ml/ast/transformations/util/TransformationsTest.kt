@@ -4,9 +4,7 @@
 
 package org.jetbrains.research.ml.ast.transformations.util
 
-import com.intellij.psi.PsiElement
 import com.intellij.psi.codeStyle.CodeStyleManager
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.util.*
 import org.junit.Ignore
 import org.junit.runners.Parameterized
@@ -41,7 +39,7 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
     override fun assertCodeTransformation(
         inFile: File,
         outFile: File,
-        transformation: (PsiElement, PerformedCommandStorage?) -> Unit
+        transformation: TransformationDelayed
     ) {
         TransformationsTestHelper.assertCodeTransformation(
             inFile,

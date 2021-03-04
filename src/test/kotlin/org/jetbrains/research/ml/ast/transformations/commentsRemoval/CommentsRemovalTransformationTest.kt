@@ -1,8 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.commentsRemoval
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformation
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getForwardTransformationWrapper
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -20,7 +19,7 @@ class CommentsRemovalTransformationTest : TransformationsTest(getResourcesRootPa
         assertCodeTransformation(
             inFile!!,
             outFile!!,
-            getForwardTransformationWrapper(CommentsRemovalTransformation::forwardApply)
+            CommentsRemovalTransformation::forwardApply
         )
     }
 
@@ -28,8 +27,8 @@ class CommentsRemovalTransformationTest : TransformationsTest(getResourcesRootPa
     fun testBackwardTransformation() {
         assertCodeTransformation(
             inFile!!,
-            outFile!!,
-            getBackwardTransformation(CommentsRemovalTransformation::forwardApply)
+            inFile!!,
+            getBackwardTransformationWrapper(CommentsRemovalTransformation::forwardApply)
         )
     }
 }

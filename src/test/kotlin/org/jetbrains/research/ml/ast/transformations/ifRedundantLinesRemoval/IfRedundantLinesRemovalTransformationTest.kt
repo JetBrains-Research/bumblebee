@@ -1,8 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformation
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getForwardTransformationWrapper
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -23,7 +22,7 @@ class IfRedundantLinesRemovalTransformationTest : TransformationsWithSdkTest(
         assertCodeTransformation(
             inFile!!,
             outFile!!,
-            getForwardTransformationWrapper(IfRedundantLinesRemovalTransformation::forwardApply)
+            IfRedundantLinesRemovalTransformation::forwardApply
         )
     }
 
@@ -31,8 +30,8 @@ class IfRedundantLinesRemovalTransformationTest : TransformationsWithSdkTest(
     fun testBackwardTransformation() {
         assertCodeTransformation(
             inFile!!,
-            outFile!!,
-            getBackwardTransformation(IfRedundantLinesRemovalTransformation::forwardApply)
+            inFile!!,
+            getBackwardTransformationWrapper(IfRedundantLinesRemovalTransformation::forwardApply)
         )
     }
 }
