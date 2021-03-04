@@ -54,7 +54,7 @@ private fun PsiElement.canGoToDeclaration(): Boolean {
 
 fun PsiFile.countHighlightErrors(): Int {
     return ApplicationManager.getApplication().runReadAction<Int> {
-        val highlightings = DefaultHighlightVisitorBasedInspection.runGeneralHighlighting(this, false, true)
+        val highlightings = DefaultHighlightVisitorBasedInspection.runAnnotatorsInGeneralHighlighting(this, false, true)
         val errors = highlightings.filter { it.second.severity.name == "ERROR" }
         errors.size
     }

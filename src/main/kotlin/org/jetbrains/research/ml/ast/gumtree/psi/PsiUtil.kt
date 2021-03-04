@@ -18,7 +18,7 @@ val PsiElement.intermediateElementLabel: String
             // Expression like +=, -= and so on, for example a += 5
             is PyAugAssignmentStatementImpl -> getSymbolByStringRepresentation(operation?.text ?: "")
             is PyFormattedStringElementImpl -> content
-            is PyImportElementImpl -> ""
+            is PyImportElementImpl, is PyDecoratorImpl -> ""
             is PyBaseElementImpl<*> -> name ?: ""
             else -> ""
         }

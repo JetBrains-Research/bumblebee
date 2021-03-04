@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>io.github.nbirillo.ast.transformations</id>
+    <id>org.jetbrains.research.ml.ast.transformations</id>
     <name>Ast Transformations</name>
     <vendor url="https://research.jetbrains.org/">JetBrains Research</vendor>
 
@@ -11,4 +11,9 @@
     <description><![CDATA[
     An IntelliJ-based IDE plugin for performing Python AST transformations using PSI elements.
     ]]></description>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+        <appStarter implementation="org.jetbrains.research.ml.ast.cli.Runner"/>
+    </extensions>
 </idea-plugin>
