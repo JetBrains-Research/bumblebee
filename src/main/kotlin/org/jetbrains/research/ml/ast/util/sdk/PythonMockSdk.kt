@@ -1,4 +1,4 @@
-package org.jetbrains.research.ml.ast.util
+package org.jetbrains.research.ml.ast.util.sdk
 
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.SdkAdditionalData
@@ -75,7 +75,7 @@ class PythonMockSdk(private val getTestDataPath: String) {
 
         override fun getName(): String = mySdkIdName
 
-        override fun getVersionString(sdk: Sdk): String? = myVersionString
+        override fun getVersionString(sdk: Sdk): String = myVersionString
 
         override fun saveAdditionalData(additionalData: SdkAdditionalData, additional: Element) {}
 

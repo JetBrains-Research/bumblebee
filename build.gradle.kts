@@ -73,7 +73,7 @@ tasks {
     }
 }
 
-// Accorsing to this topic:
+// According to this topic:
 // https://intellij-support.jetbrains.com/hc/en-us/community/posts/360010164960-Build-Intellij-plugin-in-IDEA-2019-1-2020-3?page=1#community_comment_360002517940
 tasks.withType<org.jetbrains.intellij.tasks.BuildSearchableOptionsTask>()
     .forEach { it.enabled = false }
