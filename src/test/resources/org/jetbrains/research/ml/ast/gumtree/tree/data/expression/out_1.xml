@@ -12,8 +12,6 @@
         <tree type="698675450" label="9" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
       </tree>
     </tree>
-    <tree type="-1800911568" label="
-" typeLabel="WHITE_SPACE"></tree>
     <tree type="-1101510470" label="/=" typeLabel="Py:AUG_ASSIGNMENT_STATEMENT">
       <tree type="2049746141" label="a" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
       <tree type="698675450" label="5" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>

@@ -10,9 +10,6 @@
         <tree type="-383795182" label="pass" typeLabel="Py:PASS_STATEMENT"></tree>
       </tree>
     </tree>
-    <tree type="-1800911568" label="
-
-" typeLabel="WHITE_SPACE"></tree>
     <tree type="624590884" label="f" typeLabel="Py:FUNCTION_DECLARATION">
       <tree type="1277838259" typeLabel="Py:DECORATOR_LIST">
         <tree type="1277562227" typeLabel="Py:DECORATOR_CALL">

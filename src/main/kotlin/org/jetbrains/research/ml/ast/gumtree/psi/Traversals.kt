@@ -1,6 +1,8 @@
 package org.jetbrains.research.ml.ast.gumtree.psi
 
 import com.intellij.psi.PsiElement
+import org.jetbrains.research.ml.ast.gumtree.tree.PsiTreeConverter.filterWhiteSpaces
+import org.jetbrains.research.ml.ast.gumtree.tree.PsiTreeConverter.isWhiteSpace
 import java.util.*
 
 fun PsiElement.preOrder(): Iterable<PsiElement> {
@@ -10,7 +12,9 @@ fun PsiElement.preOrder(): Iterable<PsiElement> {
                 val currentNodes: Stack<PsiElement> = Stack()
 
                 init {
-                    currentNodes.add(this@preOrder)
+                    if (!this@preOrder.isWhiteSpace) {
+                        currentNodes.add(this@preOrder)
+                    }
                 }
 
                 override fun hasNext(): Boolean {
@@ -19,7 +23,7 @@ fun PsiElement.preOrder(): Iterable<PsiElement> {
 
                 override fun next(): PsiElement {
                     val c = currentNodes.pop()
-                    currentNodes.addAll(c.children.reversed())
+                    currentNodes.addAll(c.children.filterWhiteSpaces().reversed())
                     return c
                 }
             }
@@ -34,7 +38,9 @@ fun PsiElement.postOrder(): Iterable<PsiElement> {
                 val currentNodes: Stack<PsiElement> = Stack()
 
                 init {
-                    currentNodes.add(this@postOrder)
+                    if (!this@postOrder.isWhiteSpace) {
+                        currentNodes.add(this@postOrder)
+                    }
                     addAllUntilLeftLeaf()
                 }
 
@@ -44,7 +50,7 @@ fun PsiElement.postOrder(): Iterable<PsiElement> {
 
                 override fun next(): PsiElement {
                     val c = currentNodes.pop()
-                    if (hasNext() && currentNodes.peek().children.lastOrNull() != c) {
+                    if (hasNext() && currentNodes.peek().children.filterWhiteSpaces().lastOrNull() != c) {
                         addAllUntilLeftLeaf()
                     }
                     return c
@@ -53,7 +59,7 @@ fun PsiElement.postOrder(): Iterable<PsiElement> {
                 private fun addAllUntilLeftLeaf() {
                     var peek = currentNodes.peek()
                     while (peek.children.isNotEmpty()) {
-                        currentNodes.addAll(peek.children.reversed())
+                        currentNodes.addAll(peek.children.filterWhiteSpaces().reversed())
                         peek = currentNodes.peek()
                     }
                 }
