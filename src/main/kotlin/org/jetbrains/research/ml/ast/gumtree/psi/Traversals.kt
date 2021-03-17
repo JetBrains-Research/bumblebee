@@ -1,18 +1,24 @@
 package org.jetbrains.research.ml.ast.gumtree.psi
 
 import com.intellij.psi.PsiElement
-import org.jetbrains.research.ml.ast.gumtree.tree.PsiTreeConverter.filterWhiteSpaces
 import org.jetbrains.research.ml.ast.gumtree.tree.PsiTreeConverter.isWhiteSpace
 import java.util.*
 
-fun PsiElement.preOrder(): Iterable<PsiElement> {
+private fun PsiElement.needToIgnore(toIgnoreWhiteSpaces: Boolean): Boolean {
+    if (this.isWhiteSpace && toIgnoreWhiteSpaces) {
+        return true
+    }
+    return false
+}
+
+fun PsiElement.preOrder(toIgnoreWhiteSpaces: Boolean = true): Iterable<PsiElement> {
     return object : Iterable<PsiElement> {
         override fun iterator(): Iterator<PsiElement> {
             return object : Iterator<PsiElement> {
                 val currentNodes: Stack<PsiElement> = Stack()
 
                 init {
-                    if (!this@preOrder.isWhiteSpace) {
+                    if (!this@preOrder.needToIgnore(toIgnoreWhiteSpaces)) {
                         currentNodes.add(this@preOrder)
                     }
                 }
@@ -23,7 +29,7 @@ fun PsiElement.preOrder(): Iterable<PsiElement> {
 
                 override fun next(): PsiElement {
                     val c = currentNodes.pop()
-                    currentNodes.addAll(c.children.filterWhiteSpaces().reversed())
+                    currentNodes.addAll(c.getElementChildren(toIgnoreWhiteSpaces).reversed())
                     return c
                 }
             }
@@ -31,14 +37,14 @@ fun PsiElement.preOrder(): Iterable<PsiElement> {
     }
 }
 
-fun PsiElement.postOrder(): Iterable<PsiElement> {
+fun PsiElement.postOrder(toIgnoreWhiteSpaces: Boolean = true): Iterable<PsiElement> {
     return object : Iterable<PsiElement> {
         override fun iterator(): Iterator<PsiElement> {
             return object : Iterator<PsiElement> {
                 val currentNodes: Stack<PsiElement> = Stack()
 
                 init {
-                    if (!this@postOrder.isWhiteSpace) {
+                    if (!this@postOrder.needToIgnore(toIgnoreWhiteSpaces)) {
                         currentNodes.add(this@postOrder)
                     }
                     addAllUntilLeftLeaf()
@@ -50,7 +56,7 @@ fun PsiElement.postOrder(): Iterable<PsiElement> {
 
                 override fun next(): PsiElement {
                     val c = currentNodes.pop()
-                    if (hasNext() && currentNodes.peek().children.filterWhiteSpaces().lastOrNull() != c) {
+                    if (hasNext() && currentNodes.peek().getElementChildren(toIgnoreWhiteSpaces).lastOrNull() != c) {
                         addAllUntilLeftLeaf()
                     }
                     return c
@@ -59,7 +65,7 @@ fun PsiElement.postOrder(): Iterable<PsiElement> {
                 private fun addAllUntilLeftLeaf() {
                     var peek = currentNodes.peek()
                     while (peek.children.isNotEmpty()) {
-                        currentNodes.addAll(peek.children.filterWhiteSpaces().reversed())
+                        currentNodes.addAll(peek.getElementChildren(toIgnoreWhiteSpaces).reversed())
                         peek = currentNodes.peek()
                     }
                 }

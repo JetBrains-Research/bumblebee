@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.psi.impl.*
+import org.jetbrains.research.ml.ast.gumtree.tree.PsiTreeConverter.filterWhiteSpaces
 
 val PsiElement.isLeaf: Boolean
     get() = this.children.isEmpty()
@@ -60,3 +61,11 @@ val PsiElement.label: String
             this.intermediateElementLabel
         }
     }
+
+fun PsiElement.getElementChildren(toIgnoreWhiteSpaces: Boolean): List<PsiElement> {
+    return if (toIgnoreWhiteSpaces) {
+        this.children.filterWhiteSpaces().toList()
+    } else {
+        this.children.toList()
+    }
+}

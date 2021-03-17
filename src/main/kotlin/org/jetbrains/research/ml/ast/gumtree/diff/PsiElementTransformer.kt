@@ -7,15 +7,16 @@ import com.intellij.psi.PsiElement
 import com.intellij.util.IncorrectOperationException
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.PyElementGenerator
+import org.jetbrains.research.ml.ast.gumtree.psi.getElementChildren
 import org.jetbrains.research.ml.ast.gumtree.tree.Numbering
 import org.jetbrains.research.ml.ast.gumtree.tree.Numbering.PsiTreeUtils.Companion.id
 import org.jetbrains.research.ml.ast.gumtree.tree.Numbering.PsiTreeUtils.Companion.setId
-import org.jetbrains.research.ml.ast.gumtree.tree.PsiTreeConverter.filterWhiteSpaces
 
 data class PsiTransformation(
     private val srcPsi: PsiElement,
     private val dstPsi: PsiElement,
-    private val numbering: Numbering
+    private val numbering: Numbering,
+    val toIgnoreWhiteSpaces: Boolean = true
 ) {
     val srcPsiNodes: MutableList<PsiElement> = getPsiNodes(srcPsi)
     var dstPsiNodes: MutableList<PsiElement> = getPsiNodes(dstPsi)
@@ -71,7 +72,7 @@ class PsiElementTransformer(
         if (!element.isValid || !parent.isValid) {
             return
         }
-        val filteredChildren = parent.children.filterWhiteSpaces()
+        val filteredChildren = parent.getElementChildren(transformation.toIgnoreWhiteSpaces)
         val child = if (position < filteredChildren.size) {
             filteredChildren[position]
         } else {
