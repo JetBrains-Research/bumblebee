@@ -4,12 +4,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.research.ml.ast.gumtree.tree.PsiTreeConverter.isWhiteSpace
 import java.util.*
 
-private fun PsiElement.needToIgnore(toIgnoreWhiteSpaces: Boolean): Boolean {
-    if (this.isWhiteSpace && toIgnoreWhiteSpaces) {
-        return true
-    }
-    return false
-}
+private fun PsiElement.needToIgnore(toIgnoreWhiteSpaces: Boolean) = this.isWhiteSpace && toIgnoreWhiteSpaces
 
 fun PsiElement.preOrder(toIgnoreWhiteSpaces: Boolean = true): Iterable<PsiElement> {
     return object : Iterable<PsiElement> {
