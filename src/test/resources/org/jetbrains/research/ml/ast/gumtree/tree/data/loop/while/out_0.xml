@@ -6,8 +6,6 @@
       <tree type="236480245" label="i" typeLabel="Py:TARGET_EXPRESSION"></tree>
       <tree type="698675450" label="0" typeLabel="Py:INTEGER_LITERAL_EXPRESSION"></tree>
     </tree>
-    <tree type="-1800911568" label="
-" typeLabel="WHITE_SPACE"></tree>
     <tree type="-139656624" typeLabel="Py:WHILE_STATEMENT">
       <tree type="1855731282" typeLabel="Py:WHILE_PART">
         <tree type="-13310331" label="&gt;" typeLabel="Py:BINARY_EXPRESSION">

@@ -13,8 +13,6 @@
         </tree>
       </tree>
     </tree>
-    <tree type="-1800911568" label="
-" typeLabel="WHITE_SPACE"></tree>
     <tree type="117375758" typeLabel="Py:ASSIGNMENT_STATEMENT">
       <tree type="236480245" label="b" typeLabel="Py:TARGET_EXPRESSION"></tree>
       <tree type="508284086" typeLabel="Py:SLICE_EXPRESSION">

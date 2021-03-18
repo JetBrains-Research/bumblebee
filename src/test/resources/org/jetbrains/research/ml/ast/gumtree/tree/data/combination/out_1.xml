@@ -32,16 +32,11 @@
         </tree>
       </tree>
     </tree>
-    <tree type="-1800911568" label="
-
-" typeLabel="WHITE_SPACE"></tree>
     <tree type="-1076425447" typeLabel="Py:EXPRESSION_STATEMENT">
       <tree type="-1861175352" typeLabel="Py:CALL_EXPRESSION">
         <tree type="2049746141" label="foo" typeLabel="Py:REFERENCE_EXPRESSION"></tree>
         <tree type="-609747633" label="()" typeLabel="Py:ARGUMENT_LIST"></tree>
       </tree>
     </tree>
-    <tree type="-1800911568" label="
-" typeLabel="WHITE_SPACE"></tree>
   </tree>
 </root>
