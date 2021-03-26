@@ -26,7 +26,8 @@ object DeadCodeRemovalTransformation : Transformation() {
         val cfgVisitor = DeadCodeRemovalCFGVisitor()
         psiTree.accept(cfgVisitor)
 
-        for (unreachable in cfgVisitor.unreachableElements) {
+        val unreachableElements = PsiTreeUtil.filterAncestors(cfgVisitor.unreachableElements.toTypedArray())
+        for (unreachable in unreachableElements) {
             WriteCommandAction.runWriteCommandAction(psiTree.project) {
                 commandsStorage.safePerformCommand({ unreachable.delete() }, "Delete unreachable element")
             }
