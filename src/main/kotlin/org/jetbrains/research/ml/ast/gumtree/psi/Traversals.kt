@@ -68,7 +68,6 @@ fun PsiElement.postOrder(toIgnoreWhiteSpaces: Boolean = true): Iterable<PsiEleme
                             peek = currentNodes.peek()
                         } else break
                     }
-                    println("done")
                 }
             }
         }
