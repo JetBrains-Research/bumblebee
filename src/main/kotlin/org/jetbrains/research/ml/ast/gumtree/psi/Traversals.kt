@@ -42,7 +42,9 @@ fun PsiElement.postOrder(toIgnoreWhiteSpaces: Boolean = true): Iterable<PsiEleme
                     if (!this@postOrder.needToIgnore(toIgnoreWhiteSpaces)) {
                         currentNodes.add(this@postOrder)
                     }
-                    addAllUntilLeftLeaf()
+                    if (hasNext()) {
+                        addAllUntilLeftLeaf()
+                    }
                 }
 
                 override fun hasNext(): Boolean {
@@ -60,8 +62,11 @@ fun PsiElement.postOrder(toIgnoreWhiteSpaces: Boolean = true): Iterable<PsiEleme
                 private fun addAllUntilLeftLeaf() {
                     var peek = currentNodes.peek()
                     while (peek.children.isNotEmpty()) {
-                        currentNodes.addAll(peek.getElementChildren(toIgnoreWhiteSpaces).reversed())
-                        peek = currentNodes.peek()
+                        val childrenToAdd = peek.getElementChildren(toIgnoreWhiteSpaces).reversed()
+                        if (childrenToAdd.isNotEmpty()) {
+                            currentNodes.addAll(childrenToAdd)
+                            peek = currentNodes.peek()
+                        } else break
                     }
                 }
             }
