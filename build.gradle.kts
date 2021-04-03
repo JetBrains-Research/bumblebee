@@ -68,6 +68,11 @@ tasks {
         standardOutput = System.`out`
     }
 
+    jar {
+        from(sourceSets["main"].allSource)
+        archiveClassifier.set("sources")
+    }
+
     register("cli") {
         dependsOn("runIde")
     }
