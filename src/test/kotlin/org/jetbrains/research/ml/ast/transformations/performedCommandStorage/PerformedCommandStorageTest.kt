@@ -1,6 +1,12 @@
 package org.jetbrains.research.ml.ast.transformations.performedCommandStorage
 
+import com.intellij.codeInsight.CodeInsightUtilCore
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFile
+import junit.framework.TestCase
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.anonymization.AnonymizationTransformation
 import org.jetbrains.research.ml.ast.transformations.augmentedAssignment.AugmentedAssignmentTransformation
@@ -17,6 +23,8 @@ import org.jetbrains.research.ml.ast.util.PsiFileHandler
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import java.io.File
+import java.nio.charset.Charset
 
 @RunWith(Parameterized::class)
 class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootPath(::PerformedCommandStorageTest)) {
@@ -48,6 +56,7 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
         val commandStorage = PerformedCommandStorage(inPsiFile)
 
         lateinit var actualAfterForwardTransformations: String
+        lateinit var actualAfterForwardTransformationsFile: String
         lateinit var actualAfterBackwardTransformations: String
         val expectedAfterForwardTransformations = outPsiFile.text
         val expectedAfterBackwardTransformations = inPsiFile.text
@@ -55,11 +64,38 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
         ApplicationManager.getApplication().invokeAndWait {
             transformations.forEach { it.forwardApply(inPsiFile, commandStorage) }
             actualAfterForwardTransformations = inPsiFile.text
+            commitPsiFile(inPsiFile)
+            actualAfterForwardTransformationsFile = inPsiFile.containingFile.virtualFile.contentsToByteArray().toString(
+                Charset.defaultCharset())
+
+            TestCase.assertEquals(actualAfterForwardTransformations, actualAfterForwardTransformationsFile)
+
             val psiAfterBackwardTransformations = commandStorage.undoPerformedCommands()
             psiHandler.formatPsiFile(psiAfterBackwardTransformations)
             actualAfterBackwardTransformations = psiAfterBackwardTransformations.text
         }
         assertEquals(expectedAfterForwardTransformations, actualAfterForwardTransformations)
         assertEquals(expectedAfterBackwardTransformations, actualAfterBackwardTransformations)
+    }
+
+    private fun commitPsiFile(psiFile: PsiFile) {
+        refresh(psiFile)
+        val documentManager = PsiDocumentManager.getInstance(psiFile.project)
+        val document = psiFile.viewProvider.document ?: error("No document found for $psiFile")
+        documentManager.commitDocument(document)
+        documentManager.doPostponedOperationsAndUnblockDocument(document)
+//       not sure should i refresh it before or after committing so let's do both
+        refresh(psiFile)
+    }
+
+
+//    Yep a lot of attempts to refresh it
+    private fun refresh(psiFile: PsiFile) {
+        LocalFileSystem.getInstance().refreshFiles(listOf(psiFile.virtualFile))
+        VfsUtil.findFile(File(psiFile.virtualFile.path).toPath(), true)
+        psiFile.virtualFile.refresh(true, true)
+        VfsUtil.findFileByIoFile(File(psiFile.virtualFile.path), true)
+        VfsUtil.markDirtyAndRefresh(false, true, true, psiFile.virtualFile)
+        CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(psiFile, false)
     }
 }
