@@ -1,6 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.util
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
@@ -78,9 +79,11 @@ object TransformationsTestHelper {
             val commandStorage = PerformedCommandStorage(psi)
             forwardTransformation(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as PsiFile)
-            ApplicationManager.getApplication().runWriteAction<PsiElement> {
+            println(psi.text)
+            WriteCommandAction.runWriteCommandAction(psi.project) {
                 commandStorage.undoPerformedCommands()
             }
+
         }
 
     fun getCommandStorageTransformationWrapper(
@@ -93,9 +96,11 @@ object TransformationsTestHelper {
 
             forwardTransformation(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as PsiFile)
-            ApplicationManager.getApplication().runWriteAction<PsiElement> {
+
+            WriteCommandAction.runWriteCommandAction(psi.project) {
                 commandStorage.undoPerformedCommands()
             }
+
         }
 }
 
@@ -105,20 +110,30 @@ class TestPerformedCommandStorage(private val storageToTest: IPerformedCommandSt
 
     private data class PsiText(private val psiTree: PsiElement) {
         val psiText = psiTree.text
-        val virtualFileText = psiTree.containingFile.virtualFile.contentsToByteArray().toString(Charset.defaultCharset())
+        val virtualFileText =
+            psiTree.containingFile.virtualFile.contentsToByteArray().toString(Charset.defaultCharset())
     }
 
     override fun performCommand(command: () -> Unit, description: String) {
-        val textBeforeCommand = PsiText(storageToTest.psiTree)
-        storageToTest.performCommand(command, description)
+       TODO("not implemented")
+    }
 
-//      perform undo and assert equals
+    override fun undoPerformedCommands(maxN: Int): PsiElement {
+        return storageToTest.undoPerformedCommands(maxN)
+    }
+
+    override fun performUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
+        val textBeforeCommand = PsiText(storageToTest.psiTree)
+        storageToTest.performUndoableCommand(command, undoCommand, description)
+
+
+        //      perform undo and assert equals
         undoPerformedCommands(1)
         val textAfterUndoCommand = PsiText(storageToTest.psiTree)
 
 //        PsiTestUtil.checkFileStructure(storageToTest.psiTree as PsiFile)
 
-//      not sure which text I should assert.....
+        // not sure which text I should assert.....
 //        BasePlatformTestCase.assertEquals(
 //            "Psi texts after undoing $description don't match",
 //            textBeforeCommand.psiText,
@@ -129,17 +144,8 @@ class TestPerformedCommandStorage(private val storageToTest: IPerformedCommandSt
 //            textBeforeCommand.virtualFileText,
 //            textAfterUndoCommand.virtualFileText
 //        )
-
-//      perform command again
-        storageToTest.performCommand(command, description)
-    }
-
-    override fun undoPerformedCommands(maxN: Int): PsiElement {
-        return storageToTest.undoPerformedCommands(maxN)
-    }
-
-    override fun performUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
         storageToTest.performUndoableCommand(command, undoCommand, description)
+
     }
 
 }

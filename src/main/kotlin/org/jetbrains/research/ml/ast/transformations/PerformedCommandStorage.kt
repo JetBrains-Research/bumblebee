@@ -43,27 +43,32 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
 
     //    Should be run in WriteAction
     override fun performCommand(command: () -> Unit, description: String) {
-        commandDescriptions.addLast(description)
-        commandProcessor.executeCommand(
-            project,
-            command,
-            description,
-            null
-        )
+        TODO("not implemented")
+//        println("do command")
+//
+//        commandDescriptions.addLast(description)
+//        commandProcessor.executeCommand(
+//            project,
+//            command,
+//            description,
+//            null
+//        )
 
 //        commands.addLast(BasicUndoableAction(psiTree.containingFile.virtualFile))
     }
 
+    //  Should be run in WriteCommandAction#runWriteCommandAction
     override fun performUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
+        println("do undoable command")
+
         commandDescriptions.addLast(description)
+
         commandProcessor.executeCommand(
             project,
             command,
             description,
             null
         )
-
-
 
         commands.addLast(object : BasicUndoableAction(psiTree.containingFile.virtualFile) {
             override fun undo() = undoCommand()
@@ -76,12 +81,14 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
     }
 
     private fun undoLastCommand() {
+        println("undo last command  ${commandDescriptions.size} ${commands.size}")
         if (commandDescriptions.isNotEmpty()) {
             val description = commandDescriptions.removeLast()
             if (undoPerformer.manager.isUndoAvailable(undoPerformer.fileEditor)) {
 //              We need to have try-catch block when we undo commands on modified tree
 //              because some of them cannot be undone
                 try {
+                    val n = commands.size
 //                    undoPerformer.manager.undo(undoPerformer.fileEditor)
                     commandProcessor.executeCommand(
                         project,
@@ -118,7 +125,11 @@ fun IPerformedCommandStorage?.safePerformCommand(command: () -> Unit, descriptio
     this?.performCommand(command, description) ?: command()
 }
 
-fun IPerformedCommandStorage?.safePerformUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
+fun IPerformedCommandStorage?.safePerformUndoableCommand(
+    command: () -> Unit,
+    undoCommand: () -> Unit,
+    description: String
+) {
     this?.performUndoableCommand(command, undoCommand, description) ?: command()
 }
 
