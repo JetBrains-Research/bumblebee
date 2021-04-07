@@ -29,40 +29,34 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
 
     private val commandProcessor = CommandProcessor.getInstance()
     private var commandDescriptions = ArrayDeque<String>()
-    private val undoPerformer = UndoPerformer(psiTree)
     private var commands = ArrayDeque<UndoableAction>()
 
+    private val file: VirtualFile = psiTree.containingFile.virtualFile
+    private val document: Document = FileDocumentManager.getInstance().getDocument(file)!!
 
-    inner class UndoPerformer(private val psiTree: PsiElement) {
-        val file: VirtualFile = psiTree.containingFile.virtualFile
-        val document: Document = FileDocumentManager.getInstance().getDocument(file)!!
+    inner class UndoPerformer {
         val editor: Editor = EditorFactory.getInstance().createEditor(document, project)!!
         val fileEditor = TextEditorProvider.getInstance().getTextEditor(editor)
         val manager: UndoManager = UndoManager.getInstance(project)
+
+        fun releaseEditor() {
+            EditorFactory.getInstance().releaseEditor(editor)
+        }
     }
 
     //    Should be run in WriteAction
     override fun performCommand(command: () -> Unit, description: String) {
-        TODO("not implemented")
-//        println("do command")
-//
-//        commandDescriptions.addLast(description)
-//        commandProcessor.executeCommand(
-//            project,
-//            command,
-//            description,
-//            null
-//        )
-
-//        commands.addLast(BasicUndoableAction(psiTree.containingFile.virtualFile))
+        commandDescriptions.addLast(description)
+        commandProcessor.executeCommand(
+            project,
+            command,
+            description,
+            null
+        )
     }
 
-    //  Should be run in WriteCommandAction#runWriteCommandAction
     override fun performUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
-        println("do undoable command")
-
         commandDescriptions.addLast(description)
-
         commandProcessor.executeCommand(
             project,
             command,
@@ -75,20 +69,16 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
             override fun redo() = command()
         })
 
-        FileDocumentManager.getInstance().saveDocument(undoPerformer.document)
-        commitDocument(undoPerformer.editor)
-
+        FileDocumentManager.getInstance().saveDocument(document)
     }
 
-    private fun undoLastCommand() {
-        println("undo last command  ${commandDescriptions.size} ${commands.size}")
+     private fun undoLastCommand(undoPerformer: UndoPerformer) {
         if (commandDescriptions.isNotEmpty()) {
             val description = commandDescriptions.removeLast()
             if (undoPerformer.manager.isUndoAvailable(undoPerformer.fileEditor)) {
 //              We need to have try-catch block when we undo commands on modified tree
 //              because some of them cannot be undone
                 try {
-                    val n = commands.size
 //                    undoPerformer.manager.undo(undoPerformer.fileEditor)
                     commandProcessor.executeCommand(
                         project,
@@ -105,19 +95,20 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
         }
 
 //      Should I commit the document?
-        FileDocumentManager.getInstance().saveDocument(undoPerformer.document)
-
+        FileDocumentManager.getInstance().saveDocument(document)
+        commitDocument(undoPerformer.editor)
 
     }
 
     override fun undoPerformedCommands(maxN: Int): PsiElement {
+        val undoPerformer = UndoPerformer()
         var n = 0
         while (n < maxN && commandDescriptions.isNotEmpty()) {
-            undoLastCommand()
+            undoLastCommand(undoPerformer)
             n++
         }
-        EditorFactory.getInstance().releaseEditor(undoPerformer.editor)
-        return PsiManager.getInstance(project).findFile(undoPerformer.file)!!
+        undoPerformer.releaseEditor()
+        return PsiManager.getInstance(project).findFile(file)!!
     }
 }
 
@@ -125,11 +116,7 @@ fun IPerformedCommandStorage?.safePerformCommand(command: () -> Unit, descriptio
     this?.performCommand(command, description) ?: command()
 }
 
-fun IPerformedCommandStorage?.safePerformUndoableCommand(
-    command: () -> Unit,
-    undoCommand: () -> Unit,
-    description: String
-) {
+fun IPerformedCommandStorage?.safePerformUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
     this?.performUndoableCommand(command, undoCommand, description) ?: command()
 }
 

@@ -62,7 +62,7 @@ object PsiTestUtil {
     }
 }
 
-class PsiFileHandler(private val fixture: CodeInsightTestFixture, private val project: Project) {
+class PsiFileHandler(private val fixture: CodeInsightTestFixture, val project: Project) {
     private val codeStyleManager = CodeStyleManager.getInstance(project)
 
     fun getPsiFile(file: File, toReformatFile: Boolean = true): PsiFile {

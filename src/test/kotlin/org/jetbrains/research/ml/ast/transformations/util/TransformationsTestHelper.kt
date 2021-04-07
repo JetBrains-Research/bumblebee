@@ -79,11 +79,9 @@ object TransformationsTestHelper {
             val commandStorage = PerformedCommandStorage(psi)
             forwardTransformation(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as PsiFile)
-            println(psi.text)
             WriteCommandAction.runWriteCommandAction(psi.project) {
                 commandStorage.undoPerformedCommands()
             }
-
         }
 
     fun getCommandStorageTransformationWrapper(
@@ -93,59 +91,54 @@ object TransformationsTestHelper {
         { psi: PsiElement ->
 //          This commandStorage will perform all commands as commandStorageToTest does but with additional check between commands
             val commandStorage = TestPerformedCommandStorage(commandStorageToTest(psi))
-
             forwardTransformation(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as PsiFile)
-
             WriteCommandAction.runWriteCommandAction(psi.project) {
                 commandStorage.undoPerformedCommands()
             }
-
         }
 }
 
 
 class TestPerformedCommandStorage(private val storageToTest: IPerformedCommandStorage) : IPerformedCommandStorage {
     override val psiTree: PsiElement = storageToTest.psiTree
+    private val codeStyleManager = CodeStyleManager.getInstance(psiTree.project)
+
 
     private data class PsiText(private val psiTree: PsiElement) {
-        val psiText = psiTree.text
-        val virtualFileText =
-            psiTree.containingFile.virtualFile.contentsToByteArray().toString(Charset.defaultCharset())
+        val psiText = psiTree.text.trim()
+        val virtualFileText = psiTree.containingFile.virtualFile.contentsToByteArray().toString(Charset.defaultCharset()).trim()
     }
 
     override fun performCommand(command: () -> Unit, description: String) {
-       TODO("not implemented")
+        TODO("not implemented")
     }
 
     override fun undoPerformedCommands(maxN: Int): PsiElement {
         return storageToTest.undoPerformedCommands(maxN)
     }
 
+//   Should be run in WriteAction
     override fun performUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
-        val textBeforeCommand = PsiText(storageToTest.psiTree)
+        val textBeforeCommand = PsiText(psiTree)
         storageToTest.performUndoableCommand(command, undoCommand, description)
 
-
-        //      perform undo and assert equals
+//      perform undo and assert equals
         undoPerformedCommands(1)
-        val textAfterUndoCommand = PsiText(storageToTest.psiTree)
+        val textAfterUndoCommand = PsiText(psiTree)
 
-//        PsiTestUtil.checkFileStructure(storageToTest.psiTree as PsiFile)
+        codeStyleManager.reformat(psiTree)
+        PsiTestUtil.checkFileStructure(psiTree as PsiFile)
 
-        // not sure which text I should assert.....
-//        BasePlatformTestCase.assertEquals(
-//            "Psi texts after undoing $description don't match",
-//            textBeforeCommand.psiText,
-//            textAfterUndoCommand.psiText
-//        )
-//        BasePlatformTestCase.assertEquals(
-//            "Virtual file texts after undoing $description don't match",
-//            textBeforeCommand.virtualFileText,
-//            textAfterUndoCommand.virtualFileText
-//        )
+//      not sure should I assert virtual file texts?
+        BasePlatformTestCase.assertEquals(
+            "Psi texts after undoing $description don't match",
+            textBeforeCommand.psiText,
+            textAfterUndoCommand.psiText
+        )
+
+//      perform command again
         storageToTest.performUndoableCommand(command, undoCommand, description)
-
     }
 
 }
