@@ -3,6 +3,7 @@ package org.jetbrains.research.ml.ast.transformations.anonymization
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.rename.RenamePsiElementProcessor
 import com.intellij.usageView.UsageInfo
+import com.jetbrains.python.refactoring.rename.RenamePyElementProcessor
 
 object RenameUtil {
     fun renameElementDelayed(definition: PsiElement, newName: String): () -> Unit {
@@ -19,7 +20,6 @@ object RenameUtil {
         val references = processor.findReferences(definition, useScope, false)
         val usages = references.map { UsageInfo(it) }.toTypedArray()
         return {
-            println("renamed, new name $newName")
             processor.renameElement(definition, newName, usages, null)
         }
     }

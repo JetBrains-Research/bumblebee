@@ -14,8 +14,7 @@ class AnonymizationTransformationTest : TransformationsTest(getResourcesRootPath
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
-        fun getTestData() =
-            getInAndOutArray(::AnonymizationTransformationTest, resourcesRoot)
+        fun getTestData() = getInAndOutArray(::AnonymizationTransformationTest, resourcesRoot)
     }
 
     @Test

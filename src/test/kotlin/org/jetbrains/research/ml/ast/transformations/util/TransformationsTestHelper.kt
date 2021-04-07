@@ -1,6 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.util
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
@@ -78,7 +79,7 @@ object TransformationsTestHelper {
             val commandStorage = PerformedCommandStorage(psi)
             forwardTransformation(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as PsiFile)
-            ApplicationManager.getApplication().runWriteAction<PsiElement> {
+            WriteCommandAction.runWriteCommandAction(psi.project) {
                 commandStorage.undoPerformedCommands()
             }
         }
@@ -90,10 +91,9 @@ object TransformationsTestHelper {
         { psi: PsiElement ->
 //          This commandStorage will perform all commands as commandStorageToTest does but with additional check between commands
             val commandStorage = TestPerformedCommandStorage(commandStorageToTest(psi))
-
             forwardTransformation(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as PsiFile)
-            ApplicationManager.getApplication().runWriteAction<PsiElement> {
+            WriteCommandAction.runWriteCommandAction(psi.project) {
                 commandStorage.undoPerformedCommands()
             }
         }
@@ -102,43 +102,42 @@ object TransformationsTestHelper {
 
 class TestPerformedCommandStorage(private val storageToTest: IPerformedCommandStorage) : IPerformedCommandStorage {
     override val psiTree: PsiElement = storageToTest.psiTree
+    private val codeStyleManager = CodeStyleManager.getInstance(psiTree.project)
+
 
     private data class PsiText(private val psiTree: PsiElement) {
-        val psiText = psiTree.text
-        val virtualFileText = psiTree.containingFile.virtualFile.contentsToByteArray().toString(Charset.defaultCharset())
+        val psiText = psiTree.text.trim()
+        val virtualFileText = psiTree.containingFile.virtualFile.contentsToByteArray().toString(Charset.defaultCharset()).trim()
     }
 
     override fun performCommand(command: () -> Unit, description: String) {
-        val textBeforeCommand = PsiText(storageToTest.psiTree)
-        storageToTest.performCommand(command, description)
-
-//      perform undo and assert equals
-        undoPerformedCommands(1)
-        val textAfterUndoCommand = PsiText(storageToTest.psiTree)
-
-//        PsiTestUtil.checkFileStructure(storageToTest.psiTree as PsiFile)
-
-//      not sure which text I should assert.....
-//        BasePlatformTestCase.assertEquals(
-//            "Psi texts after undoing $description don't match",
-//            textBeforeCommand.psiText,
-//            textAfterUndoCommand.psiText
-//        )
-//        BasePlatformTestCase.assertEquals(
-//            "Virtual file texts after undoing $description don't match",
-//            textBeforeCommand.virtualFileText,
-//            textAfterUndoCommand.virtualFileText
-//        )
-
-//      perform command again
-        storageToTest.performCommand(command, description)
+        TODO("not implemented")
     }
 
     override fun undoPerformedCommands(maxN: Int): PsiElement {
         return storageToTest.undoPerformedCommands(maxN)
     }
 
+//   Should be run in WriteAction
     override fun performUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
+        val textBeforeCommand = PsiText(psiTree)
+        storageToTest.performUndoableCommand(command, undoCommand, description)
+
+//      perform undo and assert equals
+        undoPerformedCommands(1)
+        val textAfterUndoCommand = PsiText(psiTree)
+
+        codeStyleManager.reformat(psiTree)
+        PsiTestUtil.checkFileStructure(psiTree as PsiFile)
+
+//      not sure should I assert virtual file texts?
+        BasePlatformTestCase.assertEquals(
+            "Psi texts after undoing $description don't match",
+            textBeforeCommand.psiText,
+            textAfterUndoCommand.psiText
+        )
+
+//      perform command again
         storageToTest.performUndoableCommand(command, undoCommand, description)
     }
 
