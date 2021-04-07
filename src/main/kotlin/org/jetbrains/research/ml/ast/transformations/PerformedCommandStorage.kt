@@ -20,6 +20,7 @@ interface IPerformedCommandStorage {
     val psiTree: PsiElement
     fun performCommand(command: () -> Unit, description: String)
     fun undoPerformedCommands(maxN: Int = Int.MAX_VALUE): PsiElement
+    fun performUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String)
 }
 
 class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedCommandStorage {
@@ -29,7 +30,6 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
     private var commandDescriptions = ArrayDeque<String>()
     private val undoPerformer = UndoPerformer(psiTree)
     private var commands = ArrayDeque<UndoableAction>()
-
 
 
     private data class UndoPerformer(private val psiTree: PsiElement) {
@@ -54,11 +54,11 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
 //        commands.addLast(BasicUndoableAction(psiTree.containingFile.virtualFile))
     }
 
-    fun performUndoableCommand(undo: () -> Unit, redo: () -> Unit, description: String) {
+    override fun performUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
         commandDescriptions.addLast(description)
         commandProcessor.executeCommand(
             project,
-            redo,
+            command,
             description,
             null
         )
@@ -81,7 +81,6 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
 //              We need to have try-catch block when we undo commands on modified tree
 //              because some of them cannot be undone
                 try {
-
 //                    undoPerformer.manager.undo(undoPerformer.fileEditor)
                     commandProcessor.executeCommand(
                         project,
@@ -96,7 +95,7 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
                 logger.info("Command $description is unavailable to undo")
             }
         }
-//      Should I commit the document?
+//      Should I commit the document? Or maybe save?
         commitDocument(undoPerformer.editor)
     }
 

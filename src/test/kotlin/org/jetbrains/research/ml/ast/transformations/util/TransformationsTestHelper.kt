@@ -134,4 +134,8 @@ class TestPerformedCommandStorage(private val storageToTest: IPerformedCommandSt
         return storageToTest.undoPerformedCommands(maxN)
     }
 
+    override fun performUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
+        storageToTest.performUndoableCommand(command, undoCommand, description)
+    }
+
 }
