@@ -4,11 +4,12 @@ import com.jetbrains.python.psi.PyBinaryExpression
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.PyRecursiveElementVisitor
+import org.jetbrains.research.ml.ast.transformations.IPerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 import org.jetbrains.research.ml.ast.util.fold1
 
-internal class CorrectToLeftAssociativity(private val commandsStorage: PerformedCommandStorage?) :
+internal class CorrectToLeftAssociativity(private val commandsStorage: IPerformedCommandStorage?) :
     PyRecursiveElementVisitor() {
     override fun visitPyBinaryExpression(node: PyBinaryExpression) {
         if (node.isCorrectionNeeded()) {

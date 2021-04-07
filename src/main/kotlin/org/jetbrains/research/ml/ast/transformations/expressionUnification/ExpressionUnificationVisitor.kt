@@ -6,12 +6,13 @@ import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyElementType
 import com.jetbrains.python.psi.PyRecursiveElementVisitor
 import com.jetbrains.python.psi.types.TypeEvalContext
+import org.jetbrains.research.ml.ast.transformations.IPerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
 internal class ExpressionUnificationVisitor(
     private val typeEvalContext: TypeEvalContext,
-    private val commandsStorage: PerformedCommandStorage?
+    private val commandsStorage: IPerformedCommandStorage?
 ) : PyRecursiveElementVisitor() {
     override fun visitPyBinaryExpression(node: PyBinaryExpression) {
         handleBinaryExpression(node)

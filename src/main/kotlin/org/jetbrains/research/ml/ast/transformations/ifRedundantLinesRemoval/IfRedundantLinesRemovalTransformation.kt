@@ -4,13 +4,14 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyFile
+import org.jetbrains.research.ml.ast.transformations.IPerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.Transformation
 
 object IfRedundantLinesRemovalTransformation : Transformation() {
     override val key: String = "IfRedundantLinesRemoval"
 
-    override fun forwardApply(psiTree: PsiElement, commandsStorage: PerformedCommandStorage?) {
+    override fun forwardApply(psiTree: PsiElement, commandsStorage: IPerformedCommandStorage?) {
         val project = psiTree.project
         val remover = IfRedundantLinesRemover(
             commandsStorage,

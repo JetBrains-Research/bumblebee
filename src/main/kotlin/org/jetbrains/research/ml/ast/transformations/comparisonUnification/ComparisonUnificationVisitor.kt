@@ -5,10 +5,11 @@ import com.jetbrains.python.psi.PyBinaryExpression
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyElementType
 import com.jetbrains.python.psi.PyElementVisitor
+import org.jetbrains.research.ml.ast.transformations.IPerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
-internal class ComparisonUnificationVisitor(private val commandsStorage: PerformedCommandStorage?) :
+internal class ComparisonUnificationVisitor(private val commandsStorage: IPerformedCommandStorage?) :
     PyElementVisitor() {
     override fun visitPyBinaryExpression(node: PyBinaryExpression) {
         handleBinaryExpression(node)

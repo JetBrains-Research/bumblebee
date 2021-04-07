@@ -9,11 +9,12 @@ import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.PyIfStatement
 import com.jetbrains.python.psi.PyWhileStatement
 import com.jetbrains.python.psi.impl.PyEvaluator
+import org.jetbrains.research.ml.ast.transformations.IPerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PyUtils
 import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
-internal class DeadCodeRemovalHeuristicVisitor(private val commandsStorage: PerformedCommandStorage?) :
+internal class DeadCodeRemovalHeuristicVisitor(private val commandsStorage: IPerformedCommandStorage?) :
     PyElementVisitor() {
     override fun visitPyIfStatement(node: PyIfStatement) {
         handleIfFalseStatement(node)

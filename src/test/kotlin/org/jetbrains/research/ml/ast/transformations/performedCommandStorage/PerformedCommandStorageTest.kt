@@ -10,6 +10,7 @@ import org.jetbrains.research.ml.ast.transformations.commentsRemoval.CommentsRem
 import org.jetbrains.research.ml.ast.transformations.comparisonUnification.ComparisonUnificationTransformation
 import org.jetbrains.research.ml.ast.transformations.constantfolding.ConstantFoldingTransformation
 import org.jetbrains.research.ml.ast.transformations.deadcode.DeadCodeRemovalTransformation
+import org.jetbrains.research.ml.ast.transformations.expressionUnification.ExpressionUnificationTransformation
 import org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval.IfRedundantLinesRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleOperatorComparison.MultipleOperatorComparisonTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment.MultipleTargetAssignmentTransformation
@@ -44,6 +45,7 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
             ComparisonUnificationTransformation,
             OuterNotEliminationTransformation
         )
+
         val psiHandler = PsiFileHandler(myFixture, project)
 
         val inPsiFile = psiHandler.getPsiFile(inFile!!)

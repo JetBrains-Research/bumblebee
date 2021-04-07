@@ -8,7 +8,7 @@ import com.jetbrains.python.psi.PyFile
 import org.jetbrains.research.ml.ast.transformations.*
 
 class ConstantFolder(
-    private val commandsStorage: PerformedCommandStorage?,
+    private val commandsStorage: IPerformedCommandStorage?,
     private val generator: PyElementGenerator,
     file: PyFile
 ) {

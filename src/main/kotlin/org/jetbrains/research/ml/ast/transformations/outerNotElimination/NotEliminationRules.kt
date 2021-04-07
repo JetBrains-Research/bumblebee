@@ -2,6 +2,7 @@ package org.jetbrains.research.ml.ast.transformations.outerNotElimination
 
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.psi.*
+import org.jetbrains.research.ml.ast.transformations.IPerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
@@ -48,11 +49,11 @@ internal sealed class NotEliminationRule {
 
     // Applies the expression. Returns the new expression.
     // In case of an error. `expression` is returned.
-    abstract fun apply(expression: PyPrefixExpression, commandsStorage: PerformedCommandStorage?): PyExpression
+    abstract fun apply(expression: PyPrefixExpression, commandsStorage: IPerformedCommandStorage?): PyExpression
 
     fun applyIfNeeded(
         expression: PyPrefixExpression,
-        commandsStorage: PerformedCommandStorage?
+        commandsStorage: IPerformedCommandStorage?
     ): PyExpression {
         return if (canApply(expression)) {
             apply(expression, commandsStorage)
@@ -77,7 +78,7 @@ internal abstract class DeMorganNotEliminationRule : NotEliminationRule() {
 
     protected abstract val flippedBinaryOperator: String
 
-    override fun apply(expression: PyPrefixExpression, commandsStorage: PerformedCommandStorage?): PyExpression {
+    override fun apply(expression: PyPrefixExpression, commandsStorage: IPerformedCommandStorage?): PyExpression {
         val inner = expression.innerOperand as? PyBinaryExpression ?: return expression
         val generator = PyElementGenerator.getInstance(expression.project)
         val rightExpression = inner.rightExpression ?: return expression
@@ -110,7 +111,7 @@ internal object CompositeNotEliminationRule : NotEliminationRule() {
     private val RULES = listOf(NegationConjunctionRule, NegationDisjunctionRule)
     override fun canApply(expression: PyExpression): Boolean = RULES.any { it.canApply(expression) }
 
-    override fun apply(expression: PyPrefixExpression, commandsStorage: PerformedCommandStorage?): PyExpression {
+    override fun apply(expression: PyPrefixExpression, commandsStorage: IPerformedCommandStorage?): PyExpression {
         val rule = RULES.first { it.canApply(expression) }
         return rule.apply(expression, commandsStorage)
     }

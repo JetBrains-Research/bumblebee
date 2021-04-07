@@ -2,11 +2,12 @@ package org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment
 
 import com.jetbrains.python.psi.PyAssignmentStatement
 import com.jetbrains.python.psi.PyElementVisitor
+import org.jetbrains.research.ml.ast.transformations.IPerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PyUtils
 import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
-class MultipleTargetAssignmentVisitor(private val commandsStorage: PerformedCommandStorage?) : PyElementVisitor() {
+class MultipleTargetAssignmentVisitor(private val commandsStorage: IPerformedCommandStorage?) : PyElementVisitor() {
     override fun visitPyAssignmentStatement(node: PyAssignmentStatement) {
         processAssignment(node)
         super.visitPyAssignmentStatement(node)

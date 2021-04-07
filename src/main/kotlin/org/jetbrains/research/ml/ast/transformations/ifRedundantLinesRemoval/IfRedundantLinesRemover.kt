@@ -8,7 +8,7 @@ import org.jetbrains.research.ml.ast.transformations.constantfolding.PyEvaluator
 import kotlin.test.fail
 
 class IfRedundantLinesRemover(
-    private val commandStorage: PerformedCommandStorage?,
+    private val commandStorage: IPerformedCommandStorage?,
     private val generator: PyElementGenerator,
     file: PyFile
 ) {
@@ -24,7 +24,7 @@ class IfRedundantLinesRemover(
         fun move(
             anchor: PsiElement,
             doBefore: Boolean,
-            commandStorage: PerformedCommandStorage?
+            commandStorage: IPerformedCommandStorage?
         ): StatementRange {
             val indexOfLast = first.nextStatements().indexOf(last)
             val anchorParent = anchor.parent
