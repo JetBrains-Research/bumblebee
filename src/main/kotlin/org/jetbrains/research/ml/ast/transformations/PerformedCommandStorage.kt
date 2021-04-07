@@ -2,7 +2,9 @@ package org.jetbrains.research.ml.ast.transformations
 
 import com.intellij.codeInsight.editorActions.smartEnter.SmartEnterProcessor.commitDocument
 import com.intellij.openapi.command.CommandProcessor
+import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.command.undo.UndoableAction
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
@@ -16,6 +18,7 @@ class PerformedCommandStorage(private val psiTree: PsiElement) {
     private val logger = Logger.getLogger(javaClass.name)
     private val commandProcessor = CommandProcessor.getInstance()
     private var commandDescriptions = ArrayDeque<String>()
+    private var commands = ArrayDeque<UndoableAction>()
 
     //    Should be run in WriteAction
     fun performCommand(command: () -> Unit, description: String) {
@@ -26,6 +29,28 @@ class PerformedCommandStorage(private val psiTree: PsiElement) {
             description,
             null
         )
+
+//        commands.addLast(BasicUndoableAction(psiTree.containingFile.virtualFile))
+    }
+
+    fun performUndoableCommand(undo: () -> Unit, redo: () -> Unit, description: String) {
+        commandDescriptions.addLast(description)
+        commandProcessor.executeCommand(
+            project,
+            redo,
+            description,
+            null
+        )
+
+        commands.addLast(object : BasicUndoableAction(psiTree.containingFile.virtualFile) {
+            override fun undo() {
+                undo()
+            }
+
+            override fun redo() {
+                redo()
+            }
+        })
     }
 
     fun undoPerformedCommands(): PsiElement {
@@ -41,7 +66,14 @@ class PerformedCommandStorage(private val psiTree: PsiElement) {
 //              We need to have try-catch block when we undo commands on modified tree
 //              because some of them cannot be undone
                 try {
-                    manager.undo(fileEditor)
+//                    manager.undoableActionPerformed(commands.removeLast())
+//                    manager.undo(fileEditor)
+                    commandProcessor.executeCommand(
+                        project,
+                        commands.removeLast()::undo,
+                        description,
+                        null
+                    )
                 } catch (e: Exception) {
                     logger.info("Command $description failed to be undone")
                 }

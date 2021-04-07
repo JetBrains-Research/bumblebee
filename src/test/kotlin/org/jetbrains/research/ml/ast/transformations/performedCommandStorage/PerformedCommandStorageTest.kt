@@ -2,6 +2,7 @@ package org.jetbrains.research.ml.ast.transformations.performedCommandStorage
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.psi.PsiElement
 import junit.framework.TestCase
 import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.anonymization.AnonymizationTransformation
@@ -35,14 +36,14 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
         val transformations = arrayListOf(
             CommentsRemovalTransformation,
             AnonymizationTransformation,
-            AugmentedAssignmentTransformation,
-            DeadCodeRemovalTransformation,
-            ConstantFoldingTransformation,
-            MultipleOperatorComparisonTransformation,
-            MultipleTargetAssignmentTransformation,
-            IfRedundantLinesRemovalTransformation,
-            ComparisonUnificationTransformation,
-            OuterNotEliminationTransformation
+//            AugmentedAssignmentTransformation,
+//            DeadCodeRemovalTransformation,
+//            ConstantFoldingTransformation,
+//            MultipleOperatorComparisonTransformation,
+//            MultipleTargetAssignmentTransformation,
+//            IfRedundantLinesRemovalTransformation,
+//            ComparisonUnificationTransformation,
+//            OuterNotEliminationTransformation
         )
         val psiHandler = PsiFileHandler(myFixture, project)
 
@@ -68,7 +69,10 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
             )
             TestCase.assertEquals(actualAfterForwardTransformations, actualAfterForwardTransformationsFile)
 
-            val psiAfterBackwardTransformations = commandStorage.undoPerformedCommands()
+            val psiAfterBackwardTransformations = ApplicationManager.getApplication().runWriteAction<PsiElement> {
+                commandStorage.undoPerformedCommands()
+            }
+//            val psiAfterBackwardTransformations = commandStorage.undoPerformedCommands()
             psiHandler.formatPsiFile(psiAfterBackwardTransformations)
             actualAfterBackwardTransformations = psiAfterBackwardTransformations.text
         }

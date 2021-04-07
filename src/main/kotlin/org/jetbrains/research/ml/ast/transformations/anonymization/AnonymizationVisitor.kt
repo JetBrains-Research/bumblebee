@@ -17,9 +17,16 @@ class AnonymizationVisitor(file: PyFile) : PyRecursiveElementVisitor() {
     }
 
     fun performAllRenames(commandsStorage: PerformedCommandStorage?) {
-        val renames = anonymizer.getAllRenames().map { RenameUtil.renameElementDelayed(it.first, it.second) }
+        val allRenames = anonymizer.getAllRenames()
+
+        val redoRenames = allRenames.map { RenameUtil.renameElementDelayed(it.first, it.second) }
+        val undoRenames = allRenames.map { RenameUtil.renameElementDelayed(it.first, "test_name") }
+
         WriteCommandAction.runWriteCommandAction(project) {
-            renames.forEach { commandsStorage.safePerformCommand(it, "Anonymize element") }
+//            renames.forEach { commandsStorage.safePerformCommand(it, "Anonymize element") }
+            redoRenames.zip(undoRenames).forEach { (redo, undo) ->
+                commandsStorage?.performUndoableCommand(redo, undo, "Anonymize element")
+            }
         }
     }
 }
