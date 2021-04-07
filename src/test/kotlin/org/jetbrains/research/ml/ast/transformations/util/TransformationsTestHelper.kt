@@ -78,7 +78,9 @@ object TransformationsTestHelper {
             val commandStorage = PerformedCommandStorage(psi)
             forwardTransformation(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as PsiFile)
-            commandStorage.undoPerformedCommands()
+            ApplicationManager.getApplication().runWriteAction<PsiElement> {
+                commandStorage.undoPerformedCommands()
+            }
         }
 
     fun getCommandStorageTransformationWrapper(
@@ -91,7 +93,9 @@ object TransformationsTestHelper {
 
             forwardTransformation(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as PsiFile)
-            commandStorage.undoPerformedCommands()
+            ApplicationManager.getApplication().runWriteAction<PsiElement> {
+                commandStorage.undoPerformedCommands()
+            }
         }
 }
 

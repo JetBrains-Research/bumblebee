@@ -18,7 +18,9 @@ object RenameUtil {
         val useScope = definition.useScope
         val references = processor.findReferences(definition, useScope, false)
         val usages = references.map { UsageInfo(it) }.toTypedArray()
-
-        return { processor.renameElement(definition, newName, usages, null) }
+        return {
+            println("renamed, new name $newName")
+            processor.renameElement(definition, newName, usages, null)
+        }
     }
 }

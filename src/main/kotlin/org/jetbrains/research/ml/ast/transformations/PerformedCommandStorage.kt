@@ -26,17 +26,17 @@ interface IPerformedCommandStorage {
 class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedCommandStorage {
     private val project: Project = psiTree.project
     private val logger = Logger.getLogger(javaClass.name)
+
     private val commandProcessor = CommandProcessor.getInstance()
     private var commandDescriptions = ArrayDeque<String>()
     private val undoPerformer = UndoPerformer(psiTree)
     private var commands = ArrayDeque<UndoableAction>()
 
 
-    private data class UndoPerformer(private val psiTree: PsiElement) {
-        private val project: Project = psiTree.project
+    inner class UndoPerformer(private val psiTree: PsiElement) {
         val file: VirtualFile = psiTree.containingFile.virtualFile
-        private val doc: Document = FileDocumentManager.getInstance().getDocument(file)!!
-        val editor: Editor = EditorFactory.getInstance().createEditor(doc, project)!!
+        val document: Document = FileDocumentManager.getInstance().getDocument(file)!!
+        val editor: Editor = EditorFactory.getInstance().createEditor(document, project)!!
         val fileEditor = TextEditorProvider.getInstance().getTextEditor(editor)
         val manager: UndoManager = UndoManager.getInstance(project)
     }
@@ -63,15 +63,16 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
             null
         )
 
-        commands.addLast(object : BasicUndoableAction(psiTree.containingFile.virtualFile) {
-            override fun undo() {
-                undo()
-            }
 
-            override fun redo() {
-                redo()
-            }
+
+        commands.addLast(object : BasicUndoableAction(psiTree.containingFile.virtualFile) {
+            override fun undo() = undoCommand()
+            override fun redo() = command()
         })
+
+        FileDocumentManager.getInstance().saveDocument(undoPerformer.document)
+        commitDocument(undoPerformer.editor)
+
     }
 
     private fun undoLastCommand() {
@@ -95,8 +96,11 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
                 logger.info("Command $description is unavailable to undo")
             }
         }
-//      Should I commit the document? Or maybe save?
-        commitDocument(undoPerformer.editor)
+
+//      Should I commit the document?
+        FileDocumentManager.getInstance().saveDocument(undoPerformer.document)
+
+
     }
 
     override fun undoPerformedCommands(maxN: Int): PsiElement {
@@ -112,6 +116,10 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
 
 fun IPerformedCommandStorage?.safePerformCommand(command: () -> Unit, description: String) {
     this?.performCommand(command, description) ?: command()
+}
+
+fun IPerformedCommandStorage?.safePerformUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
+    this?.performUndoableCommand(command, undoCommand, description) ?: command()
 }
 
 fun <R> IPerformedCommandStorage?.safePerformCommandWithResult(command: () -> R, description: String): R {

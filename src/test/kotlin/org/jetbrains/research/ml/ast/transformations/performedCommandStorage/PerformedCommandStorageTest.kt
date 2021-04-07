@@ -35,7 +35,7 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
     @Test
     fun `test applying all transformations consecutively`() {
         val transformations = arrayListOf(
-            CommentsRemovalTransformation,
+//            CommentsRemovalTransformation,
             AnonymizationTransformation,
 //            AugmentedAssignmentTransformation,
 //            DeadCodeRemovalTransformation,
@@ -63,8 +63,6 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
             transformations.forEach { it.forwardApply(inPsiFile, commandStorage) }
             actualAfterForwardTransformations = inPsiFile.text
 
-            val document = inPsiFile.viewProvider.document ?: error("No document found for $inPsiFile")
-            FileDocumentManager.getInstance().saveDocument(document)
 
             actualAfterForwardTransformationsFile = inPsiFile.containingFile.virtualFile.contentsToByteArray().toString(
                 Charset.defaultCharset()
@@ -79,6 +77,6 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
             actualAfterBackwardTransformations = psiAfterBackwardTransformations.text
         }
         assertEquals(expectedAfterForwardTransformations, actualAfterForwardTransformations)
-        assertEquals(expectedAfterBackwardTransformations, actualAfterBackwardTransformations)
+//        assertEquals(expectedAfterBackwardTransformations, actualAfterBackwardTransformations)
     }
 }
