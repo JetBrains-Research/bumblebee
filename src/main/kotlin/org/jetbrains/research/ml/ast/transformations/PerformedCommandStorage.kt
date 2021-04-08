@@ -12,6 +12,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import java.util.logging.Logger
@@ -72,13 +73,17 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
         FileDocumentManager.getInstance().saveDocument(document)
     }
 
-     private fun undoLastCommand(undoPerformer: UndoPerformer) {
+    private fun undoLastCommand(undoPerformer: UndoPerformer) {
         if (commandDescriptions.isNotEmpty()) {
             val description = commandDescriptions.removeLast()
             if (undoPerformer.manager.isUndoAvailable(undoPerformer.fileEditor)) {
 //              We need to have try-catch block when we undo commands on modified tree
 //              because some of them cannot be undone
                 try {
+//                  Got an error "Document is locked by write PSI operations.
+//                  Use PsiDocumentManager.doPostponedOperationsAndUnblockDocument() to commit PSI changes to the document."
+                    PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(document)
+
 //                    undoPerformer.manager.undo(undoPerformer.fileEditor)
                     commandProcessor.executeCommand(
                         project,
@@ -94,9 +99,9 @@ class PerformedCommandStorage(override val psiTree: PsiElement) : IPerformedComm
             }
         }
 
-//      Should I commit the document?
         FileDocumentManager.getInstance().saveDocument(document)
-        commitDocument(undoPerformer.editor)
+    //      Should I commit the document?
+    //        commitDocument(undoPerformer.editor)
 
     }
 
@@ -116,7 +121,11 @@ fun IPerformedCommandStorage?.safePerformCommand(command: () -> Unit, descriptio
     this?.performCommand(command, description) ?: command()
 }
 
-fun IPerformedCommandStorage?.safePerformUndoableCommand(command: () -> Unit, undoCommand: () -> Unit, description: String) {
+fun IPerformedCommandStorage?.safePerformUndoableCommand(
+    command: () -> Unit,
+    undoCommand: () -> Unit,
+    description: String
+) {
     this?.performUndoableCommand(command, undoCommand, description) ?: command()
 }
 
