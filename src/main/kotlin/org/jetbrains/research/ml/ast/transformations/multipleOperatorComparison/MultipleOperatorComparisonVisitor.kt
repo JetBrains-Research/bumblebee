@@ -4,12 +4,11 @@ import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.psi.PyBinaryExpression
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyElementVisitor
-import org.jetbrains.research.ml.ast.transformations.IPerformedCommandStorage
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PyUtils
-import org.jetbrains.research.ml.ast.transformations.safePerformCommand
+import org.jetbrains.research.ml.ast.transformations.commands.Command
+import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
 
-internal class MultipleOperatorComparisonVisitor(private val commandsStorage: IPerformedCommandStorage?) :
+internal class MultipleOperatorComparisonVisitor(private val commandPerformer: ICommandPerformer) :
     PyElementVisitor() {
     override fun visitPyBinaryExpression(node: PyBinaryExpression) {
         handleBinaryExpression(node)
@@ -24,9 +23,13 @@ internal class MultipleOperatorComparisonVisitor(private val commandsStorage: IP
         val generator = PyElementGenerator.getInstance(node.project)
         val newBinaryExpression = transformMultipleComparisonExpression(node, generator) ?: return
         val newBracedExpression = PyUtils.braceExpression(newBinaryExpression)
-        commandsStorage.safePerformCommand(
-            { node.replace(newBracedExpression) },
-            "Replace multiple operation comparison with braced expression"
+        // Todo: replace { } with the real undo
+        commandPerformer.performCommand(
+            Command(
+                { node.replace(newBracedExpression) },
+                { },
+                "Replace multiple operation comparison with braced expression"
+            )
         )
     }
 

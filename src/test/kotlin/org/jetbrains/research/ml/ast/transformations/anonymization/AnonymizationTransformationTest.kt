@@ -1,6 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations.anonymization
 
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
+import org.jetbrains.research.ml.ast.transformations.commands.CommandPerformer
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getCommandStorageTransformationWrapper
@@ -41,7 +41,7 @@ class AnonymizationTransformationTest : TransformationsTest(getResourcesRootPath
             inFile!!,
             inFile!!,
             getCommandStorageTransformationWrapper(
-                ::PerformedCommandStorage,
+                ::CommandPerformer,
                 AnonymizationTransformation::forwardApply
             )
         )

@@ -4,11 +4,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.siblings
 import com.jetbrains.python.psi.*
 import org.jetbrains.research.ml.ast.transformations.*
+import org.jetbrains.research.ml.ast.transformations.commands.Command
+import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
 import org.jetbrains.research.ml.ast.transformations.constantfolding.PyEvaluatorImproved
 import kotlin.test.fail
 
 class IfRedundantLinesRemover(
-    private val commandStorage: IPerformedCommandStorage?,
+    private val commandPerformer: ICommandPerformer,
     private val generator: PyElementGenerator,
     file: PyFile
 ) {
@@ -24,24 +26,32 @@ class IfRedundantLinesRemover(
         fun move(
             anchor: PsiElement,
             doBefore: Boolean,
-            commandStorage: IPerformedCommandStorage?
+            commandPerformer: ICommandPerformer
         ): StatementRange {
             val indexOfLast = first.nextStatements().indexOf(last)
             val anchorParent = anchor.parent
-            val newFirst = commandStorage.safePerformCommandWithResult(
-                {
-                    if (doBefore) {
-                        anchorParent.addRangeBefore(first, last, anchor)
-                    } else {
-                        anchorParent.addRangeAfter(first, last, anchor)
-                    } as PyStatement
-                },
-                "Insert duplicate statements to new position"
+            // Todo: replace { } with the real undo
+            val newFirst = commandPerformer.performCommand(
+                Command(
+                    {
+                        if (doBefore) {
+                            anchorParent.addRangeBefore(first, last, anchor)
+                        } else {
+                            anchorParent.addRangeAfter(first, last, anchor)
+                        } as PyStatement
+                    },
+                    { },
+                    "Insert duplicate statements to new position"
+                )
             )
             val newLast = newFirst.nextStatements().elementAt(indexOfLast)
-            commandStorage.safePerformCommand(
-                { first.parent.deleteChildRange(first, last) },
-                "Remove original duplicate statements"
+            // Todo: replace { } with the real undo
+            commandPerformer.performCommand(
+                Command(
+                    { first.parent.deleteChildRange(first, last) },
+                    { },
+                    "Remove original duplicate statements"
+                )
             )
             return StatementRange(newFirst, newLast)
         }
@@ -53,25 +63,33 @@ class IfRedundantLinesRemover(
         fun removeDuplicates(statementLists: List<List<PyStatement>>, prefixLength: Int, suffixLength: Int) {
             for (statementList in statementLists) {
                 if (prefixLength > 0) {
-                    commandStorage.safePerformCommand(
-                        {
-                            statementList.first().parent.deleteChildRange(
-                                statementList.first(),
-                                statementList[prefixLength - 1]
-                            )
-                        },
-                        "Remove duplicate statements"
+                    // Todo: replace { } with the real undo
+                    commandPerformer.performCommand(
+                        Command(
+                            {
+                                statementList.first().parent.deleteChildRange(
+                                    statementList.first(),
+                                    statementList[prefixLength - 1]
+                                )
+                            },
+                            { },
+                            "Remove duplicate statements"
+                        )
                     )
                 }
                 if (suffixLength > 0) {
-                    commandStorage.safePerformCommand(
-                        {
-                            statementList.last().parent.deleteChildRange(
-                                statementList[statementList.size - suffixLength],
-                                statementList.last()
-                            )
-                        },
-                        "Remove duplicate statements"
+                    // Todo: replace { } with the real undo
+                    commandPerformer.performCommand(
+                        Command(
+                            {
+                                statementList.last().parent.deleteChildRange(
+                                    statementList[statementList.size - suffixLength],
+                                    statementList.last()
+                                )
+                            },
+                            { },
+                            "Remove duplicate statements"
+                        )
                     )
                 }
             }
@@ -84,16 +102,24 @@ class IfRedundantLinesRemover(
         ) {
             for (index in partsToRemoveIds) {
                 if (conditions.getOrNull(index)?.let { evaluator.canBeProvenPure(it) } != false) {
-                    commandStorage.safePerformCommand(
-                        { statementParts[index].delete() },
-                        "Remove redundant part of if statement"
+                    // Todo: replace { } with the real undo
+                    commandPerformer.performCommand(
+                        Command(
+                            { statementParts[index].delete() },
+                            { },
+                            "Remove redundant part of if statement"
+                        )
                     )
                 } else {
-                    commandStorage.safePerformCommand(
-                        {
-                            statementParts[index].add(generator.createPassStatement())
-                        },
-                        "Replace statements with a single 'pass' in part of if with impure condition"
+                    // Todo: replace { } with the real undo
+                    commandPerformer.performCommand(
+                        Command(
+                            {
+                                statementParts[index].add(generator.createPassStatement())
+                            },
+                            { },
+                            "Replace statements with a single 'pass' in part of if with impure condition"
+                        )
                     )
                 }
             }
@@ -109,15 +135,24 @@ class IfRedundantLinesRemover(
             // All statements have been selected as parts of a suffix
             if (allConditionsArePure) {
                 newFirst = newFirst.nextStatements().first()
-                commandStorage.safePerformCommand({ ifStatement.delete() }, "Delete redundant 'if' statement")
+                // Todo: replace { } with the real undo
+                commandPerformer.performCommand(
+                    Command(
+                        { ifStatement.delete() },
+                        { },
+                        "Delete redundant 'if' statement"
+                    )
+                )
             } else {
                 val disjunction = generator.createBinaryOperandList("or", conditions)
                 val disjunctionStatement = generator.createExpressionStatement(disjunction)
-                newFirst = commandStorage.safePerformCommandWithResult(
-                    {
-                        ifStatement.replace(disjunctionStatement)
-                    },
-                    "Replace 'if' with just the conditions"
+                // Todo: replace { } with the real undo
+                newFirst = commandPerformer.performCommand(
+                    Command(
+                        { ifStatement.replace(disjunctionStatement) },
+                        { },
+                        "Replace 'if' with just the conditions"
+                    )
                 ) as PyStatement
             }
             return newFirst
@@ -220,7 +255,7 @@ class IfRedundantLinesRemover(
             doBefore: Boolean
         ): PyStatement {
             return if (simplifyDelayed != null) {
-                simplifyDelayed().move(ifStatement, doBefore, commandStorage).statement()
+                simplifyDelayed().move(ifStatement, doBefore, commandPerformer).statement()
             } else ifStatement
         }
 
@@ -248,9 +283,13 @@ class IfRedundantLinesRemover(
                 }
                 else -> fail("Unexpected type of if part encountered")
             }
-            commandStorage.safePerformCommand(
-                { firstToKeep.replace(replacementPart) },
-                "Replace a part to restore 'if' correctness"
+            // Todo: replace { } with the real undo
+            commandPerformer.performCommand(
+                Command(
+                    { firstToKeep.replace(replacementPart) },
+                    { },
+                    "Replace a part to restore 'if' correctness"
+                )
             )
         }
 

@@ -7,6 +7,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiManager
 import com.jetbrains.python.PythonFileType
 import com.xenomachina.argparser.ArgParser
@@ -62,7 +63,8 @@ object Runner : ApplicationStarter {
         return transformationsToApply
     }
 
-    private fun File.createPsiFile(psiManager: PsiManager): PsiFile {
+    fun File.createPsiFile(psiManager: PsiManager): PsiFile {
+
         return ApplicationManager.getApplication().runWriteAction<PsiFile> {
             val basePath = getTmpProjectDir(toCreateFolder = false)
             val fileName = "dummy." + PythonFileType.INSTANCE.defaultExtension

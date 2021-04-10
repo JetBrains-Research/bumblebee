@@ -1,7 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations.commentsRemoval
 
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
-import org.jetbrains.research.ml.ast.transformations.anonymization.AnonymizationTransformation
+import org.jetbrains.research.ml.ast.transformations.commands.CommandPerformer
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
@@ -14,8 +13,7 @@ class CommentsRemovalTransformationTest : TransformationsTest(getResourcesRootPa
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
-        fun getTestData()  = getInAndOutArray(::CommentsRemovalTransformationTest, resourcesRoot).
-        filter { it.all { f -> f.name.contains("2") } }
+        fun getTestData()  = getInAndOutArray(::CommentsRemovalTransformationTest, resourcesRoot)
     }
 
     @Test
@@ -42,7 +40,7 @@ class CommentsRemovalTransformationTest : TransformationsTest(getResourcesRootPa
             inFile!!,
             inFile!!,
             TransformationsTestHelper.getCommandStorageTransformationWrapper(
-                ::PerformedCommandStorage,
+                ::CommandPerformer,
                 CommentsRemovalTransformation::forwardApply
             )
         )

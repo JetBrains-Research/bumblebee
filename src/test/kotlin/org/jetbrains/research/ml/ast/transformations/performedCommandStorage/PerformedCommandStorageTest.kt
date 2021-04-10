@@ -1,21 +1,10 @@
 package org.jetbrains.research.ml.ast.transformations.performedCommandStorage
 
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiElement
 import junit.framework.TestCase
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.anonymization.AnonymizationTransformation
-import org.jetbrains.research.ml.ast.transformations.augmentedAssignment.AugmentedAssignmentTransformation
-import org.jetbrains.research.ml.ast.transformations.commentsRemoval.CommentsRemovalTransformation
-import org.jetbrains.research.ml.ast.transformations.comparisonUnification.ComparisonUnificationTransformation
-import org.jetbrains.research.ml.ast.transformations.constantfolding.ConstantFoldingTransformation
-import org.jetbrains.research.ml.ast.transformations.deadcode.DeadCodeRemovalTransformation
-import org.jetbrains.research.ml.ast.transformations.expressionUnification.ExpressionUnificationTransformation
-import org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval.IfRedundantLinesRemovalTransformation
-import org.jetbrains.research.ml.ast.transformations.multipleOperatorComparison.MultipleOperatorComparisonTransformation
-import org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment.MultipleTargetAssignmentTransformation
-import org.jetbrains.research.ml.ast.transformations.outerNotElimination.OuterNotEliminationTransformation
+import org.jetbrains.research.ml.ast.transformations.commands.CommandPerformer
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
 import org.jetbrains.research.ml.ast.util.PsiFileHandler
 import org.junit.Test
@@ -51,7 +40,7 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
 
         val inPsiFile = psiHandler.getPsiFile(inFile!!)
         val outPsiFile = psiHandler.getPsiFile(outFile!!)
-        val commandStorage = PerformedCommandStorage(inPsiFile)
+        val commandStorage = CommandPerformer(inPsiFile, true)
 
         lateinit var actualAfterForwardTransformations: String
         lateinit var actualAfterForwardTransformationsFile: String
@@ -69,9 +58,10 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
             )
             TestCase.assertEquals(actualAfterForwardTransformations, actualAfterForwardTransformationsFile)
 
-            val psiAfterBackwardTransformations = ApplicationManager.getApplication().runWriteAction<PsiElement> {
-                commandStorage.undoPerformedCommands()
+            ApplicationManager.getApplication().runWriteAction {
+                commandStorage.undoAllPerformedCommands()
             }
+            val psiAfterBackwardTransformations = inPsiFile
 //            val psiAfterBackwardTransformations = commandStorage.undoPerformedCommands()
             psiHandler.formatPsiFile(psiAfterBackwardTransformations)
             actualAfterBackwardTransformations = psiAfterBackwardTransformations.text
