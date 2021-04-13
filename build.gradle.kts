@@ -5,13 +5,8 @@ version = "1.0-SNAPSHOT"
 
 plugins {
     java
-
-    val kotlinVersion = "1.4.30"
-    kotlin("jvm") version kotlinVersion apply true
-    kotlin("plugin.serialization") version kotlinVersion apply true
-
+    kotlin("jvm") version "1.4.30" apply true
     id("org.jetbrains.intellij") version "0.7.2" apply true
-    id("com.github.johnrengelman.shadow") version "5.1.0" apply true
     id("org.jetbrains.dokka") version "0.10.1" apply true
     id("org.jlleitschuh.gradle.ktlint") version "9.4.1" apply true
 }
@@ -21,9 +16,7 @@ allprojects {
         apply {
             plugin("java")
             plugin("kotlin")
-            plugin("org.jetbrains.kotlin.plugin.serialization")
             plugin("org.jetbrains.intellij")
-            plugin("com.github.johnrengelman.shadow")
             plugin("org.jetbrains.dokka")
             plugin("org.jlleitschuh.gradle.ktlint")
         }
