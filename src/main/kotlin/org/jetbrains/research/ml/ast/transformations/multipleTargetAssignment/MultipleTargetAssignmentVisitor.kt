@@ -36,6 +36,7 @@ class MultipleTargetAssignmentVisitor(private val commandsPerformer: ICommandPer
         }
         // Todo: replace { } with the real undo
         commandsPerformer.performCommand(
-            Command({ node.delete() }, { },"Delete multiple target assignment node"))
+            Command({ node.delete() }, { }, "Delete multiple target assignment node")
+        )
     }
 }

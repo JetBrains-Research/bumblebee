@@ -103,7 +103,9 @@ class ConstantFolder(
                         Command<PsiElement>(
                             {
                                 val valueOperand =
-                                    listOfNotNull(result.evaluatedValue?.let { generator.createIntOrBoolExpression(it) })
+                                    listOfNotNull(
+                                        result.evaluatedValue?.let { generator.createIntOrBoolExpression(it) }
+                                    )
                                 val newExpression = PyUtils.braceExpression(
                                     generator.createBinaryOperandList(
                                         result.operator,

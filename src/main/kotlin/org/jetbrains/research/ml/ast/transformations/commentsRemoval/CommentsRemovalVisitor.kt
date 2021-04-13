@@ -40,12 +40,12 @@ class CommentsRemovalVisitor(private val commandsPerformer: ICommandPerformer) :
                 Command(
                     {
 //                        WriteCommandAction.runWriteCommandAction(node.project) {
-                            node.parent.delete()
+                        node.parent.delete()
 //                        }
                     },
                     {
 //                        WriteCommandAction.runWriteCommandAction(node.project) {
-                            siblings.insertBetweenSiblings()
+                        siblings.insertBetweenSiblings()
 //                        }
                     },
                     "Delete doc string or triple quoted string"
@@ -55,8 +55,3 @@ class CommentsRemovalVisitor(private val commandsPerformer: ICommandPerformer) :
         super.visitPyStringLiteralExpression(node)
     }
 }
-
-
-
-
-
