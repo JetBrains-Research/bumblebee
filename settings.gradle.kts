@@ -4,3 +4,10 @@ include(
     "ast-transformations-core",
     "ast-transformations-plugin"
 )
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        jcenter()
+    }
+}

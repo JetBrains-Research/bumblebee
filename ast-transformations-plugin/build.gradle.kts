@@ -1,3 +1,6 @@
+group = rootProject.group
+version = rootProject.version
+
 dependencies {
     implementation(project(":ast-transformations-core"))
     // Need for CLI
