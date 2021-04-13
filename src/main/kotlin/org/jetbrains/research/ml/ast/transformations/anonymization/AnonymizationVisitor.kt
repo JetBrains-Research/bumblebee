@@ -7,6 +7,8 @@ import com.jetbrains.python.psi.PyFile
 import com.jetbrains.python.psi.PyRecursiveElementVisitor
 import org.jetbrains.research.ml.ast.transformations.commands.Command
 import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
+import org.jetbrains.research.ml.ast.transformations.commands.RenamablePsiElement
+import org.jetbrains.research.ml.ast.transformations.commands.RenameCommand
 
 class AnonymizationVisitor(file: PyFile) : PyRecursiveElementVisitor() {
     private val project = file.project
@@ -20,17 +22,30 @@ class AnonymizationVisitor(file: PyFile) : PyRecursiveElementVisitor() {
     fun performAllRenames(commandsPerformer: ICommandPerformer) {
         val allRenames = anonymizer.getAllRenames()
 
-        val redoRenames = allRenames.map {
-            RenameUtil.renameElementDelayed(it.first, it.second)
-        }
-
-        val oldNames = allRenames.map { (it.first as PsiNamedElement).name!! }
-        val undoRenames = allRenames.mapIndexed { i, it -> RenameUtil.renameElementDelayed(it.first, oldNames[i]) }
-
-        WriteCommandAction.runWriteCommandAction(project) {
-            redoRenames.zip(undoRenames).forEach { (redo, undo) ->
-                commandsPerformer.performCommand(Command(redo, undo, "Anonymize element"))
+        allRenames.map { (psi, newName) -> RenamablePsiElement(psi as PsiNamedElement, newName) }.forEach {
+            WriteCommandAction.runWriteCommandAction(project) {
+                commandsPerformer.performCommand(RenameCommand.getCommand(it, "Anonymize element"))
             }
         }
+
+//        allRenames.forEach { (psi, newName) ->
+//            val renamablePsiElement = RenamablePsiElement(psi as PsiNamedElement, newName)
+//            WriteCommandAction.runWriteCommandAction(project) {
+//                commandsPerformer.performCommand(RenameCommand.getCommand(renamablePsiElement, "Anonymize element"))
+//            }
+//        }
+
+//        val redoRenames = allRenames.map {
+//            RenameUtil.renameElementDelayed(it.first, it.second)
+//        }
+//
+//        val oldNames = allRenames.map { (it.first as PsiNamedElement).name!! }
+//        val undoRenames = allRenames.mapIndexed { i, it -> RenameUtil.renameElementDelayed(it.first, oldNames[i]) }
+//
+//        WriteCommandAction.runWriteCommandAction(project) {
+//            redoRenames.zip(undoRenames).forEach { (redo, undo) ->
+//                commandsPerformer.performCommand(Command(redo, undo, "Anonymize element"))
+//            }
+//        }
     }
 }
