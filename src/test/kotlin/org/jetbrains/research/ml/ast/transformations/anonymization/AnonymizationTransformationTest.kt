@@ -14,9 +14,8 @@ class AnonymizationTransformationTest : TransformationsTest(getResourcesRootPath
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
-        fun getTestData() = getInAndOutArray(::AnonymizationTransformationTest, resourcesRoot).filter {
-            it[0].name.startsWith("in_1_forward_name_clash")
-        }
+        fun getTestData() = getInAndOutArray(::AnonymizationTransformationTest, resourcesRoot)
+//            .filter { it[0].name.startsWith("in_2_overriding") }
     }
 
     @Test

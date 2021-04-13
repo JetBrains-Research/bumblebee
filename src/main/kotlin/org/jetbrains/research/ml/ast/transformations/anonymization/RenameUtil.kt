@@ -1,11 +1,14 @@
 package org.jetbrains.research.ml.ast.transformations.anonymization
 
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.rename.RenamePsiElementProcessor
 import com.intellij.usageView.UsageInfo
 import com.jetbrains.python.refactoring.rename.RenamePyElementProcessor
 
 object RenameUtil {
+
+//  Todo: maybe move it to the RenamableElement?
     fun renameElementDelayed(definition: PsiElement, newName: String): () -> Unit {
         val processor = RenamePsiElementProcessor.forElement(definition)
         val allRenames = mutableMapOf(definition to newName)
@@ -20,7 +23,9 @@ object RenameUtil {
         val references = processor.findReferences(definition, useScope, false)
         val usages = references.map { UsageInfo(it) }.toTypedArray()
         return {
-            processor.renameElement(definition, newName, usages, null)
+            WriteCommandAction.runWriteCommandAction(definition.project) {
+                processor.renameElement(definition, newName, usages, null)
+            }
         }
     }
 }

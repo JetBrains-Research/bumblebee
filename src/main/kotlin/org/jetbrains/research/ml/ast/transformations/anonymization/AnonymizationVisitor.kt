@@ -22,11 +22,12 @@ class AnonymizationVisitor(file: PyFile) : PyRecursiveElementVisitor() {
     fun performAllRenames(commandsPerformer: ICommandPerformer) {
         val allRenames = anonymizer.getAllRenames()
 
-        allRenames.map { (psi, newName) -> RenamablePsiElement(psi as PsiNamedElement, newName) }.forEach {
-            WriteCommandAction.runWriteCommandAction(project) {
-                commandsPerformer.performCommand(RenameCommand.getCommand(it, "Anonymize element"))
-            }
-        }
+        val commands = allRenames.map { (psi, newName) -> RenamablePsiElement(psi, newName) }
+        commands.forEach { commandsPerformer.performCommand(RenameCommand.getCommand(it, "Anonymize element")) }
+//
+//        allRenames.map { (psi, newName) -> RenamablePsiElement(psi as PsiNamedElement, newName) }.forEach {
+//                commandsPerformer.performCommand(RenameCommand.getCommand(it, "Anonymize element"))
+//        }
 
 //        allRenames.forEach { (psi, newName) ->
 //            val renamablePsiElement = RenamablePsiElement(psi as PsiNamedElement, newName)
@@ -38,13 +39,13 @@ class AnonymizationVisitor(file: PyFile) : PyRecursiveElementVisitor() {
 //        val redoRenames = allRenames.map {
 //            RenameUtil.renameElementDelayed(it.first, it.second)
 //        }
-//
+
 //        val oldNames = allRenames.map { (it.first as PsiNamedElement).name!! }
 //        val undoRenames = allRenames.mapIndexed { i, it -> RenameUtil.renameElementDelayed(it.first, oldNames[i]) }
-//
+
 //        WriteCommandAction.runWriteCommandAction(project) {
-//            redoRenames.zip(undoRenames).forEach { (redo, undo) ->
-//                commandsPerformer.performCommand(Command(redo, undo, "Anonymize element"))
+//            redoRenames.forEach { redo ->
+//                commandsPerformer.performCommand(Command(redo, { }, "Anonymize element"))
 //            }
 //        }
     }

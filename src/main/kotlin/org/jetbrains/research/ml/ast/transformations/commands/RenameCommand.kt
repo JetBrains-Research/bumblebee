@@ -1,18 +1,31 @@
 package org.jetbrains.research.ml.ast.transformations.commands
 
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
+import com.intellij.refactoring.rename.RenamePsiElementProcessor
+import com.intellij.usageView.UsageInfo
 import org.jetbrains.research.ml.ast.transformations.anonymization.RenameUtil
 import java.util.concurrent.Callable
 
 
-class RenamablePsiElement(private val psiElement: PsiNamedElement,
-                          private val newName: String) {
-    private val oldName: String = psiElement.name ?: error("Element ${psiElement.text} does not have name")
+class RenamablePsiElement(private val psiElement: PsiElement, private val newName: String) {
+    private val oldName: String = (psiElement as PsiNamedElement).name ?: error("Element ${psiElement.text} does not have name")
+    private val delayedNewRenames = RenameUtil.renameElementDelayed(psiElement, newName)
+    private val delayedOldRenames = RenameUtil.renameElementDelayed(psiElement, oldName)
 
-    fun redo() = RenameUtil.renameElementDelayed(psiElement, newName)
 
-    fun undo() =  RenameUtil.renameElementDelayed(psiElement, oldName)
+    fun redo() {
+        WriteCommandAction.runWriteCommandAction(psiElement.project) {
+            delayedNewRenames()
+        }
+    }
+
+    fun undo() {
+        WriteCommandAction.runWriteCommandAction(psiElement.project) {
+            delayedOldRenames()
+        }
+    }
 }
 
 
