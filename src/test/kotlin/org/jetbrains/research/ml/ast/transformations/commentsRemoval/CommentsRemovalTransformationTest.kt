@@ -14,6 +14,7 @@ class CommentsRemovalTransformationTest : TransformationsTest(getResourcesRootPa
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
         fun getTestData()  = getInAndOutArray(::CommentsRemovalTransformationTest, resourcesRoot)
+            .filter { it.all { it.name.contains("2") } }
     }
 
     @Test

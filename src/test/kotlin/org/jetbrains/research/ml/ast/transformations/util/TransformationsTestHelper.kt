@@ -79,9 +79,10 @@ object TransformationsTestHelper {
             val commandStorage = CommandPerformer(psi, true)
             forwardTransformation(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as PsiFile)
-            WriteCommandAction.runWriteCommandAction(psi.project) {
+//            Todo: call WriteCommandAction inside command?
+//            WriteCommandAction.runWriteCommandAction(psi.project) {
                 commandStorage.undoAllPerformedCommands()
-            }
+//            }
         }
 
     fun getCommandStorageTransformationWrapper(
@@ -93,9 +94,11 @@ object TransformationsTestHelper {
             val commandStorage = TestCommandPerformer(commandPerformerToTest(psi, true))
             forwardTransformation(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as PsiFile)
-            WriteCommandAction.runWriteCommandAction(psi.project) {
+
+//            Todo: call WriteCommandAction inside command?
+//            WriteCommandAction.runWriteCommandAction(psi.project) {
                 commandStorage.undoAllPerformedCommands()
-            }
+//            }
         }
 }
 
