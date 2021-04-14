@@ -1,67 +1,151 @@
 package org.jetbrains.research.ml.ast.transformations.commands
 
+import com.intellij.application.options.CodeStyle
+import com.intellij.formatting.FormattingContext
+import com.intellij.formatting.FormattingModel
+import com.intellij.lang.LanguageFormatting
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiParserFacade
 import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.PyElementGenerator
 import java.util.concurrent.Callable
 
 
-//class RestorablePsiElement(val psiElement: PsiElement) : Restorable<PsiElement> {
-//
-//    private val isWhitespace = psiElement is PsiWhiteSpace
-//
-//    override fun delete() {
-//        WriteCommandAction.runWriteCommandAction(psiProject) {
-//            psiElement.delete()
-//        }
-//    }
-//
-//    private fun toDelete(): Boolean {
-//        return psiElement !is PsiWhiteSpace || psiElement.parent != null
-//    }
-//
-//    override fun restore(): PsiElement {
-//        val generator = PyElementGenerator.getInstance(psiProject)
-//        return generator.createFromText(LanguageLevel.getDefault(), psiClass, psiText)
-//    }
-//}
+
+
 
 
 /**
  * Represents a range of adjacent siblings from [startPsi] (inclusive) to [endPsi] (inclusive),
  * siblings are the first (prev, next) siblings that meet a [condition]
  */
-class RestorablePsiElement(val psiElement: PsiElement, private val condition: (PsiElement) -> Boolean = { true }) {
+class RestorablePsiElement(val psiElement: PsiElement) {
+
+    enum class Type {
+        ONLY_CHILD, LEFT_CHILD, RIGHT_CHILD, MIDDLE_CHILD
+    }
 
     private var psiText: String = psiElement.text
-    private val psiClass = psiElement.javaClass
-    private val psiProject = psiElement.project
-    private var prevSibling: PsiElement? = findNextSiblingOnCondition({ it.prevSibling },
-        { psiText = it.text + psiText },
-        { this.prevSibling = it.newPsi })
-    private var nextSibling: PsiElement? = findNextSiblingOnCondition({ it.nextSibling },
-        { psiText = psiText + it.text },
-        { this.nextSibling = it.newPsi })
+    private val project = psiElement.project
+
+    private var prevSibling: PsiElement? = findNextSiblingOnCondition(
+        { it.prevSibling },
+        { this.prevSibling = it.newPsi }
+    )
+    private var nextSibling: PsiElement? = findNextSiblingOnCondition(
+        { it.nextSibling },
+        { this.nextSibling = it.newPsi }
+    )
     private var parent = findParent()
+    private val type = findType()
+    private val indents = RestorableIndents()
 
 
-    //  Todo: accumulate texts
+
+    private fun isIndent(psiElement: PsiElement) = psiElement is PsiWhiteSpace
+
+    inner class RestorableIndents {
+        private val project = psiElement.project
+        private val prevIndent = findIndentBetween(prevSibling, psiElement)
+        private val nextIndent = findIndentBetween(psiElement, nextSibling)
+
+        private val formattingModel = createFormattingModel()
+
+        private fun createFormattingModel(): FormattingModel {
+            val builder = LanguageFormatting.INSTANCE.forContext(psiElement.containingFile)
+            require(builder != null) { "LanguageFormatting is null for ${psiElement.containingFile.name}" }
+            val settings: CodeStyleSettings = CodeStyle.getSettings(project)
+            return builder.createModel(FormattingContext.create(psiElement.containingFile, settings))
+        }
+
+        private fun generateIndentFromText(text: String): PsiElement {
+            return PsiParserFacade.SERVICE.getInstance(project).createWhiteSpaceFromText(text)
+        }
+
+        private fun PsiElement.replaceIndent(newIndentText: String) {
+            formattingModel.replaceWhiteSpace(this.textRange, newIndentText)
+            formattingModel.commitChanges()
+        }
+
+        private fun findIndentBetween(leftPsi: PsiElement?, rightPsi: PsiElement?): PsiElement? {
+            fun findIndent(firstPsi: PsiElement, secondPsi: PsiElement?, getNextPsi: (PsiElement) -> PsiElement?): PsiElement? {
+                val prevSibling = getNextPsi(firstPsi)
+                return prevSibling?.also {
+                    require(isIndent(it)) { "Prev sibling is not an indent" }
+                    require(getNextPsi(it) == secondPsi) { "There is more than one indent between left and right psi" }
+                }
+            }
+
+            return if (leftPsi != null) {
+                findIndent(leftPsi, rightPsi) { it.nextSibling }
+            } else if (rightPsi != null) {
+                findIndent(rightPsi, leftPsi) { it.prevSibling }
+            } else {
+                error("Cannot get indent between two nulls")
+            }
+        }
+
+        fun addElement(psiElementToAdd: PsiElement, add: (PsiElement) -> PsiElement): PsiElement {
+            val addedPsiElement = WriteCommandAction.runWriteCommandAction<PsiElement>(project) {
+                add(psiElementToAdd)
+            }
+            val newPrevIndent = findIndentBetween(prevSibling, addedPsiElement)
+            val newNextIndent = findIndentBetween(addedPsiElement, nextSibling)
+            checkNewIndent(newPrevIndent, prevIndent) { parent.addBefore(it, addedPsiElement) }
+            checkNewIndent(newNextIndent, nextIndent) { parent.addAfter(it, addedPsiElement) }
+            return addedPsiElement
+        }
+
+        private fun checkNewIndent(newIndent: PsiElement?, oldIndent: PsiElement?, addIndent: (PsiElement) -> Unit) {
+            if (oldIndent == null && newIndent == null)
+                return
+            if (newIndent == null) {
+                val indentToAdd = generateIndentFromText(oldIndent!!.text)
+                WriteCommandAction.runWriteCommandAction(project) {
+                    addIndent(indentToAdd)
+                }
+                return
+            }
+            if (oldIndent == null) {
+                error("New indent after deletion")
+            }
+            if (oldIndent.text != newIndent.text) {
+                WriteCommandAction.runWriteCommandAction(project) {
+                    newIndent.replaceIndent(oldIndent.text)
+                }
+            }
+        }
+    }
+
+
+
+    private fun findType(): Type {
+        if (prevSibling == null && nextSibling == null) {
+            return Type.ONLY_CHILD
+        }
+        if (prevSibling == null) {
+            return Type.LEFT_CHILD
+        }
+        if (nextSibling == null) {
+            return Type.RIGHT_CHILD
+        }
+        return Type.MIDDLE_CHILD
+    }
+
     private fun findNextSiblingOnCondition(
         getSibling: (PsiElement) -> PsiElement?,
-        processSibling: (PsiElement) -> Unit,
-        onUpdate: (PsiUpdatesPublisher.UpdatedPsi) -> Unit
+        onUpdate: ((PsiUpdatesPublisher.UpdatedPsi) -> Unit)? = null,
+        initPsi: PsiElement = psiElement
     ): PsiElement? {
-        println("findSiblingOnCondition 1, text: $psiText")
-        var nextSibling = getSibling(psiElement)
-        while (nextSibling != null && !condition(nextSibling)) {
-            processSibling(nextSibling)
+        var nextSibling = getSibling(initPsi)
+        if (nextSibling != null && isIndent(nextSibling)) {
             nextSibling = getSibling(nextSibling)
         }
-        println("findSiblingOnCondition 2, text: $psiText")
-
-        return nextSibling?.also { PsiUpdatesPublisher.subscribe(it, onUpdate) }
+        require(nextSibling == null || !isIndent(nextSibling)) { "More than two indents between psiElement and its sibling" }
+        return nextSibling?.also { s -> onUpdate?.let { PsiUpdatesPublisher.subscribe(s, onUpdate) } }
     }
 
     private fun findParent(): PsiElement {
@@ -70,35 +154,32 @@ class RestorablePsiElement(val psiElement: PsiElement, private val condition: (P
 
 
     fun delete() {
-        WriteCommandAction.runWriteCommandAction(psiProject) {
+        WriteCommandAction.runWriteCommandAction(project) {
             psiElement.delete()
         }
     }
 
-    fun restore() {
-        prevSibling?.let { prevSibling -> restoreAndNotify { parent.addAfter(it, prevSibling) } }
-            ?: nextSibling?.let { nextSibling -> restoreAndNotify { parent.addBefore(it, nextSibling) } }
-            ?: restoreAndNotify { parent.add(it) }
-    }
-
     private fun generateFromText(): PsiElement {
-        val generator = PyElementGenerator.getInstance(psiProject)
-        return generator.createFromText(LanguageLevel.getDefault(), psiClass, psiText)
+        val generator = PyElementGenerator.getInstance(project)
+        return generator.createFromText(LanguageLevel.getDefault(), PsiElement::class.java, psiText)
     }
 
-    private fun restoreAndNotify(addToParent: (PsiElement) -> PsiElement): PsiElement {
-        val addedPsi = WriteCommandAction.runWriteCommandAction<PsiElement>(psiElement.project) {
-            addToParent(generateFromText())
+
+    fun restore() {
+        val psiElementToAdd = generateFromText()
+        val addedPsiElement = when (type) {
+            Type.ONLY_CHILD -> indents.addElement(psiElementToAdd) { parent.add(it) }
+            Type.LEFT_CHILD -> indents.addElement(psiElementToAdd) { parent.addBefore(it, nextSibling) }
+            Type.RIGHT_CHILD -> indents.addElement(psiElementToAdd) { parent.addAfter(it, prevSibling) }
+            Type.MIDDLE_CHILD -> indents.addElement(psiElementToAdd) { parent.addBefore(it, nextSibling) }
         }
-        PsiUpdatesPublisher.notify(PsiUpdatesPublisher.UpdatedPsi(psiElement, addedPsi))
-        return addedPsi
+        PsiUpdatesPublisher.notify(PsiUpdatesPublisher.UpdatedPsi(psiElement, addedPsiElement))
     }
 }
 
 
-/**
- * Deletes a range of psiElements (they must be adjacent siblings)
- */
+
+
 object DeleteCommand : CommandProvider<RestorablePsiElement, Unit>() {
 
     override fun redo(input: RestorablePsiElement): Callable<Unit> {
@@ -136,26 +217,6 @@ object PsiUpdatesPublisher {
 }
 
 
-//fun extendRangeOnCondition(startPsi: PsiElement, endPsi: PsiElement, condition: (PsiElement) -> Boolean): RestorablePsiElement {
-//    fun extendBound(bound: PsiElement, getNextBound: (PsiElement) -> PsiElement?): PsiElement {
-//        var currentBound = bound
-//        var nextBound = getNextBound(currentBound)
-//        while(nextBound != null && condition(nextBound)) {
-//            currentBound = nextBound
-//            nextBound = getNextBound(currentBound)
-//        }
-//        return currentBound
-//    }
-//
-//    val extendedStartPsi = extendBound(startPsi) { it.prevSibling }
-//    val extendedEndPsi = extendBound(endPsi) { it.nextSibling }
-//    return RestorablePsiElement(extendedStartPsi, extendedEndPsi)
-//}
+fun PsiElement.makeRestorable() = RestorablePsiElement(this)
 
-/**
- * When PsiElement#delete is called, additional reformatting may be applied that deletes adjacent whitespaces,
- * so it's better to avoid them being prevSibling and nextSibling of a Range. Thus we can include them into the Range.
- * Turned out that we cannot include them in a range since we cannot delete them :(
- */
-//fun PsiElement.getWhitespaceRange(): RestorablePsiElement = extendRangeOnCondition(this, this) { it is PsiWhiteSpace }
-fun PsiElement.makeRestorable() = RestorablePsiElement(this) { it !is PsiWhiteSpace }
+

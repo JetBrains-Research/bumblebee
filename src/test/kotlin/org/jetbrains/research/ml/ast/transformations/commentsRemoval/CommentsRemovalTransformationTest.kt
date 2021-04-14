@@ -1,6 +1,8 @@
 package org.jetbrains.research.ml.ast.transformations.commentsRemoval
 
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.PsiParserFacade
 import com.intellij.psi.PsiWhiteSpace
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.PyElementGenerator
@@ -18,7 +20,7 @@ class CommentsRemovalTransformationTest : TransformationsTest(getResourcesRootPa
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
         fun getTestData()  = getInAndOutArray(::CommentsRemovalTransformationTest, resourcesRoot)
-            .filter { it.all { it.name.contains("2") } }
+//            .filter { it.all { it.name.contains("2") } }
     }
 
     @Test
@@ -49,15 +51,5 @@ class CommentsRemovalTransformationTest : TransformationsTest(getResourcesRootPa
                 CommentsRemovalTransformation::forwardApply
             )
         )
-    }
-
-    @Test
-    fun testCreateFromText() {
-        val text = "/n"
-        val generator = PyElementGenerator.getInstance(myFixture.project)
-        val generated =  generator.createFromText(LanguageLevel.getDefault(), PsiWhiteSpace::class.java, "/n")
-
-//        PsiFileFactory.getInstance(myFixture.project).createFileFromText(text)
-        println(generated)
     }
 }
