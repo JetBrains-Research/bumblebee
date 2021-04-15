@@ -7,11 +7,13 @@ import org.jetbrains.research.ml.ast.transformations.anonymization.Anonymization
 import org.jetbrains.research.ml.ast.transformations.commands.CommandPerformer
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
 import org.jetbrains.research.ml.ast.util.PsiFileHandler
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.nio.charset.Charset
 
+@Ignore("Not supported yet")
 @RunWith(Parameterized::class)
 class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootPath(::PerformedCommandStorageTest)) {
 
