@@ -18,7 +18,6 @@ abstract class CommandProvider<T> {
 - delete
 - add
 - replace
-- rename
 - addBefore
 - addRangeBefore
 - addRangeAfter
