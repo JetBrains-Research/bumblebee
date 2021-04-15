@@ -20,7 +20,7 @@ class CommentsRemovalTransformationTest : TransformationsTest(getResourcesRootPa
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
         fun getTestData()  = getInAndOutArray(::CommentsRemovalTransformationTest, resourcesRoot)
-//            .filter { it.all { it.name.contains("2") } }
+            .filter { it.all { it.name.contains("2") } }
     }
 
     @Test
@@ -38,18 +38,6 @@ class CommentsRemovalTransformationTest : TransformationsTest(getResourcesRootPa
             inFile!!,
             inFile!!,
             getBackwardTransformationWrapper(CommentsRemovalTransformation::forwardApply)
-        )
-    }
-
-    @Test
-    fun testCommandStorage() {
-        assertCodeTransformation(
-            inFile!!,
-            inFile!!,
-            TransformationsTestHelper.getCommandStorageTransformationWrapper(
-                ::CommandPerformer,
-                CommentsRemovalTransformation::forwardApply
-            )
         )
     }
 }
