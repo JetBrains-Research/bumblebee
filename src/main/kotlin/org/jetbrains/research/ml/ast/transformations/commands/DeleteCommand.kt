@@ -197,20 +197,6 @@ class DeleteCommand(private val psiElement: PsiElement) : CommandProvider<Unit>(
     }
 }
 
-//class DelayedDeleteCommand(private val psiElement: PsiElement) : CommandProvider<PsiElement, Unit>() {
-////  Creates restorablePsiElement just before psiElement deletion
-//    lateinit var restorablePsiElement: RestorablePsiElement
-//
-//    override fun redo(input: PsiElement): Callable<Unit> {
-//        restorablePsiElement = RestorablePsiElement(psiElement)
-//        return Callable { restorablePsiElement.delete() }
-//    }
-//
-//    override fun undo(input: PsiElement): Callable<*> {
-//        return Callable { restorablePsiElement.restore() }
-//    }
-//}
-
 
 // Todo: make PsiUpdatesPublisher per PsiFile
 object PsiUpdatesPublisher {
@@ -232,7 +218,12 @@ object PsiUpdatesPublisher {
      * Notify all subscribers that some Psi is updated, so all stored onUpdates are called
      */
     fun notify(updatedPsi: UpdatedPsi) {
-        subscribedPsi[updatedPsi.oldPsi]?.let { it.forEach { onUpdate -> onUpdate(updatedPsi) } }
+        subscribedPsi[updatedPsi.oldPsi]?.let {
+            it.forEach { onUpdate -> onUpdate(updatedPsi) }
+//          Change key from oldPsi to newPsi
+            subscribedPsi[updatedPsi.newPsi] = it
+            subscribedPsi.remove(updatedPsi.oldPsi)
+        }
     }
 }
 

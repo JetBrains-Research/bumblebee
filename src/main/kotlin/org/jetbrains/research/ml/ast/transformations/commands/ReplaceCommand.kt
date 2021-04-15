@@ -10,7 +10,6 @@ import java.util.concurrent.Callable
 class ReplacablePsiElement(private var oldPsiElement: PsiElement, private var newPsiElement: PsiElement) {
     private val project = oldPsiElement.project
 
-
     init {
         PsiUpdatesPublisher.subscribe(oldPsiElement) { oldPsiElement = it.newPsi }
     }
@@ -21,7 +20,7 @@ class ReplacablePsiElement(private var oldPsiElement: PsiElement, private var ne
 //          oldPsiElement becomes invalid
             oldPsiElement.replace(newPsiElement)
         }
-//      Change newPsiElement to valid old value
+//      Change newPsiElement to valid old psi
         newPsiElement = validOldPsiElement
 //      Notify that oldPsiElement has changed, it also changes oldPsiElement value to the replacedElement, so now our elements are switched
         PsiUpdatesPublisher.notify(PsiUpdatesPublisher.UpdatedPsi(oldPsiElement, replacedPsiElement))
