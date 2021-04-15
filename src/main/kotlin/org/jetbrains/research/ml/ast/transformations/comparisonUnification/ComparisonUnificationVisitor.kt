@@ -7,6 +7,8 @@ import com.jetbrains.python.psi.PyElementType
 import com.jetbrains.python.psi.PyElementVisitor
 import org.jetbrains.research.ml.ast.transformations.commands.Command
 import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
+import org.jetbrains.research.ml.ast.transformations.commands.ReplaceCommand
+import org.jetbrains.research.ml.ast.transformations.deadcode.runInWCA
 
 internal class ComparisonUnificationVisitor(private val commandsPerformer: ICommandPerformer) :
     PyElementVisitor() {
@@ -42,8 +44,7 @@ internal class ComparisonUnificationVisitor(private val commandsPerformer: IComm
         val right = rightExpression ?: return
         val generator = PyElementGenerator.getInstance(project)
         val newBinaryExpression = generator.createBinaryExpression(binOperator, right, left)
-        // Todo: replace
-        commandsPerformer.performCommand(Command({ replace(newBinaryExpression) }, { }, "Replace binary expression"))
+        commandsPerformer.performCommand(ReplaceCommand(this, newBinaryExpression).getCommand("Replace binary expression"))
     }
 
     companion object {
