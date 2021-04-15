@@ -7,7 +7,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-@Ignore("Not supported yet")
 @RunWith(Parameterized::class)
 class AugmentedAssignmentTransformationTest :
     TransformationsTest(getResourcesRootPath(::AugmentedAssignmentTransformationTest)) {
@@ -15,6 +14,7 @@ class AugmentedAssignmentTransformationTest :
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
         fun getTestData() = getInAndOutArray(::AugmentedAssignmentTransformationTest, resourcesRoot)
+//            .filter { it.all { it.name.contains("1") } }
     }
 
     @Test
