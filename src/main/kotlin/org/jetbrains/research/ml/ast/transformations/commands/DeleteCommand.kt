@@ -22,7 +22,7 @@ import java.util.concurrent.Callable
  * Represents a range of adjacent siblings from [startPsi] (inclusive) to [endPsi] (inclusive),
  * siblings are the first (prev, next) siblings that meet a [condition]
  */
-class RestorablePsiElement(val psiElement: PsiElement) {
+class RestorablePsiElement(private var psiElement: PsiElement) {
 
     enum class Type {
         ONLY_CHILD, LEFT_CHILD, RIGHT_CHILD, MIDDLE_CHILD
@@ -43,8 +43,6 @@ class RestorablePsiElement(val psiElement: PsiElement) {
     private val type = findType()
     private val indents = RestorableIndents()
 
-
-
     private fun isIndent(psiElement: PsiElement) = psiElement is PsiWhiteSpace
 
     inner class RestorableIndents {
@@ -55,10 +53,10 @@ class RestorablePsiElement(val psiElement: PsiElement) {
         private val formattingModel = createFormattingModel()
 
         private fun createFormattingModel(): FormattingModel {
-            val builder = LanguageFormatting.INSTANCE.forContext(psiElement.containingFile)
-            require(builder != null) { "LanguageFormatting is null for ${psiElement.containingFile.name}" }
+            val builder = LanguageFormatting.INSTANCE.forContext(psiElement)
+            require(builder != null) { "LanguageFormatting is null for ${psiElement.text}" }
             val settings: CodeStyleSettings = CodeStyle.getSettings(project)
-            return builder.createModel(FormattingContext.create(psiElement.containingFile, settings))
+            return builder.createModel(FormattingContext.create(psiElement, settings))
         }
 
         private fun generateIndentFromText(text: String): PsiElement {
@@ -72,10 +70,15 @@ class RestorablePsiElement(val psiElement: PsiElement) {
 
         private fun findIndentBetween(leftPsi: PsiElement?, rightPsi: PsiElement?): PsiElement? {
             fun findIndent(firstPsi: PsiElement, secondPsi: PsiElement?, getNextPsi: (PsiElement) -> PsiElement?): PsiElement? {
-                val prevSibling = getNextPsi(firstPsi)
-                return prevSibling?.also {
-                    require(isIndent(it)) { "Prev sibling is not an indent" }
-                    require(getNextPsi(it) == secondPsi) { "There is more than one indent between left and right psi" }
+                val nextPsi = getNextPsi(firstPsi)
+                return nextPsi?.let {
+                    if (isIndent(it)) {
+                        require(getNextPsi(it) === secondPsi) { "There is more than one indent between left and right psi" }
+                        it
+                    } else {
+                        require(it === secondPsi) { "There is not an indent between left and right psi" }
+                        null
+                    }
                 }
             }
 
@@ -144,7 +147,7 @@ class RestorablePsiElement(val psiElement: PsiElement) {
         if (nextSibling != null && isIndent(nextSibling)) {
             nextSibling = getSibling(nextSibling)
         }
-        require(nextSibling == null || !isIndent(nextSibling)) { "More than two indents between psiElement and its sibling" }
+        require(nextSibling == null || !isIndent(nextSibling)) { "More than one indents between psiElement and its sibling" }
         return nextSibling?.also { s -> onUpdate?.let { PsiUpdatesPublisher.subscribe(s, onUpdate) } }
     }
 
@@ -179,17 +182,34 @@ class RestorablePsiElement(val psiElement: PsiElement) {
 
 
 
+// Note, you cannot redo it one more time after undo
+class DeleteCommand(private val psiElement: PsiElement) : CommandProvider<Unit>() {
+    //  Creates restorablePsiElement just before psiElement deletion
+    lateinit var restorablePsiElement: RestorablePsiElement
 
-object DeleteCommand : CommandProvider<RestorablePsiElement, Unit>() {
-
-    override fun redo(input: RestorablePsiElement): Callable<Unit> {
-        return Callable { input.delete() }
+    override fun redo(): Callable<Unit> {
+        restorablePsiElement = RestorablePsiElement(psiElement)
+        return Callable { restorablePsiElement.delete() }
     }
 
-    override fun undo(input: RestorablePsiElement): Callable<*> {
-        return Callable { input.restore() }
+    override fun undo(): Callable<*> {
+        return Callable { restorablePsiElement.restore() }
     }
 }
+
+//class DelayedDeleteCommand(private val psiElement: PsiElement) : CommandProvider<PsiElement, Unit>() {
+////  Creates restorablePsiElement just before psiElement deletion
+//    lateinit var restorablePsiElement: RestorablePsiElement
+//
+//    override fun redo(input: PsiElement): Callable<Unit> {
+//        restorablePsiElement = RestorablePsiElement(psiElement)
+//        return Callable { restorablePsiElement.delete() }
+//    }
+//
+//    override fun undo(input: PsiElement): Callable<*> {
+//        return Callable { restorablePsiElement.restore() }
+//    }
+//}
 
 
 // Todo: make PsiUpdatesPublisher per PsiFile
@@ -215,8 +235,5 @@ object PsiUpdatesPublisher {
         subscribedPsi[updatedPsi.oldPsi]?.let { it.forEach { onUpdate -> onUpdate(updatedPsi) } }
     }
 }
-
-
-fun PsiElement.makeRestorable() = RestorablePsiElement(this)
 
 

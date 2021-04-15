@@ -19,7 +19,7 @@ internal class CorrectToLeftAssociativity(private val commandPerformer: ICommand
                 val newNode = expressions.fold1 { acc, element ->
                     generator.createBinaryExpression(operator, acc, element)
                 }
-                // Todo: replace { } with the real undo
+                // Todo: replace
                 commandPerformer.performCommand(Command({ node.replace(newNode) }, { },"Replace node with left associativity"))
             }
         }
