@@ -237,7 +237,12 @@ object PsiUpdatesPublisher {
      * Notify all subscribers that some Psi is updated, so all stored onUpdates are called
      */
     fun notify(updatedPsi: UpdatedPsi) {
-        subscribedPsi[updatedPsi.oldPsi]?.let { it.forEach { onUpdate -> onUpdate(updatedPsi) } }
+        subscribedPsi[updatedPsi.oldPsi]?.let {
+            it.forEach { onUpdate -> onUpdate(updatedPsi) }
+//          Change key from oldPsi to newPsi
+            subscribedPsi[updatedPsi.newPsi] = it
+            subscribedPsi.remove(updatedPsi.oldPsi)
+        }
     }
 }
 
