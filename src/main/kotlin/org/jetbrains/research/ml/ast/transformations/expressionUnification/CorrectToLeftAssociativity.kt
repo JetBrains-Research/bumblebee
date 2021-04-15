@@ -20,7 +20,13 @@ internal class CorrectToLeftAssociativity(private val commandPerformer: ICommand
                     generator.createBinaryExpression(operator, acc, element)
                 }
                 // Todo: replace { } with the real undo
-                commandPerformer.performCommand(Command({ node.replace(newNode) }, { },"Replace node with left associativity"))
+                commandPerformer.performCommand(
+                    Command(
+                        { node.replace(newNode) },
+                        { },
+                        "Replace node with left associativity"
+                    )
+                )
             }
         }
         super.visitPyBinaryExpression(node)

@@ -36,16 +36,22 @@ internal class DeadCodeRemovalHeuristicVisitor(private val commandPerformer: ICo
                 // Todo: replace { } with the real undo
                 commandPerformer.performCommand(
                     Command(
-                    { node.ifPart.replace(newIfPart) },
+                        { node.ifPart.replace(newIfPart) },
                         { },
-                    "Replace false condition from \"if\"-node with condition from first \"elif\"-node"
+                        "Replace false condition from \"if\"-node with condition from first \"elif\"-node"
                     )
                 )
                 // Todo: replace { } with the real undo
                 commandPerformer.performCommand(Command({ firstElsePart.delete() }, { }, "Delete first \"elif\"-node"))
             } else {
                 // Todo: replace { } with the real undo
-                commandPerformer.performCommand(Command({ node.delete() }, {}, "Delete \"if\"-node with false condition"))
+                commandPerformer.performCommand(
+                    Command(
+                        { node.delete() },
+                        {},
+                        "Delete \"if\"-node with false condition"
+                    )
+                )
                 break
             }
         }
@@ -53,7 +59,13 @@ internal class DeadCodeRemovalHeuristicVisitor(private val commandPerformer: ICo
         for (ifElsePart in node.elifParts) {
             if (ifElsePart.condition?.evaluateBoolean() == false) {
                 // Todo: replace { } with the real undo
-                commandPerformer.performCommand(Command({ ifElsePart.delete() }, { },"Delete \"else\"-node with false condition"))
+                commandPerformer.performCommand(
+                    Command(
+                        { ifElsePart.delete() },
+                        { },
+                        "Delete \"else\"-node with false condition"
+                    )
+                )
             }
         }
     }
@@ -64,7 +76,13 @@ internal class DeadCodeRemovalHeuristicVisitor(private val commandPerformer: ICo
     private fun handleWhileFalseStatement(node: PyWhileStatement) {
         if (node.whilePart.condition?.evaluateBoolean() == false) {
             // Todo: replace { } with the real undo
-            commandPerformer.performCommand(Command({ node.delete() }, { }, "Delete \"while\"-node with false condition"))
+            commandPerformer.performCommand(
+                Command(
+                    { node.delete() },
+                    { },
+                    "Delete \"while\"-node with false condition"
+                )
+            )
         }
     }
 }
