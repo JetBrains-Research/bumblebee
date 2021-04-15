@@ -6,7 +6,7 @@ import org.jetbrains.research.ml.ast.transformations.PyUtils
 import org.jetbrains.research.ml.ast.transformations.commands.Command
 import org.jetbrains.research.ml.ast.transformations.commands.DeleteCommand
 import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
-import org.jetbrains.research.ml.ast.transformations.deadcode.runInWCA
+import org.jetbrains.research.ml.ast.util.runInWCA
 
 class MultipleTargetAssignmentVisitor(private val commandsPerformer: ICommandPerformer) : PyElementVisitor() {
     override fun visitPyAssignmentStatement(node: PyAssignmentStatement) {

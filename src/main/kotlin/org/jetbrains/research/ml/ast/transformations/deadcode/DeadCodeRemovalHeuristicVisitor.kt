@@ -4,8 +4,6 @@
 
 package org.jetbrains.research.ml.ast.transformations.deadcode
 
-import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.project.Project
 import com.jetbrains.python.psi.PyElementVisitor
 import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.PyIfStatement
@@ -15,8 +13,7 @@ import org.jetbrains.research.ml.ast.transformations.PyUtils
 import org.jetbrains.research.ml.ast.transformations.commands.Command
 import org.jetbrains.research.ml.ast.transformations.commands.DeleteCommand
 import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
-import org.jetbrains.research.ml.ast.transformations.commands.RestorablePsiElement
-import java.util.concurrent.Callable
+import org.jetbrains.research.ml.ast.util.runInWCA
 
 internal class DeadCodeRemovalHeuristicVisitor(private val commandPerformer: ICommandPerformer) :
     PyElementVisitor() {
@@ -77,10 +74,3 @@ internal class DeadCodeRemovalHeuristicVisitor(private val commandPerformer: ICo
 private fun PyExpression.evaluateBoolean(): Boolean? = PyEvaluator.evaluateAsBoolean(this)
 
 
-fun <T>runInWCA(project: Project, action: () -> T): Callable<T> {
-    return Callable {
-        WriteCommandAction.runWriteCommandAction<T>(project) {
-            action()
-        }
-    }
-}

@@ -8,7 +8,7 @@ import org.jetbrains.research.ml.ast.transformations.commands.Command
 import org.jetbrains.research.ml.ast.transformations.commands.DeleteCommand
 import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
 import org.jetbrains.research.ml.ast.transformations.constantfolding.PyEvaluatorImproved
-import org.jetbrains.research.ml.ast.transformations.deadcode.runInWCA
+import org.jetbrains.research.ml.ast.util.runInWCA
 import kotlin.test.fail
 
 class IfRedundantLinesRemover(
