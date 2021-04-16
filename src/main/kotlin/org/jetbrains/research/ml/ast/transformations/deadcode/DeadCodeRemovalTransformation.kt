@@ -19,6 +19,7 @@ import org.jetbrains.research.ml.ast.transformations.util.PsiUtil.acceptStatemen
 object DeadCodeRemovalTransformation : Transformation() {
     override val key: String = "DeadCodeRemoval"
 
+//    TODO: backward apply doesn't work because during removing function's body, new pass nodes automatically added
     override fun forwardApply(psiTree: PsiElement, commandPerformer: ICommandPerformer) {
         val heuristicVisitor = DeadCodeRemovalHeuristicVisitor(commandPerformer)
         val ifStatements = PsiTreeUtil.collectElementsOfType(psiTree, PyIfStatement::class.java)

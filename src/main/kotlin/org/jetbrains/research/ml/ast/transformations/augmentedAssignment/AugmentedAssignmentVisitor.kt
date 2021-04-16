@@ -2,11 +2,9 @@ package org.jetbrains.research.ml.ast.transformations.augmentedAssignment
 
 import com.jetbrains.python.psi.PyAugAssignmentStatement
 import com.jetbrains.python.psi.PyElementVisitor
-import org.jetbrains.research.ml.ast.transformations.*
-import org.jetbrains.research.ml.ast.transformations.commands.Command
+import org.jetbrains.research.ml.ast.transformations.PyUtils
 import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
 import org.jetbrains.research.ml.ast.transformations.commands.ReplaceCommand
-import org.jetbrains.research.ml.ast.transformations.deadcode.runInWCA
 
 internal class AugmentedAssignmentVisitor(private val commandsPerformer: ICommandPerformer) : PyElementVisitor() {
     override fun visitPyAugAssignmentStatement(node: PyAugAssignmentStatement) {

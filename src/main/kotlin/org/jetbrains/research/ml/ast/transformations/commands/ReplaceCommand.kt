@@ -17,6 +17,8 @@ class ReplacablePsiElement(private var oldPsiElement: PsiElement, private var ne
     fun switch(): PsiElement {
         val validOldPsiElement = generateFromText(oldPsiElement.text)
         val replacedPsiElement =  WriteCommandAction.runWriteCommandAction<PsiElement>(project) {
+            require(oldPsiElement.isValid) { "oldPsiElement is invalid" }
+            require(newPsiElement.isValid) { "newPsiElement is invalid" }
 //          oldPsiElement becomes invalid
             oldPsiElement.replace(newPsiElement)
         }
@@ -37,6 +39,19 @@ class ReplaceCommand(oldPsiElement: PsiElement, newPsiElement: PsiElement) : Com
     private val replacablePsiElement = ReplacablePsiElement(oldPsiElement, newPsiElement)
 
     override fun redo(): Callable<PsiElement> {
+        return Callable { replacablePsiElement.switch() }
+    }
+
+    override fun undo(): Callable<*> {
+        return Callable { replacablePsiElement.switch() }
+    }
+}
+
+class DelayedReplaceCommand(private val oldPsiElement: PsiElement, private val newPsiElement: PsiElement) : CommandProvider<PsiElement>() {
+    private lateinit var replacablePsiElement: ReplacablePsiElement
+
+    override fun redo(): Callable<PsiElement> {
+        replacablePsiElement = ReplacablePsiElement(oldPsiElement, newPsiElement)
         return Callable { replacablePsiElement.switch() }
     }
 

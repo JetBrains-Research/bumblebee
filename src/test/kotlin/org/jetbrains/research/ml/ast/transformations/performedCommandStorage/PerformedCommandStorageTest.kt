@@ -8,6 +8,7 @@ import org.jetbrains.research.ml.ast.transformations.anonymization.Anonymization
 import org.jetbrains.research.ml.ast.transformations.augmentedAssignment.AugmentedAssignmentTransformation
 import org.jetbrains.research.ml.ast.transformations.commands.CommandPerformer
 import org.jetbrains.research.ml.ast.transformations.commentsRemoval.CommentsRemovalTransformation
+import org.jetbrains.research.ml.ast.transformations.comparisonUnification.ComparisonUnificationTransformation
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsWithSdkTest
 import org.jetbrains.research.ml.ast.util.PsiFileHandler
 import org.junit.Ignore
@@ -37,7 +38,7 @@ class PerformedCommandStorageTest : TransformationsWithSdkTest(getResourcesRootP
 //            MultipleOperatorComparisonTransformation,
 //            MultipleTargetAssignmentTransformation,
 //            IfRedundantLinesRemovalTransformation,
-//            ComparisonUnificationTransformation,
+//            ComparisonUnificationTransformation
 //            OuterNotEliminationTransformation
         )
 

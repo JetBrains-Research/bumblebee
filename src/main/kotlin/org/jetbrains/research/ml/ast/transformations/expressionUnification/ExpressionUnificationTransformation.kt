@@ -12,6 +12,7 @@ import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
 object ExpressionUnificationTransformation : Transformation() {
     override val key: String = "ExpressionUnification"
 
+//   Todo: backward apply doesn't work because forward apply runs in recursive visitors, need to to something with it
     override fun forwardApply(psiTree: PsiElement, commandPerformer: ICommandPerformer) {
         val binaryExpressions = PsiTreeUtil.collectElementsOfType(psiTree, PyBinaryExpression::class.java)
         val ancestors = PsiTreeUtil.filterAncestors(binaryExpressions.toTypedArray())

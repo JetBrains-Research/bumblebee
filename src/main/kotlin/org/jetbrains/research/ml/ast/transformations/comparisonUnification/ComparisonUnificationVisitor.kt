@@ -5,10 +5,8 @@ import com.jetbrains.python.psi.PyBinaryExpression
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyElementType
 import com.jetbrains.python.psi.PyElementVisitor
-import org.jetbrains.research.ml.ast.transformations.commands.Command
 import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
 import org.jetbrains.research.ml.ast.transformations.commands.ReplaceCommand
-import org.jetbrains.research.ml.ast.transformations.deadcode.runInWCA
 
 internal class ComparisonUnificationVisitor(private val commandsPerformer: ICommandPerformer) :
     PyElementVisitor() {

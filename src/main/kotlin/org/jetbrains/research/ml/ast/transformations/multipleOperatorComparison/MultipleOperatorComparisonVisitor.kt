@@ -7,6 +7,8 @@ import com.jetbrains.python.psi.PyElementVisitor
 import org.jetbrains.research.ml.ast.transformations.PyUtils
 import org.jetbrains.research.ml.ast.transformations.commands.Command
 import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
+import org.jetbrains.research.ml.ast.transformations.commands.ReplaceCommand
+import org.jetbrains.research.ml.ast.util.runInWCA
 
 internal class MultipleOperatorComparisonVisitor(private val commandPerformer: ICommandPerformer) :
     PyElementVisitor() {
@@ -24,13 +26,13 @@ internal class MultipleOperatorComparisonVisitor(private val commandPerformer: I
         val newBinaryExpression = transformMultipleComparisonExpression(node, generator) ?: return
         val newBracedExpression = PyUtils.braceExpression(newBinaryExpression)
         // Todo: replace
-        commandPerformer.performCommand(
-            Command(
-                { node.replace(newBracedExpression) },
-                { },
-                "Replace multiple operation comparison with braced expression"
-            )
-        )
+        commandPerformer.performCommand(ReplaceCommand(node, newBracedExpression).getCommand("Replace multiple operation comparison with braced expression"))
+//            Command(
+//                runInWCA(node.project){ node.replace(newBracedExpression) },
+//                { },
+//                "Replace multiple operation comparison with braced expression"
+//            )
+
     }
 
     private fun transformMultipleComparisonExpression(

@@ -38,6 +38,7 @@ class RestorablePsiElement(private var psiElement: PsiElement) {
     private val type = findType()
     private val indents = RestorableIndents()
 
+
     private fun isIndent(psiElement: PsiElement) = psiElement is PsiWhiteSpace
 
     /**
@@ -89,7 +90,11 @@ class RestorablePsiElement(private var psiElement: PsiElement) {
          * null -- ??? -- null          =>   error("Cannot get indent between two nulls")
          */
         private fun findIndentBetween(leftPsi: PsiElement?, rightPsi: PsiElement?): PsiElement? {
-            fun findIndent(firstPsi: PsiElement, secondPsi: PsiElement?, getNextPsi: (PsiElement) -> PsiElement?): PsiElement? {
+            fun findIndent(
+                firstPsi: PsiElement,
+                secondPsi: PsiElement?,
+                getNextPsi: (PsiElement) -> PsiElement?
+            ): PsiElement? {
                 val nextPsi = getNextPsi(firstPsi)
                 return nextPsi?.let {
                     if (isIndent(it)) {
@@ -133,7 +138,10 @@ class RestorablePsiElement(private var psiElement: PsiElement) {
                 return
             }
             if (oldIndent == null) {
-                error("New indent after deletion")
+                WriteCommandAction.runWriteCommandAction(project) {
+                    newIndent.delete()
+                }
+                return
             }
             if (oldIndent.text != newIndent.text) {
                 WriteCommandAction.runWriteCommandAction(project) {
@@ -142,7 +150,6 @@ class RestorablePsiElement(private var psiElement: PsiElement) {
             }
         }
     }
-
 
 
     private fun findType(): Type {
@@ -183,6 +190,12 @@ class RestorablePsiElement(private var psiElement: PsiElement) {
         }
     }
 
+//  Todo: sometimes it doesn't generate the same tree from text, for example,
+//   PsiElement(Py:DOCSTRING)('"""\nThis is a triple\nquoted\nstring\n"""') instead of
+//   PsiElement(Py:TRIPLE_QUOTED_STRING)('"""\nThis is a triple\nquoted\nstring\n"""')
+//   (see CommentsRemoval tests with checkStructure after tests transformation),
+//   maybe it's okay in our case since docstrings are not a big deal, but if not, maybe use
+//   PyElementGenerator#createFromText(LanguageLevel langLevel, Class<T> aClass, final String text, final int[] path)
     private fun generateFromText(): PsiElement {
         val generator = PyElementGenerator.getInstance(project)
         return generator.createFromText(LanguageLevel.getDefault(), PsiElement::class.java, psiText)
@@ -193,13 +206,27 @@ class RestorablePsiElement(private var psiElement: PsiElement) {
         val psiElementToAdd = generateFromText()
         val addedPsiElement = when (type) {
             Type.ONLY_CHILD -> indents.addElement(psiElementToAdd) { parent.add(it) }
-            Type.LEFT_CHILD, Type.MIDDLE_CHILD -> indents.addElement(psiElementToAdd) { parent.addBefore(it, nextSibling) }
+            Type.LEFT_CHILD, Type.MIDDLE_CHILD -> indents.addElement(psiElementToAdd) {
+                parent.addBefore(
+                    it,
+                    nextSibling
+                )
+            }
             Type.RIGHT_CHILD -> indents.addElement(psiElementToAdd) { parent.addAfter(it, prevSibling) }
         }
+
+        //      Todo: should we also notify that all their children was restored?
+//        val oldNodes = psiElement.preOrder().toList()
+//        val newNodes = addedPsiElement.preOrder().toList()
+//
+//        require(oldNodes.size == newNodes.size) { "Old psi and new psi have different structures" }
+//        oldNodes.zip(newNodes).forEach { (oldPsi, newPsi) ->
+//            PsiUpdatesPublisher.notify(PsiUpdatesPublisher.UpdatedPsi(oldPsi, newPsi))
+//        }
         PsiUpdatesPublisher.notify(PsiUpdatesPublisher.UpdatedPsi(psiElement, addedPsiElement))
+
     }
 }
-
 
 
 // Note, you cannot redo it one more time after undo
@@ -214,35 +241,6 @@ class DeleteCommand(private val psiElement: PsiElement) : CommandProvider<Unit>(
 
     override fun undo(): Callable<*> {
         return Callable { restorablePsiElement.restore() }
-    }
-}
-
-// Todo: make PsiUpdatesPublisher per PsiFile
-object PsiUpdatesPublisher {
-    data class UpdatedPsi(val oldPsi: PsiElement, val newPsi: PsiElement)
-
-    /**
-     * Stores all actions need to be performed when some Psi has changes from old to new
-     */
-    private val subscribedPsi: MutableMap<PsiElement, MutableList<(UpdatedPsi) -> Unit>> = hashMapOf()
-
-    /**
-     * Subscribes on [psiElement] update event, performs [onUpdate] once it happens
-     */
-    fun subscribe(psiElement: PsiElement, onUpdate: (UpdatedPsi) -> Unit) {
-        subscribedPsi.getOrPut(psiElement, { arrayListOf() }).add(onUpdate)
-    }
-
-    /**
-     * Notify all subscribers that some Psi is updated, so all stored onUpdates are called
-     */
-    fun notify(updatedPsi: UpdatedPsi) {
-        subscribedPsi[updatedPsi.oldPsi]?.let {
-            it.forEach { onUpdate -> onUpdate(updatedPsi) }
-//          Change key from oldPsi to newPsi
-            subscribedPsi[updatedPsi.newPsi] = it
-            subscribedPsi.remove(updatedPsi.oldPsi)
-        }
     }
 }
 

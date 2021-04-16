@@ -13,6 +13,7 @@ import org.jetbrains.research.ml.ast.transformations.PyUtils
 import org.jetbrains.research.ml.ast.transformations.commands.Command
 import org.jetbrains.research.ml.ast.transformations.commands.DeleteCommand
 import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
+import org.jetbrains.research.ml.ast.transformations.commands.ReplaceCommand
 import org.jetbrains.research.ml.ast.util.runInWCA
 
 internal class DeadCodeRemovalHeuristicVisitor(private val commandPerformer: ICommandPerformer) :
@@ -35,14 +36,14 @@ internal class DeadCodeRemovalHeuristicVisitor(private val commandPerformer: ICo
             val firstElsePart = node.elifParts.firstOrNull()
             if (firstElsePart != null) {
                 val newIfPart = PyUtils.createPyIfElsePart(firstElsePart)
-                // Todo: replace
-                commandPerformer.performCommand(
-                    Command(
-                    runInWCA(node.project){ node.ifPart.replace(newIfPart) },
-                        { },
-                    "Replace false condition from \"if\"-node with condition from first \"elif\"-node"
-                    )
-                )
+                commandPerformer.performCommand(ReplaceCommand(node.ifPart, newIfPart).getCommand("Replace false condition from \"if\"-node with condition from first \"elif\"-node"))
+//                commandPerformer.performCommand(
+//                    Command(
+//                    runInWCA(node.project){ node.ifPart.replace(newIfPart) },
+//                        { },
+//                    "Replace false condition from \"if\"-node with condition from first \"elif\"-node"
+//                    )
+//                )
                 commandPerformer.performCommand(DeleteCommand(firstElsePart).getCommand("Delete first \"elif\"-node"))
 //                commandPerformer.performCommand(Command(runInWCA(node.project){ firstElsePart.delete() }, { }, "Delete first \"elif\"-node"))
             } else {
