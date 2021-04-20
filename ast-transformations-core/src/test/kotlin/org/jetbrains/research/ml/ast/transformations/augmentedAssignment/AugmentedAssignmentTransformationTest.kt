@@ -2,6 +2,7 @@ package org.jetbrains.research.ml.ast.transformations.augmentedAssignment
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -13,6 +14,7 @@ class AugmentedAssignmentTransformationTest :
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
         fun getTestData() = getInAndOutArray(::AugmentedAssignmentTransformationTest, resourcesRoot)
+//            .filter { it.all { it.name.contains("1") } }
     }
 
     @Test

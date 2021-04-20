@@ -1,11 +1,11 @@
 package org.jetbrains.research.ml.ast.transformations.anonymization
 
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.jetbrains.python.psi.PyFile
 import com.jetbrains.python.psi.PyRecursiveElementVisitor
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
-import org.jetbrains.research.ml.ast.transformations.safePerformCommand
+import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
+import org.jetbrains.research.ml.ast.transformations.commands.RenamablePsiElement
+import org.jetbrains.research.ml.ast.transformations.commands.RenameCommand
 
 class AnonymizationVisitor(file: PyFile) : PyRecursiveElementVisitor() {
     private val project = file.project
@@ -16,10 +16,12 @@ class AnonymizationVisitor(file: PyFile) : PyRecursiveElementVisitor() {
         super.visitElement(element)
     }
 
-    fun performAllRenames(commandsStorage: PerformedCommandStorage?) {
-        val renames = anonymizer.getAllRenames().map { RenameUtil.renameElementDelayed(it.first, it.second) }
-        WriteCommandAction.runWriteCommandAction(project) {
-            renames.forEach { commandsStorage.safePerformCommand(it, "Anonymize element") }
+    fun performAllRenames(commandsPerformer: ICommandPerformer) {
+        val allRenames = anonymizer.getAllRenames()
+
+        val renamablePsiElements = allRenames.map { (psi, newName) -> RenamablePsiElement(psi, newName) }
+        renamablePsiElements.forEach {
+            commandsPerformer.performCommand(RenameCommand(it).getCommand("Anonymize element"))
         }
     }
 }

@@ -9,11 +9,14 @@ import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.PyIfStatement
 import com.jetbrains.python.psi.PyWhileStatement
 import com.jetbrains.python.psi.impl.PyEvaluator
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PyUtils
-import org.jetbrains.research.ml.ast.transformations.safePerformCommand
+import org.jetbrains.research.ml.ast.transformations.commands.Command
+import org.jetbrains.research.ml.ast.transformations.commands.DeleteCommand
+import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
+import org.jetbrains.research.ml.ast.transformations.commands.ReplaceCommand
+import org.jetbrains.research.ml.ast.util.runInWCA
 
-internal class DeadCodeRemovalHeuristicVisitor(private val commandsStorage: PerformedCommandStorage?) :
+internal class DeadCodeRemovalHeuristicVisitor(private val commandPerformer: ICommandPerformer) :
     PyElementVisitor() {
     override fun visitPyIfStatement(node: PyIfStatement) {
         handleIfFalseStatement(node)
@@ -33,20 +36,27 @@ internal class DeadCodeRemovalHeuristicVisitor(private val commandsStorage: Perf
             val firstElsePart = node.elifParts.firstOrNull()
             if (firstElsePart != null) {
                 val newIfPart = PyUtils.createPyIfElsePart(firstElsePart)
-                commandsStorage.safePerformCommand(
-                    { node.ifPart.replace(newIfPart) },
-                    "Replace false condition from \"if\"-node with condition from first \"elif\"-node"
-                )
-                commandsStorage.safePerformCommand({ firstElsePart.delete() }, "Delete first \"elif\"-node")
+                commandPerformer.performCommand(ReplaceCommand(node.ifPart, newIfPart).getCommand("Replace false condition from \"if\"-node with condition from first \"elif\"-node"))
+//                commandPerformer.performCommand(
+//                    Command(
+//                    runInWCA(node.project){ node.ifPart.replace(newIfPart) },
+//                        { },
+//                    "Replace false condition from \"if\"-node with condition from first \"elif\"-node"
+//                    )
+//                )
+                commandPerformer.performCommand(DeleteCommand(firstElsePart).getCommand("Delete first \"elif\"-node"))
+//                commandPerformer.performCommand(Command(runInWCA(node.project){ firstElsePart.delete() }, { }, "Delete first \"elif\"-node"))
             } else {
-                commandsStorage.safePerformCommand({ node.delete() }, "Delete \"if\"-node with false condition")
+                commandPerformer.performCommand(DeleteCommand(node).getCommand("Delete \"if\"-node with false condition"))
+//                commandPerformer.performCommand(Command(runInWCA(node.project){ node.delete() }, {}, "Delete \"if\"-node with false condition"))
                 break
             }
         }
 
         for (ifElsePart in node.elifParts) {
             if (ifElsePart.condition?.evaluateBoolean() == false) {
-                commandsStorage.safePerformCommand({ ifElsePart.delete() }, "Delete \"else\"-node with false condition")
+                commandPerformer.performCommand(DeleteCommand(ifElsePart).getCommand("Delete \"else\"-node with false condition"))
+//                commandPerformer.performCommand(Command(runInWCA(node.project){ ifElsePart.delete() }, { },"Delete \"else\"-node with false condition"))
             }
         }
     }
@@ -56,9 +66,12 @@ internal class DeadCodeRemovalHeuristicVisitor(private val commandsStorage: Perf
      */
     private fun handleWhileFalseStatement(node: PyWhileStatement) {
         if (node.whilePart.condition?.evaluateBoolean() == false) {
-            commandsStorage.safePerformCommand({ node.delete() }, "Delete \"while\"-node with false condition")
+            commandPerformer.performCommand(DeleteCommand(node).getCommand("Delete \"while\"-node with false condition"))
+//            commandPerformer.performCommand(Command(runInWCA(node.project){ node.delete() }, { }, ))
         }
     }
 }
 
 private fun PyExpression.evaluateBoolean(): Boolean? = PyEvaluator.evaluateAsBoolean(this)
+
+

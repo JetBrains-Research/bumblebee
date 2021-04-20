@@ -6,9 +6,11 @@ import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.PyFile
 import org.jetbrains.research.ml.ast.transformations.*
+import org.jetbrains.research.ml.ast.transformations.commands.Command
+import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
 
 class ConstantFolder(
-    private val commandsStorage: PerformedCommandStorage?,
+    private val commandsPerformer: ICommandPerformer,
     private val generator: PyElementGenerator,
     file: PyFile
 ) {
@@ -30,16 +32,24 @@ class ConstantFolder(
     private fun simplifyByEvaluation(expression: PyExpression): (() -> PsiElement)? =
         when (val result = evaluator.evaluate(expression)) {
             is PyEvaluatorImproved.PyIntLike -> { ->
-                commandsStorage.safePerformCommandWithResult(
-                    { expression.replace(generator.createIntOrBoolExpression(result)) },
-                    "Evaluate integer-like constant"
+                // Todo: replace
+                commandsPerformer.performCommand(
+                    Command<PsiElement>(
+                        { expression.replace(generator.createIntOrBoolExpression(result)) },
+                        { },
+                        "Evaluate integer-like constant"
+                    )
                 )
             }
             is PyEvaluatorImproved.PyString ->
                 { ->
-                    commandsStorage.safePerformCommandWithResult(
-                        { expression.replace(generator.createStringLiteralFromString(result.string)) },
-                        "Evaluate string"
+                    // Todo: replace
+                    commandsPerformer.performCommand(
+                        Command<PsiElement>(
+                            { expression.replace(generator.createStringLiteralFromString(result.string)) },
+                            { },
+                            "Evaluate string"
+                        )
                     )
                 }
             is PyEvaluatorImproved.PySequence -> run {
@@ -50,29 +60,37 @@ class ConstantFolder(
                 }
                 val simplifyElements = result.elements.map { simplifyAllSubexpressionsDelayed(it) }
                 return@run {
-                    commandsStorage.safePerformCommandWithResult(
-                        {
-                            val newList = expression.replace(emptyLiteral) as PyExpression
-                            var anchor: PyExpression? = null
-                            for (simplifyElement in simplifyElements) {
-                                anchor = generator.insertItemIntoListRemoveRedundantCommas(
-                                    newList,
-                                    anchor,
-                                    simplifyElement() as PyExpression
-                                ) as PyExpression
-                            }
-                            newList
-                        },
-                        "Evaluate sequence"
+                    // Todo: replace???
+                    commandsPerformer.performCommand(
+                        Command<PsiElement>(
+                            {
+                                val newList = expression.replace(emptyLiteral) as PyExpression
+                                var anchor: PyExpression? = null
+                                for (simplifyElement in simplifyElements) {
+                                    anchor = generator.insertItemIntoListRemoveRedundantCommas(
+                                        newList,
+                                        anchor,
+                                        simplifyElement() as PyExpression
+                                    ) as PyExpression
+                                }
+                                newList
+                            },
+                            { },
+                            "Evaluate sequence"
+                        )
                     )
                 }
             }
             is PyEvaluatorImproved.PyExpressionResult -> run {
                 val simplifyNewExpression = simplifyAllSubexpressionsDelayed(result.expression)
                 return@run {
-                    commandsStorage.safePerformCommandWithResult(
-                        { expression.replace(simplifyNewExpression()) },
-                        "Evaluate to subexpression"
+                    // Todo: replace
+                    commandsPerformer.performCommand(
+                        Command<PsiElement>(
+                            { expression.replace(simplifyNewExpression()) },
+                            { },
+                            "Evaluate to subexpression"
+                        )
                     )
                 }
             }
@@ -80,31 +98,37 @@ class ConstantFolder(
                 val simplifyUnevaluated =
                     result.unevaluatedAtoms.map { simplifyAllSubexpressionsDelayed(it.expression) }
                 return@run {
-                    commandsStorage.safePerformCommandWithResult(
-                        {
-                            val valueOperand =
-                                listOfNotNull(result.evaluatedValue?.let { generator.createIntOrBoolExpression(it) })
-                            val newExpression = PyUtils.braceExpression(
-                                generator.createBinaryOperandList(
-                                    result.operator,
-                                    simplifyUnevaluated
-                                        .map { it() as PyExpression }
-                                        .mapIndexed { i, expr ->
-                                            if (result.unevaluatedAtoms[i].negate) {
-                                                generator.createPrefixExpression(
-                                                    "-",
-                                                    PyUtils.braceExpression(expr)
-                                                )
-                                            } else {
-                                                expr
-                                            }
-                                        } + valueOperand
+                    commandsPerformer.performCommand(
+                        // Todo: replace???
+                        Command<PsiElement>(
+                            {
+                                val valueOperand =
+                                    listOfNotNull(
+                                        result.evaluatedValue?.let { generator.createIntOrBoolExpression(it) }
+                                    )
+                                val newExpression = PyUtils.braceExpression(
+                                    generator.createBinaryOperandList(
+                                        result.operator,
+                                        simplifyUnevaluated
+                                            .map { it() as PyExpression }
+                                            .mapIndexed { i, expr ->
+                                                if (result.unevaluatedAtoms[i].negate) {
+                                                    generator.createPrefixExpression(
+                                                        "-",
+                                                        PyUtils.braceExpression(expr)
+                                                    )
+                                                } else {
+                                                    expr
+                                                }
+                                            } + valueOperand
 
+                                    )
                                 )
-                            )
-                            expression.replace(newExpression)
-                        },
-                        "Evaluate commutative operator partially"
+                                expression.replace(newExpression)
+                            },
+                            { },
+                            "Evaluate commutative operator partially"
+                        )
                     )
                 }
             }

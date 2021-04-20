@@ -1,7 +1,9 @@
 package org.jetbrains.research.ml.ast.transformations.anonymization
 
+import org.jetbrains.research.ml.ast.transformations.commands.CommandPerformer
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
+import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getCommandStorageTransformationWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -12,8 +14,7 @@ class AnonymizationTransformationTest : TransformationsTest(getResourcesRootPath
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
-        fun getTestData() =
-            getInAndOutArray(::AnonymizationTransformationTest, resourcesRoot)
+        fun getTestData() = getInAndOutArray(::AnonymizationTransformationTest, resourcesRoot)
     }
 
     @Test
@@ -31,6 +32,18 @@ class AnonymizationTransformationTest : TransformationsTest(getResourcesRootPath
             inFile!!,
             inFile!!,
             getBackwardTransformationWrapper(AnonymizationTransformation::forwardApply)
+        )
+    }
+
+    @Test
+    fun testCommandStorage() {
+        assertCodeTransformation(
+            inFile!!,
+            inFile!!,
+            getCommandStorageTransformationWrapper(
+                ::CommandPerformer,
+                AnonymizationTransformation::forwardApply
+            )
         )
     }
 }

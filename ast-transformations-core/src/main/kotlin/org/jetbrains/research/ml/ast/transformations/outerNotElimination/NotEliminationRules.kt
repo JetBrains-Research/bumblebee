@@ -2,8 +2,8 @@ package org.jetbrains.research.ml.ast.transformations.outerNotElimination
 
 import com.jetbrains.python.PyTokenTypes
 import com.jetbrains.python.psi.*
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
-import org.jetbrains.research.ml.ast.transformations.safePerformCommand
+import org.jetbrains.research.ml.ast.transformations.commands.Command
+import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
 
 private val PyExpression.isNegationExpression: Boolean
     get() {
@@ -48,14 +48,14 @@ internal sealed class NotEliminationRule {
 
     // Applies the expression. Returns the new expression.
     // In case of an error. `expression` is returned.
-    abstract fun apply(expression: PyPrefixExpression, commandsStorage: PerformedCommandStorage?): PyExpression
+    abstract fun apply(expression: PyPrefixExpression, commandPerformer: ICommandPerformer): PyExpression
 
     fun applyIfNeeded(
         expression: PyPrefixExpression,
-        commandsStorage: PerformedCommandStorage?
+        commandPerformer: ICommandPerformer
     ): PyExpression {
         return if (canApply(expression)) {
-            apply(expression, commandsStorage)
+            apply(expression, commandPerformer)
         } else {
             expression
         }
@@ -77,21 +77,24 @@ internal abstract class DeMorganNotEliminationRule : NotEliminationRule() {
 
     protected abstract val flippedBinaryOperator: String
 
-    override fun apply(expression: PyPrefixExpression, commandsStorage: PerformedCommandStorage?): PyExpression {
+    override fun apply(expression: PyPrefixExpression, commandPerformer: ICommandPerformer): PyExpression {
         val inner = expression.innerOperand as? PyBinaryExpression ?: return expression
         val generator = PyElementGenerator.getInstance(expression.project)
         val rightExpression = inner.rightExpression ?: return expression
         val myLeftExpression = generator.createNegationExpression(LanguageLevel.getDefault(), inner.leftExpression)
         val myRightExpression = generator.createNegationExpression(LanguageLevel.getDefault(), rightExpression)
-        val newLeftExpression = CompositeNotEliminationRule.applyIfNeeded(myLeftExpression, commandsStorage)
-        val newRightExpression = CompositeNotEliminationRule.applyIfNeeded(myRightExpression, commandsStorage)
+        val newLeftExpression = CompositeNotEliminationRule.applyIfNeeded(myLeftExpression, commandPerformer)
+        val newRightExpression = CompositeNotEliminationRule.applyIfNeeded(myRightExpression, commandPerformer)
         val myExpression = generator.createBinaryExpression(
             flippedBinaryOperator,
             newLeftExpression,
             newRightExpression
         )
         val newExpression = generator.createParenthesizedExpression(LanguageLevel.getDefault(), myExpression)
-        commandsStorage.safePerformCommand({ expression.replace(newExpression) }, "Apply De Morgan's law")
+        // Todo: replace
+        commandPerformer.performCommand(
+            Command({ expression.replace(newExpression) }, { }, "Apply De Morgan's law")
+        )
         return newExpression
     }
 }
@@ -110,8 +113,8 @@ internal object CompositeNotEliminationRule : NotEliminationRule() {
     private val RULES = listOf(NegationConjunctionRule, NegationDisjunctionRule)
     override fun canApply(expression: PyExpression): Boolean = RULES.any { it.canApply(expression) }
 
-    override fun apply(expression: PyPrefixExpression, commandsStorage: PerformedCommandStorage?): PyExpression {
+    override fun apply(expression: PyPrefixExpression, commandPerformer: ICommandPerformer): PyExpression {
         val rule = RULES.first { it.canApply(expression) }
-        return rule.apply(expression, commandsStorage)
+        return rule.apply(expression, commandPerformer)
     }
 }

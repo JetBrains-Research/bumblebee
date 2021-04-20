@@ -1,16 +1,20 @@
 package org.jetbrains.research.ml.ast.transformations.util
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
+import org.jetbrains.research.ml.ast.transformations.commands.Command
+import org.jetbrains.research.ml.ast.transformations.commands.CommandPerformer
+import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
 import org.jetbrains.research.ml.ast.util.FileTestUtil
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
 import org.jetbrains.research.ml.ast.util.PsiFileHandler
 import java.io.File
+import java.nio.charset.Charset
 import java.util.logging.Logger
 import kotlin.reflect.KFunction
 
@@ -60,7 +64,7 @@ object TransformationsTestHelper {
         logger.info("The expected code is:\n$expectedSrc")
         ApplicationManager.getApplication().invokeAndWait {
             transformation(psiInFile)
-            PsiTestUtil.checkFileStructure(psiInFile)
+//            PsiTestUtil.checkFileStructure(psiInFile)
         }
         fileHandler.formatPsiFile(psiInFile)
         val actualSrc = psiInFile.text
@@ -69,12 +73,71 @@ object TransformationsTestHelper {
     }
 
     fun getBackwardTransformationWrapper(
-        forwardTransformation: (PsiElement, cs: PerformedCommandStorage?) -> Unit
+        forwardTransformation: (PsiElement, cs: ICommandPerformer) -> Unit
     ): TransformationDelayed =
         { psi: PsiElement ->
-            val commandStorage = PerformedCommandStorage(psi)
+            val commandStorage = CommandPerformer(psi, true)
             forwardTransformation(psi, commandStorage)
             PsiTestUtil.checkFileStructure(psi as PsiFile)
-            commandStorage.undoPerformedCommands()
+//            Todo: call WriteCommandAction inside command?
+//            WriteCommandAction.runWriteCommandAction(psi.project) {
+                commandStorage.undoAllPerformedCommands()
+//            }
         }
+
+    fun getCommandStorageTransformationWrapper(
+        commandPerformerToTest: (PsiElement, Boolean) -> ICommandPerformer,
+        forwardTransformation: (PsiElement, cs: ICommandPerformer) -> Unit
+    ): TransformationDelayed =
+        { psi: PsiElement ->
+//          This commandStorage will perform all commands as commandStorageToTest does but with additional check between commands
+            val commandStorage = TestCommandPerformer(commandPerformerToTest(psi, true))
+            forwardTransformation(psi, commandStorage)
+//            PsiTestUtil.checkFileStructure(psi as PsiFile)
+
+//            Todo: call WriteCommandAction inside command?
+//            WriteCommandAction.runWriteCommandAction(psi.project) {
+                commandStorage.undoAllPerformedCommands()
+//            }
+        }
+}
+
+
+class TestCommandPerformer(private val performerToTest: ICommandPerformer) : ICommandPerformer {
+    override val psiTree: PsiElement = performerToTest.psiTree
+    private val codeStyleManager = CodeStyleManager.getInstance(psiTree.project)
+
+
+    private data class PsiText(private val psiTree: PsiElement) {
+        val psiText = psiTree.text.trim()
+        val virtualFileText =
+            psiTree.containingFile.virtualFile.contentsToByteArray().toString(Charset.defaultCharset()).trim()
+    }
+
+    override fun <T>performCommand(command: Command<T>): T {
+        val textBeforeCommand = PsiText(psiTree)
+        performerToTest.performCommand(command)
+
+//      perform undo and assert equals
+        undoPerformedCommands(1)
+        val textAfterUndoCommand = PsiText(psiTree)
+
+//      not sure should I assert virtual file texts?
+        BasePlatformTestCase.assertEquals(
+            "Psi texts after undoing ${command.description} don't match",
+            textBeforeCommand.psiText,
+            textAfterUndoCommand.psiText
+        )
+
+//      perform the command again
+        return performerToTest.performCommand(command)
+    }
+
+    override fun undoPerformedCommands(n: Int) {
+        performerToTest.undoPerformedCommands(n)
+    }
+
+    override fun undoAllPerformedCommands() {
+        performerToTest.undoAllPerformedCommands()
+    }
 }
