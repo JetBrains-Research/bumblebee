@@ -1,7 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations.commands
 
 import com.intellij.application.options.CodeStyle
-import com.intellij.formatting.FormattingContext
 import com.intellij.formatting.FormattingModel
 import com.intellij.lang.LanguageFormatting
 import com.intellij.openapi.command.WriteCommandAction
@@ -67,7 +66,7 @@ class RestorablePsiElement(private var psiElement: PsiElement) {
             val builder = LanguageFormatting.INSTANCE.forContext(psiElement)
             require(builder != null) { "LanguageFormatting is null for $psiText" }
             val settings: CodeStyleSettings = CodeStyle.getSettings(project)
-            return builder.createModel(FormattingContext.create(psiElement, settings))
+            return builder.createModel(psiElement, settings)
         }
 
         private fun generateIndentFromText(text: String): PsiElement {
