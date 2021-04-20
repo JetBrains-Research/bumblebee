@@ -1,5 +1,5 @@
 if False:
-    def print(x):
+    def not_print(x):
         pass
 
-print(1)
+not_print(1)

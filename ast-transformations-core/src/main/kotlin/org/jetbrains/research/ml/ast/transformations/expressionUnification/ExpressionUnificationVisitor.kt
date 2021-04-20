@@ -6,12 +6,12 @@ import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyElementType
 import com.jetbrains.python.psi.PyRecursiveElementVisitor
 import com.jetbrains.python.psi.types.TypeEvalContext
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
-import org.jetbrains.research.ml.ast.transformations.safePerformCommand
+import org.jetbrains.research.ml.ast.transformations.commands.Command
+import org.jetbrains.research.ml.ast.transformations.commands.ICommandPerformer
 
 internal class ExpressionUnificationVisitor(
     private val typeEvalContext: TypeEvalContext,
-    private val commandsStorage: PerformedCommandStorage?
+    private val commandPerformer: ICommandPerformer
 ) : PyRecursiveElementVisitor() {
     override fun visitPyBinaryExpression(node: PyBinaryExpression) {
         handleBinaryExpression(node)
@@ -21,8 +21,8 @@ internal class ExpressionUnificationVisitor(
     private var expressionOrder: String? = null
 
     private fun handleBinaryExpression(node: PyBinaryExpression) {
-        val leftVisitor = ExpressionUnificationVisitor(typeEvalContext, commandsStorage)
-        val rightVisitor = ExpressionUnificationVisitor(typeEvalContext, commandsStorage)
+        val leftVisitor = ExpressionUnificationVisitor(typeEvalContext, commandPerformer)
+        val rightVisitor = ExpressionUnificationVisitor(typeEvalContext, commandPerformer)
         node.leftExpression.accept(leftVisitor)
         node.rightExpression?.accept(rightVisitor)
 
@@ -54,7 +54,8 @@ internal class ExpressionUnificationVisitor(
         val right = rightExpression ?: return
         val generator = PyElementGenerator.getInstance(project)
         val newBinaryExpression = generator.createBinaryExpression(binOperator, right, left)
-        commandsStorage.safePerformCommand({ replace(newBinaryExpression) }, "Replace binary expression")
+        // Todo: replace
+        commandPerformer.performCommand(Command({ replace(newBinaryExpression) }, { }, "Replace binary expression"))
     }
 
     companion object {

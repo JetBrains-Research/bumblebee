@@ -14,6 +14,5 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
-        <appStarter implementation="org.jetbrains.research.ml.ast.cli.Runner"/>
     </extensions>
 </idea-plugin>
