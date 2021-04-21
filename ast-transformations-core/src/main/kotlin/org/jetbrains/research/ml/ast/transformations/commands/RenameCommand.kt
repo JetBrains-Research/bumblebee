@@ -1,8 +1,11 @@
 package org.jetbrains.research.ml.ast.transformations.commands
 
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.DumbService
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.PsiReference
 import com.intellij.refactoring.rename.RenamePsiElementProcessor
 import com.intellij.usageView.UsageInfo
 import java.util.concurrent.Callable
@@ -37,7 +40,9 @@ class RenamablePsiElement(private val psiElement: PsiElement, newName: String) {
     private fun renameSingleElementDelayed(definition: PsiElement, newName: String): () -> Unit {
         val processor = RenamePsiElementProcessor.forElement(definition)
         val useScope = definition.useScope
-        val references = processor.findReferences(definition, useScope, false)
+        val references = definition.project.service<DumbService>().runReadActionInSmartMode<Collection<PsiReference>> {
+            processor.findReferences(definition, useScope, false)
+        }
         val usages = references.map { UsageInfo(it) }.toTypedArray()
         return {
             WriteCommandAction.runWriteCommandAction(definition.project) {
