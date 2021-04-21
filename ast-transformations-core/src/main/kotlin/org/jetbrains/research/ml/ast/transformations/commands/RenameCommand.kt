@@ -11,8 +11,8 @@ import java.util.concurrent.Callable
 class RenamablePsiElement(private val psiElement: PsiElement, newName: String) {
     private val oldName: String =
         (psiElement as PsiNamedElement).name ?: error("Element ${psiElement.text} does not have name")
-    private val delayedNewRenames = renameElementDelayed(psiElement, newName)
-    private val delayedOldRenames = renameElementDelayed(psiElement, oldName)
+    private val delayedNewRenames = { renameElementDelayed(psiElement, newName)() }
+    private val delayedOldRenames = { renameElementDelayed(psiElement, oldName)() }
 
     fun performNewRenames() {
         WriteCommandAction.runWriteCommandAction(psiElement.project) {
