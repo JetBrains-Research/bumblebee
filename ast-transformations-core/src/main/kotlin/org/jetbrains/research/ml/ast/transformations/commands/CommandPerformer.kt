@@ -1,5 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.commands
 
+import com.intellij.openapi.components.service
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import java.util.logging.Logger
 
@@ -13,6 +15,10 @@ interface ICommandPerformer {
 
 
 class CommandPerformer(override val psiTree: PsiElement, private val toUndoCommands: Boolean) : ICommandPerformer {
+    private val psiDocumentManager = psiTree.project.service<PsiDocumentManager>()
+    private val document by lazy {
+        psiDocumentManager.getDocument(psiTree.containingFile) ?: error("")
+    }
     private val logger = Logger.getLogger(javaClass.name)
     private val commands = ArrayDeque<Command<*>>()
 
@@ -31,6 +37,7 @@ class CommandPerformer(override val psiTree: PsiElement, private val toUndoComma
         repeat(n) {
             val commandToUndo = commands.removeLastOrNull() ?: error("No more commands stored for being undone")
             commandToUndo.undo.call()
+            psiDocumentManager.commitDocument(document)
         }
     }
 
