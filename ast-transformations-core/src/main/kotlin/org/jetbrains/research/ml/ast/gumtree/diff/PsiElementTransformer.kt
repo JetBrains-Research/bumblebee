@@ -14,7 +14,7 @@ import org.jetbrains.research.ml.ast.gumtree.tree.Numbering.PsiTreeUtils.Compani
 import org.jetbrains.research.ml.ast.gumtree.tree.Numbering.PsiTreeUtils.Companion.setId
 
 data class PsiTransformation(
-    val srcPsi: PsiElement,
+    private val srcPsi: PsiElement,
     private val dstPsi: PsiElement,
     private val numbering: Numbering,
     val toIgnoreWhiteSpaces: Boolean = true
