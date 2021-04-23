@@ -53,8 +53,6 @@ class PsiElementTransformer(
         (others + update).forEach {
             try {
                 applyAction(it, transformation)
-                println(transformation.srcPsi.text)
-                println("_____")
             } catch (e: IncorrectOperationException) {
                 println("Try execute action ${it.name} with node: id=${it.node.id}, label=${it.node.label}, but fail")
             }
