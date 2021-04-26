@@ -35,7 +35,15 @@ class PsiElementTransformer(
 ) {
     private val generator = PyElementGenerator.getInstance(project)
 
-    // Should be run in WriteAction
+    /*
+     * We can sometimes skip some actions since the PSI tree has a more complex structure than the
+     * GumTree one. For example, if we delete a parent in PSI, then all children will automatically be
+     * invalid and deleted, but in the GumTree actions, we will have a delete action for all vertices.
+     * Therefore, in some actions, there is an empty exit from the applying of this action, and
+     * no exception is thrown.
+     *
+     * Should be run in WriteAction
+     */
     private fun applyAction(action: Action, transformation: PsiTransformation) {
         // TODO: should we store actions to compare with transformations actions??
         when (action) {
@@ -47,15 +55,10 @@ class PsiElementTransformer(
         }
     }
 
-    // TODO: it seems we should use simple <applyAction>
     fun applyActions(actions: List<Action>, transformation: PsiTransformation) {
         val (update, others) = actions.partition { it is Update }
         (others + update).forEach {
-            try {
-                applyAction(it, transformation)
-            } catch (e: IncorrectOperationException) {
-                println("Try execute action ${it.name} with node: id=${it.node.id}, label=${it.node.label}, but fail")
-            }
+            applyAction(it, transformation)
         }
     }
 
@@ -118,12 +121,6 @@ class PsiElementTransformer(
         this.applyDelete(transformation)
     }
 
-    private fun String.replaceInRange(startOffset: Int, oldValue: String, newValue: String): String {
-        return this.slice(IntRange(0, startOffset - 1)) +
-            this.slice(IntRange(startOffset, startOffset + oldValue.length - 1)).replace(oldValue, newValue) +
-            this.slice(IntRange(startOffset + oldValue.length, this.length - 1))
-    }
-
     private fun Update.apply(transformation: PsiTransformation) {
         val psiElement = this.getPsiElementById(transformation.srcPsiNodes, "Source ")
         var newPsiElement: PsiElement? = null
@@ -140,7 +137,8 @@ class PsiElementTransformer(
             try {
                 // We should handle renaming as a separated case
                 val newText = (psiElement as? PyElement)?.name?.let {
-                    currentPsi.text.replaceInRange(rootStartOffset, this.node.label, this.value)
+                    currentPsi.text
+                        .replaceRange(rootStartOffset, rootStartOffset + this.node.label.length, this.value)
                 } ?: currentPsi.text.replace(this.node.label, this.value)
                 newPsiElement = generator.createFromText(LanguageLevel.getDefault(), currentPsi::class.java, newText)
             } catch (e: IllegalArgumentException) {
