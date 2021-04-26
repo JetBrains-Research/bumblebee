@@ -4,7 +4,6 @@ import com.github.gumtreediff.actions.model.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.intellij.util.IncorrectOperationException
 import com.jetbrains.python.psi.LanguageLevel
 import com.jetbrains.python.psi.PyElement
 import com.jetbrains.python.psi.PyElementGenerator
