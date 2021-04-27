@@ -9,12 +9,9 @@ import com.jetbrains.python.psi.PyExpression
 import com.jetbrains.python.psi.PyIfStatement
 import com.jetbrains.python.psi.PyWhileStatement
 import com.jetbrains.python.psi.impl.PyEvaluator
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.transformations.PyUtils
-import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
-internal class DeadCodeRemovalHeuristicVisitor(private val commandsStorage: PerformedCommandStorage?) :
-    PyElementVisitor() {
+internal class DeadCodeRemovalHeuristicVisitor : PyElementVisitor() {
     override fun visitPyIfStatement(node: PyIfStatement) {
         handleIfFalseStatement(node)
         super.visitPyIfStatement(node)
@@ -33,20 +30,17 @@ internal class DeadCodeRemovalHeuristicVisitor(private val commandsStorage: Perf
             val firstElsePart = node.elifParts.firstOrNull()
             if (firstElsePart != null) {
                 val newIfPart = PyUtils.createPyIfElsePart(firstElsePart)
-                commandsStorage.safePerformCommand(
-                    { node.ifPart.replace(newIfPart) },
-                    "Replace false condition from \"if\"-node with condition from first \"elif\"-node"
-                )
-                commandsStorage.safePerformCommand({ firstElsePart.delete() }, "Delete first \"elif\"-node")
+                node.ifPart.replace(newIfPart)
+                firstElsePart.delete()
             } else {
-                commandsStorage.safePerformCommand({ node.delete() }, "Delete \"if\"-node with false condition")
+                node.delete()
                 break
             }
         }
 
         for (ifElsePart in node.elifParts) {
             if (ifElsePart.condition?.evaluateBoolean() == false) {
-                commandsStorage.safePerformCommand({ ifElsePart.delete() }, "Delete \"else\"-node with false condition")
+                ifElsePart.delete()
             }
         }
     }
@@ -56,7 +50,7 @@ internal class DeadCodeRemovalHeuristicVisitor(private val commandsStorage: Perf
      */
     private fun handleWhileFalseStatement(node: PyWhileStatement) {
         if (node.whilePart.condition?.evaluateBoolean() == false) {
-            commandsStorage.safePerformCommand({ node.delete() }, "Delete \"while\"-node with false condition")
+            node.delete()
         }
     }
 }

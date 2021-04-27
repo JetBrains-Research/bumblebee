@@ -1,7 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations.anonymization
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -22,15 +21,6 @@ class AnonymizationTransformationTest : TransformationsTest(getResourcesRootPath
             inFile!!,
             outFile!!,
             AnonymizationTransformation::forwardApply
-        )
-    }
-
-    @Test
-    fun testBackwardTransformation() {
-        assertCodeTransformation(
-            inFile!!,
-            inFile!!,
-            getBackwardTransformationWrapper(AnonymizationTransformation::forwardApply)
         )
     }
 }

@@ -5,10 +5,8 @@ import com.jetbrains.python.psi.PyBinaryExpression
 import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyElementType
 import com.jetbrains.python.psi.PyElementVisitor
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
-import org.jetbrains.research.ml.ast.transformations.safePerformCommand
 
-internal class ComparisonUnificationVisitor(private val commandsStorage: PerformedCommandStorage?) :
+internal class ComparisonUnificationVisitor :
     PyElementVisitor() {
     override fun visitPyBinaryExpression(node: PyBinaryExpression) {
         handleBinaryExpression(node)
@@ -42,7 +40,7 @@ internal class ComparisonUnificationVisitor(private val commandsStorage: Perform
         val right = rightExpression ?: return
         val generator = PyElementGenerator.getInstance(project)
         val newBinaryExpression = generator.createBinaryExpression(binOperator, right, left)
-        commandsStorage.safePerformCommand({ replace(newBinaryExpression) }, "Replace binary expression")
+        replace(newBinaryExpression)
     }
 
     companion object {

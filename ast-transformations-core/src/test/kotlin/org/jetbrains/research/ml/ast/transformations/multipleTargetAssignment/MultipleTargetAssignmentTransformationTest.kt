@@ -1,7 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations.multipleTargetAssignment
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -20,15 +19,6 @@ class MultipleTargetAssignmentTransformationTest : TransformationsTest(getResour
             inFile!!,
             outFile!!,
             MultipleTargetAssignmentTransformation::forwardApply
-        )
-    }
-
-    @Test
-    fun testBackwardTransformation() {
-        assertCodeTransformation(
-            inFile!!,
-            inFile!!,
-            getBackwardTransformationWrapper(MultipleTargetAssignmentTransformation::forwardApply)
         )
     }
 }

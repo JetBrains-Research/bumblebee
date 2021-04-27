@@ -2,11 +2,9 @@ package org.jetbrains.research.ml.ast.transformations.util
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
-import org.jetbrains.research.ml.ast.transformations.PerformedCommandStorage
 import org.jetbrains.research.ml.ast.util.FileTestUtil
 import org.jetbrains.research.ml.ast.util.ParametrizedBaseTest
 import org.jetbrains.research.ml.ast.util.PsiFileHandler
@@ -67,14 +65,4 @@ object TransformationsTestHelper {
         logger.info("The actual code is:\n$actualSrc")
         BasePlatformTestCase.assertEquals(expectedSrc, actualSrc)
     }
-
-    fun getBackwardTransformationWrapper(
-        forwardTransformation: (PsiElement, cs: PerformedCommandStorage?) -> Unit
-    ): TransformationDelayed =
-        { psi: PsiElement ->
-            val commandStorage = PerformedCommandStorage(psi)
-            forwardTransformation(psi, commandStorage)
-            PsiTestUtil.checkFileStructure(psi as PsiFile)
-            commandStorage.undoPerformedCommands()
-        }
 }

@@ -12,7 +12,6 @@ abstract class Transformation {
     /**
      * Applying forward transformation.
      * @param [psiTree] - a hierarchy of PSI elements
-     * @param [commandsStorage] - if not null, all commands, performed on [psiTree], will be saved and available to undo.
      */
-    abstract fun forwardApply(psiTree: PsiElement, commandsStorage: PerformedCommandStorage? = null)
+    abstract fun forwardApply(psiTree: PsiElement)
 }

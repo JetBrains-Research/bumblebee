@@ -1,7 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations.multipleOperatorComparison
 
 import org.jetbrains.research.ml.ast.transformations.util.TransformationsTest
-import org.jetbrains.research.ml.ast.transformations.util.TransformationsTestHelper.getBackwardTransformationWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -21,15 +20,6 @@ class MultipleOperatorComparisonTransformationTest :
             inFile!!,
             outFile!!,
             MultipleOperatorComparisonTransformation::forwardApply
-        )
-    }
-
-    @Test
-    fun testBackwardTransformation() {
-        assertCodeTransformation(
-            inFile!!,
-            inFile!!,
-            getBackwardTransformationWrapper(MultipleOperatorComparisonTransformation::forwardApply)
         )
     }
 }
