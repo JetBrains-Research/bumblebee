@@ -48,4 +48,19 @@ open class TransformationsTest(testDataRoot: String) : ParametrizedBaseTest(test
             PsiFileHandler(myFixture, project)
         )
     }
+
+    fun assertInverseCodeTransformation(
+        inFile: File,
+        outFile: File,
+        transformation: TransformationDelayed,
+        inverseTransformation: TransformationDelayed
+    ) {
+        TransformationsTestHelper.assertCodeInverseTransformation(
+            inFile,
+            outFile,
+            transformation,
+            inverseTransformation,
+            PsiFileHandler(myFixture, project)
+        )
+    }
 }

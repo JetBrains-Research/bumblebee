@@ -1,11 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.anonymization
 
 import com.intellij.psi.PsiElement
-import com.jetbrains.python.psi.PyClass
-import com.jetbrains.python.psi.PyFunction
-import com.jetbrains.python.psi.PyImportElement
-import com.jetbrains.python.psi.PyNamedParameter
-import com.jetbrains.python.psi.PyTargetExpression
+import com.jetbrains.python.psi.*
 
 enum class NamedEntityKind(val prefix: String) {
     Function("f"),
@@ -14,6 +10,7 @@ enum class NamedEntityKind(val prefix: String) {
     Parameter("p"),
     NamedImport("m"),
     Lambda("l");
+
     companion object {
         fun getElementKind(element: PsiElement): NamedEntityKind? = when (element) {
             is PyFunction -> Function

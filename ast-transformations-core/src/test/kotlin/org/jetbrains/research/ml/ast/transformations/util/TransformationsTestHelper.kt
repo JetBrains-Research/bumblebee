@@ -1,6 +1,6 @@
 package org.jetbrains.research.ml.ast.transformations.util
 
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.testFramework.PsiTestUtil
@@ -56,8 +56,37 @@ object TransformationsTestHelper {
         }
         val expectedSrc = expectedPsiInFile.text
         logger.info("The expected code is:\n$expectedSrc")
-        ApplicationManager.getApplication().invokeAndWait {
+        WriteCommandAction.runWriteCommandAction(fileHandler.project) {
             transformation(psiInFile)
+            PsiTestUtil.checkFileStructure(psiInFile)
+        }
+        fileHandler.formatPsiFile(psiInFile)
+        val actualSrc = psiInFile.text
+        logger.info("The actual code is:\n$actualSrc")
+        BasePlatformTestCase.assertEquals(expectedSrc, actualSrc)
+    }
+
+    fun assertCodeInverseTransformation(
+        inFile: File,
+        outFile: File,
+        transformation: TransformationDelayed,
+        inverseTransformation: TransformationDelayed,
+        fileHandler: PsiFileHandler
+    ) {
+        logger.info("The current input file is: ${inFile.path}")
+        logger.info("The current output file is: ${outFile.path}")
+        val psiInFile = fileHandler.getPsiFile(inFile)
+        val expectedPsiInFile = if (inFile.path == outFile.path) {
+            psiInFile
+        } else {
+            fileHandler.getPsiFile(outFile)
+        }
+        val expectedSrc = expectedPsiInFile.text
+        logger.info("The expected code is:\n$expectedSrc")
+        WriteCommandAction.runWriteCommandAction(fileHandler.project) {
+            transformation(psiInFile)
+            PsiTestUtil.checkFileStructure(psiInFile)
+            inverseTransformation(psiInFile)
             PsiTestUtil.checkFileStructure(psiInFile)
         }
         fileHandler.formatPsiFile(psiInFile)

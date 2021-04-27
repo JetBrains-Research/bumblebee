@@ -25,7 +25,7 @@ allprojects {
     intellij {
         type = "PC"
         version = "2020.3.3"
-        downloadSources = false
+        downloadSources = true
         setPlugins("PythonCore")
         updateSinceUntilBuild = true
     }

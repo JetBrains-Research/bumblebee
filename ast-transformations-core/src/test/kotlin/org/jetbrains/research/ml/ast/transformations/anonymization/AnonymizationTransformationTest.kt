@@ -13,14 +13,28 @@ class AnonymizationTransformationTest : TransformationsTest(getResourcesRootPath
         @Parameterized.Parameters(name = "{index}: ({0}, {1})")
         fun getTestData() =
             getInAndOutArray(::AnonymizationTransformationTest, resourcesRoot)
+                .filter { it[0].name.contains("fake") }
+//                .filter { it[0].name.contains("in_3_o") }
     }
 
     @Test
     fun testForwardTransformation() {
+        val transformation = AnonymizationTransformation()
         assertCodeTransformation(
             inFile!!,
             outFile!!,
-            AnonymizationTransformation::forwardApply
+            transformation::forwardApply
+        )
+    }
+
+    @Test
+    fun testDeanonymization() {
+        val transformation = AnonymizationTransformation()
+        assertInverseCodeTransformation(
+            inFile!!,
+            inFile!!,
+            transformation::forwardApply,
+            transformation::inverseApply
         )
     }
 }

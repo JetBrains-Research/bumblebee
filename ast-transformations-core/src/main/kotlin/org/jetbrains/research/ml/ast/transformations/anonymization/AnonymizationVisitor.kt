@@ -1,21 +1,15 @@
 package org.jetbrains.research.ml.ast.transformations.anonymization
 
-import com.intellij.psi.PsiElement
-import com.jetbrains.python.psi.PyFile
+import com.jetbrains.python.psi.PyElement
 import com.jetbrains.python.psi.PyRecursiveElementVisitor
 
-class AnonymizationVisitor(file: PyFile) : PyRecursiveElementVisitor() {
-    private val project = file.project
+class AnonymizationVisitor : PyRecursiveElementVisitor() {
     private val anonymizer = ElementAnonymizer()
 
-    override fun visitElement(element: PsiElement) {
-        anonymizer.registerElement(element)
-        super.visitElement(element)
+    override fun visitPyElement(node: PyElement) {
+        anonymizer.registerIfNeeded(node)
+        super.visitPyElement(node)
     }
 
-    fun performAllRenames() {
-        val renames = anonymizer.getAllRenames().map { RenameUtil.renameElementDelayed(it.first, it.second) }
-        for (rename in renames)
-            rename()
-    }
+    fun collectedRenames(): Map<PyElement, String> = anonymizer.getAllRenames()
 }
