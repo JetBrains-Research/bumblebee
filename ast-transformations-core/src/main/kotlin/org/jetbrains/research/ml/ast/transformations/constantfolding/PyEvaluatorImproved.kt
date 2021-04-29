@@ -120,7 +120,7 @@ class PyEvaluatorImproved(file: PyFile) {
             is PyNumericLiteralExpression ->
                 expression.takeIf { it.isIntegerLiteral }?.bigIntegerValue?.let { PyInt(it) }
             is PyStringLiteralExpression -> {
-                if (expression.isComment || expression.isModuleMember) {
+                if (expression.isComment || expression.isModuleMember || expression.isInterpolated) {
                     null
                 } else {
                     PyString(expression.stringValue)
