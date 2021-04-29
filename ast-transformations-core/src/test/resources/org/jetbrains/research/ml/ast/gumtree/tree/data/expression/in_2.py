@@ -1,1 +1,0 @@
-a = True and False and not False

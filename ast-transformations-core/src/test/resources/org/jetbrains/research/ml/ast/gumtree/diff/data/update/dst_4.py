@@ -1,1 +1,0 @@
-a = f'bar{6} test'

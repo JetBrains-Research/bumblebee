@@ -82,7 +82,6 @@ class ElementAnonymizer {
 
     private fun computeParentOfDefinition(definition: PyElement): PyElement? =
         if (!isElementGlobal(definition)) ScopeUtil.getScopeOwner(definition) else null
-
 }
 
 internal fun PyElement.isDefinition(): Boolean {

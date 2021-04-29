@@ -1,2 +1,0 @@
-def print(x):
-    pass

@@ -7,7 +7,7 @@ import com.jetbrains.python.psi.PyReferenceExpression
 internal class InputDescriptionEliminationVisitor : PyElementVisitor() {
     override fun visitPyCallExpression(node: PyCallExpression) {
         if (node.isInputCall() && node.argumentList?.arguments?.isNotEmpty() == true) {
-                    node.argumentList?.arguments?.forEach { it.delete() }
+            node.argumentList?.arguments?.forEach { it.delete() }
         }
     }
 }
