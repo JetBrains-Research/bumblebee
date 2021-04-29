@@ -397,7 +397,6 @@ class PyEvaluatorImproved(file: PyFile) {
     }
 }
 
-
 private fun PyStringLiteralExpression.isFString(): Boolean {
     // for 2020.1
     return this.stringElements.filterIsInstance<PyFormattedStringElement>().any { it.fragments.isNotEmpty() }

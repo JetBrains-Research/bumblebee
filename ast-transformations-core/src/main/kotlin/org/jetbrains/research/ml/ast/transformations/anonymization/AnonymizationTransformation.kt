@@ -24,20 +24,22 @@ class AnonymizationTransformation : InversableTransformation() {
         // bug in intellij with buildin 5. PyCharm thinks that print is reserved name.
         val existedRenames = allRenames
         val originRenames = mutableMapOf<PyElement, String>()
-        psiTree.accept(object : PyRecursiveElementVisitor() {
-            override fun visitPyElement(node: PyElement) {
-                if (node.isDefinition()) {
-                    node.name?.also { nodeName ->
-                        existedRenames[nodeName]?.also { originalName ->
-                            if (!originRenames.containsValue(originalName)) {
-                                originRenames[node] = originalName
+        psiTree.accept(
+            object : PyRecursiveElementVisitor() {
+                override fun visitPyElement(node: PyElement) {
+                    if (node.isDefinition()) {
+                        node.name?.also { nodeName ->
+                            existedRenames[nodeName]?.also { originalName ->
+                                if (!originRenames.containsValue(originalName)) {
+                                    originRenames[node] = originalName
+                                }
                             }
                         }
                     }
+                    super.visitPyElement(node)
                 }
-                super.visitPyElement(node)
             }
-        })
+        )
         performAllRenames(psiTree.project, originRenames)
     }
 
