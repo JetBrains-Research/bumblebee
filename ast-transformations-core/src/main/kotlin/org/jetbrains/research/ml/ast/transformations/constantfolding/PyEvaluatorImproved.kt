@@ -1,21 +1,7 @@
 package org.jetbrains.research.ml.ast.transformations.constantfolding
 
 import com.jetbrains.python.PyTokenTypes
-import com.jetbrains.python.psi.PyBinaryExpression
-import com.jetbrains.python.psi.PyBoolLiteralExpression
-import com.jetbrains.python.psi.PyElementType
-import com.jetbrains.python.psi.PyExpression
-import com.jetbrains.python.psi.PyFile
-import com.jetbrains.python.psi.PyKeyValueExpression
-import com.jetbrains.python.psi.PyListLiteralExpression
-import com.jetbrains.python.psi.PyLiteralExpression
-import com.jetbrains.python.psi.PyNumericLiteralExpression
-import com.jetbrains.python.psi.PyParenthesizedExpression
-import com.jetbrains.python.psi.PyPrefixExpression
-import com.jetbrains.python.psi.PyReferenceExpression
-import com.jetbrains.python.psi.PySequenceExpression
-import com.jetbrains.python.psi.PyStringLiteralExpression
-import com.jetbrains.python.psi.PyTupleExpression
+import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.impl.PyBuiltinCache
 import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
 import com.jetbrains.python.psi.types.PyModuleType
@@ -120,7 +106,7 @@ class PyEvaluatorImproved(file: PyFile) {
             is PyNumericLiteralExpression ->
                 expression.takeIf { it.isIntegerLiteral }?.bigIntegerValue?.let { PyInt(it) }
             is PyStringLiteralExpression -> {
-                if (expression.isComment || expression.isModuleMember || expression.isInterpolated) {
+                if (expression.isComment || expression.isModuleMember || expression.isFString()) {
                     null
                 } else {
                     PyString(expression.stringValue)
@@ -409,4 +395,10 @@ class PyEvaluatorImproved(file: PyFile) {
             BITXOR(PyInt.ZERO, PyTokenTypes.XOR, "^", PyBool.FALSE)
         }
     }
+}
+
+
+private fun PyStringLiteralExpression.isFString(): Boolean {
+    // for 2020.1
+    return this.stringElements.filterIsInstance<PyFormattedStringElement>().any { it.fragments.isNotEmpty() }
 }
