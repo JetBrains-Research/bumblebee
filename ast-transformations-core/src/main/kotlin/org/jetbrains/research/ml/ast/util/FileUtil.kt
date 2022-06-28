@@ -46,8 +46,9 @@ fun addPyFileToProject(
 ): File {
     val filePath = "$projectPath/$fileName"
     val file = File(filePath)
-    if (file.exists())
+    if (file.exists()) {
         file.delete()
+    }
     file.createNewFile()
     file.writeText(fileContext)
     return file

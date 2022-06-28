@@ -15,13 +15,11 @@ import org.jetbrains.research.ml.ast.util.*
 import org.jetbrains.research.ml.ast.util.sdk.setSdkToProject
 import java.io.File
 import java.nio.file.Paths
-import kotlin.random.Random.Default.nextDouble
 import kotlin.system.exitProcess
 
 object Runner : ApplicationStarter {
     private lateinit var inputDir: String
     private lateinit var outputDir: String
-    private lateinit var yaml_config: String
 
     private var project: Project? = null
     private val logger = Logger.getInstance(this::class.java)
@@ -40,26 +38,6 @@ object Runner : ApplicationStarter {
             "--output_path",
             help = "Output directory"
         )
-
-        val yaml by parser.storing(
-            "-y",
-            "--yaml_path",
-            help = "YAML config path"
-        )
-    }
-
-    // Filter transformations according to the probability
-    private fun filterTransformations(config: Configuration): List<Transformation> {
-        val transformationsToApply: MutableList<Transformation> = ArrayList()
-        config.transformations.forEach { transformation ->
-            val p = nextDouble(0.0, 1.0)
-            if (transformation.probability >= p) {
-                transformation.getTransformationObject()?.let {
-                    transformationsToApply.add(it)
-                } ?: logger.error("Incorrect transformation key ${transformation.key}")
-            }
-        }
-        return transformationsToApply
     }
 
     private fun File.createPsiFile(psiManager: PsiManager): PsiFile {
@@ -88,26 +66,20 @@ object Runner : ApplicationStarter {
             ArgParser(args.drop(1).toTypedArray()).parseInto(::TransformationsRunnerArgs).run {
                 inputDir = Paths.get(input).toString()
                 outputDir = Paths.get(output).toString().removeSuffix("/")
-                yaml_config = Paths.get(yaml).toString()
             }
 
             project = ProjectUtil.openOrImport(getTmpProjectDir(), null, true)
-            project?.let {
+            project?.let { it ->
                 setSdkToProject(it, getTmpProjectDir())
                 val psiManager = PsiManager.getInstance(it)
                 createFolder(outputDir)
-                val config = Configuration.parseYamlConfig(getContentFromFile(yaml_config))
                 // TODO: should we handle all nested folders and save the folders structure
                 val inputFiles = getFilesFormFolder(inputDir)
-                repeat(config.nApply) { num ->
-                    val currentPath = "$outputDir/${num}_transformation"
-                    createFolder(currentPath)
-                    val transformationsToApply = filterTransformations(config)
-                    inputFiles.forEach { file ->
-                        val psi = file.createPsiFile(psiManager)
-                        psi.applyTransformations(transformationsToApply)
-                        createFile("$currentPath/${file.name}", psi.text)
-                    }
+                createFolder(outputDir)
+                inputFiles.forEach { file ->
+                    val psi = file.createPsiFile(psiManager)
+                    psi.applyTransformations(TransformationsStorage.getListOfAllTransformations())
+                    createFile("$outputDir/${file.name}", psi.text)
                 }
             } ?: error("Internal error: the temp project was not created")
         } catch (ex: Exception) {

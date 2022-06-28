@@ -3,12 +3,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 group = "org.jetbrains.research.ml.ast.transformations"
 version = "1.0-SNAPSHOT"
 
+fun properties(key: String) = project.findProperty(key).toString()
+
 plugins {
     java
-    kotlin("jvm") version "1.4.30" apply true
-    id("org.jetbrains.intellij") version "0.7.2" apply true
-    id("org.jetbrains.dokka") version "0.10.1" apply true
-    id("org.jlleitschuh.gradle.ktlint") version "9.4.1" apply true
+    kotlin("jvm") version "1.6.20" apply true
+    id("org.jetbrains.intellij") version "1.5.2" apply true
+    id("org.jetbrains.dokka") version "1.7.0" apply true
+    id("org.jlleitschuh.gradle.ktlint") version "10.3.0" apply true
 }
 
 allprojects {
@@ -23,16 +25,14 @@ allprojects {
     }
 
     intellij {
-        type = "PC"
-        version = "2020.3.3"
-        downloadSources = false
-        setPlugins("PythonCore")
-        updateSinceUntilBuild = true
+        pluginName.set(properties("pluginName"))
+        version.set(properties("platformVersion"))
+        type.set(properties("platformType"))
+        plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
     }
 
     repositories {
         mavenCentral()
-        jcenter()
     }
 
     dependencies {
