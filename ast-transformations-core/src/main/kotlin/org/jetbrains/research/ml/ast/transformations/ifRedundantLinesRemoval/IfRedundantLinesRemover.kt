@@ -5,7 +5,6 @@ import com.intellij.psi.util.siblings
 import com.jetbrains.python.psi.*
 import org.jetbrains.research.ml.ast.transformations.*
 import org.jetbrains.research.ml.ast.transformations.constantfolding.PyEvaluatorImproved
-import kotlin.test.fail
 
 class IfRedundantLinesRemover(
     private val commandStorage: PerformedCommandStorage?,
@@ -246,7 +245,7 @@ class IfRedundantLinesRemover(
                             .toList() + simplifiedFirstRange.last
                     )
                 }
-                else -> fail("Unexpected type of if part encountered")
+                else -> error("Unexpected type of if part encountered")
             }
             commandStorage.safePerformCommand(
                 { firstToKeep.replace(replacementPart) },

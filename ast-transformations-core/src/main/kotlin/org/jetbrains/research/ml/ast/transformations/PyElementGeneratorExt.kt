@@ -11,7 +11,6 @@ import com.jetbrains.python.psi.PyPrefixExpression
 import com.jetbrains.python.psi.PyStatement
 import com.jetbrains.python.psi.PyStatementList
 import org.jetbrains.research.ml.ast.transformations.constantfolding.PyEvaluatorImproved
-import kotlin.test.fail
 
 // TODO: merge this file with PyUtils?
 private val defaultLanguageLevel = LanguageLevel.getDefault()
@@ -88,5 +87,5 @@ fun PyElementGenerator.createIntOrBoolExpression(result: PyEvaluatorImproved.PyI
     when (result) {
         is PyEvaluatorImproved.PyInt -> this.createExpressionFromNumber(result.value)
         is PyEvaluatorImproved.PyBool -> this.createBoolLiteralExpression(result.value)
-        else -> fail("result should be of type PyInt or PyBool")
+        else -> error("result should be of type PyInt or PyBool")
     }

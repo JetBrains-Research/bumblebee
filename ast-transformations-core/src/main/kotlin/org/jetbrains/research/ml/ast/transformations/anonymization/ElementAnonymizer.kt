@@ -13,7 +13,6 @@ import com.jetbrains.python.psi.PyNamedParameter
 import com.jetbrains.python.psi.PyPossibleClassMember
 import com.jetbrains.python.psi.PyTargetExpression
 import com.jetbrains.python.psi.search.PySuperMethodsSearch
-import kotlin.test.fail
 
 class ElementAnonymizer {
     private val allRenames: MutableList<Pair<PsiElement, String>> = mutableListOf()
@@ -43,7 +42,7 @@ class ElementAnonymizer {
             return when (element) {
                 is PyLambdaExpression -> assembleNewFullName(computeParentOfDefinition(element), NamedEntityKind.Lambda)
                 is PyFunction -> getNewNameForElement(PySuperMethodsSearch.findDeepestSuperMethod(element))
-                else -> fail("A new name for a non-definition requested")
+                else -> error("A new name for a non-definition requested")
             }
         }
         if (!shouldRenameDefinition(element)) return null
