@@ -29,7 +29,7 @@ Just clone the repo by `git clone https://github.com/JetBrains-Research/ast-tran
 
 ## Getting started as a tool
 
-Run the command `./gradlew :cli -Pinput=<Input directory with python files> -Poutput=<Output directory> -Pyaml=<YAML config path>`.
+Run the command `./gradlew :ast-transformations-plugin:cli -Pinput=<Input directory with python files> -Poutput=<Output directory> -Pyaml=<YAML config path>`.
 The YAML configuration file example can be found [here](./config.yaml).
 Set of the transformations is applied `n apply` times. Each round for each transformation the random  
 number between `0.0` and `1.0` is generated. If this value is less than `p` for the current transformation,

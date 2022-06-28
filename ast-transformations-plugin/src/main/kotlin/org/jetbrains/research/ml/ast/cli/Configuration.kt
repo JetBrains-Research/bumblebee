@@ -8,7 +8,7 @@ import org.reflections.Reflections
 
 internal object TransformationsStorage {
     // TODO: use Reflekt compiler plugin
-    private val allTransformationsMap = getListOfAllTransformations().map { it.key.toLowerCase() to it }.toMap()
+    private val allTransformationsMap = getListOfAllTransformations().associateBy { it.key.toLowerCase() }
 
     private fun getListOfAllTransformations(): List<Transformation> {
         val reflections = Reflections("org.jetbrains.research.ml.ast.transformations")
