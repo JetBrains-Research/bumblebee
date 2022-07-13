@@ -17,7 +17,13 @@ tasks {
             input?.let { "--input_path=$it" },
             output?.let { "--output_path=$it" }
         )
-        jvmArgs = listOf("-Djava.awt.headless=true", "--add-exports", "java.base/jdk.internal.vm=ALL-UNNAMED")
+        jvmArgs = listOf(
+            "-Djava.awt.headless=true",
+            "--add-exports",
+            "java.base/jdk.internal.vm=ALL-UNNAMED",
+            "-Xms128m",
+            "-Xmx2048m"
+        )
         standardInput = System.`in`
         standardOutput = System.`out`
     }
