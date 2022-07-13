@@ -40,10 +40,10 @@ object Runner : ApplicationStarter {
         )
     }
 
-    private fun File.createPsiFile(psiManager: PsiManager): PsiFile {
+    private fun File.createPsiFile(psiManager: PsiManager, id: Int): PsiFile {
         return ApplicationManager.getApplication().runWriteAction<PsiFile> {
             val basePath = getTmpProjectDir(toCreateFolder = false)
-            val fileName = "dummy." + PythonFileType.INSTANCE.defaultExtension
+            val fileName = "dummy$id." + PythonFileType.INSTANCE.defaultExtension
             val content = getContentFromFile(this.absolutePath)
             val file = addPyFileToProject(basePath, fileName, content)
             val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
@@ -76,8 +76,8 @@ object Runner : ApplicationStarter {
                 // TODO: should we handle all nested folders and save the folders structure
                 val inputFiles = getFilesFormFolder(inputDir)
                 createFolder(outputDir)
-                inputFiles.forEach { file ->
-                    val psi = file.createPsiFile(psiManager)
+                inputFiles.forEachIndexed { idx, file ->
+                    val psi = file.createPsiFile(psiManager, idx)
                     psi.applyTransformations(TransformationsStorage.getListOfAllTransformations())
                     createFile("$outputDir/${file.name}", psi.text)
                 }
