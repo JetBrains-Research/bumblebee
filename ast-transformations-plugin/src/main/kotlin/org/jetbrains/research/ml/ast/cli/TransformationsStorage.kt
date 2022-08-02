@@ -7,6 +7,7 @@ import org.jetbrains.research.ml.ast.transformations.commentsRemoval.CommentsRem
 import org.jetbrains.research.ml.ast.transformations.comparisonUnification.ComparisonUnificationTransformation
 import org.jetbrains.research.ml.ast.transformations.constantfolding.ConstantFoldingTransformation
 import org.jetbrains.research.ml.ast.transformations.deadcode.DeadCodeRemovalTransformation
+import org.jetbrains.research.ml.ast.transformations.emptyLinesRemoval.EmptyLinesRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.expressionUnification.ExpressionUnificationTransformation
 import org.jetbrains.research.ml.ast.transformations.ifRedundantLinesRemoval.IfRedundantLinesRemovalTransformation
 import org.jetbrains.research.ml.ast.transformations.multipleOperatorComparison.MultipleOperatorComparisonTransformation
@@ -27,6 +28,7 @@ internal object TransformationsStorage {
             ComparisonUnificationTransformation,
             ConstantFoldingTransformation,
             DeadCodeRemovalTransformation,
+            EmptyLinesRemovalTransformation,
             ExpressionUnificationTransformation,
             IfRedundantLinesRemovalTransformation,
             MultipleOperatorComparisonTransformation,
