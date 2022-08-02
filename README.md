@@ -16,6 +16,7 @@ The differences between these options can be found below.
 - [x] [Comparison Unification](./docs/transformations/ComparisonUnification.md)
 - [x] [Constant folding](./docs/transformations/ConstantFolding.md)
 - [x] [Dead Code Removal](./docs/transformations/DeadCodeRemoval.md)
+- [x] [EmptyLinesRemoval](./docs/transformations/EmptyLinesRemoval.md)
 - [x] [Expression Unification](./docs/transformations/ExpressionUnification.md)
 - [x] [If Statement Redundant Lines Removal](./docs/transformations/IfRedundantLinesRemovalTransformation.md)
 - [x] [Multiple Operator Comparison](./docs/transformations/MultipleOperatorComparison.md)
