@@ -13,7 +13,7 @@ object EmptyLinesRemovalTransformation : Transformation() {
 
     override fun forwardApply(psiTree: PsiElement, commandsStorage: PerformedCommandStorage?) {
         val emptyLines = PsiTreeUtil.collectElementsOfType(psiTree, PsiWhiteSpace::class.java)
-        emptyLines.forEach {
+        emptyLines.reversed().forEach {
             WriteCommandAction.runWriteCommandAction(psiTree.project) {
                 commandsStorage.safePerformCommand(
                     { it.delete() },
