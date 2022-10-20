@@ -18,13 +18,27 @@ private fun createBaseSdk(project: Project): Sdk {
     return myProjectSdksModel.createSdk(pySdkType, getPythonPath())
 }
 
-private fun getPythonPath(): String {
-    val python = "python3"
-    val pythonBin = if (SystemUtils.IS_OS_WINDOWS) listOf("where", python) else listOf("which", python)
-    val builder = ProcessBuilder(pythonBin)
+private fun checkPythonPath(pythonPath: String, expectedVersion: Int): Boolean {
+    val builder = ProcessBuilder(listOf(pythonPath, "--version"))
     builder.redirectErrorStream(true)
     val p = builder.start()
-    return BufferedReader(InputStreamReader(p.inputStream)).readLines().joinToString(separator = "\n")
+    val output = BufferedReader(InputStreamReader(p.inputStream)).readLines()
+        .joinToString("\n").trim()
+    return output.matches("Python\\s+${expectedVersion}\\..*".toRegex())
+}
+
+private fun getPythonPath(expectedVersion: Int = 3): String {
+    val scanCommand = if (SystemUtils.IS_OS_WINDOWS) "where" else "which"
+    val builder = ProcessBuilder(listOf(scanCommand, "python3", "python"))
+    builder.redirectErrorStream(true)
+    val p = builder.start()
+    val paths = BufferedReader(InputStreamReader(p.inputStream)).readLines()
+    for (path in paths) {
+        if (checkPythonPath(path, expectedVersion)) {
+            return path
+        }
+    }
+    error("Python interpreter not found")
 }
 
 private fun createVirtualEnvSdk(project: Project, baseSdk: Sdk, venvRoot: String): Sdk {
