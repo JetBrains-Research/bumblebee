@@ -16,7 +16,8 @@ object EmptyLinesRemovalTransformation : Transformation() {
 
     override fun forwardApply(psiTree: PsiElement, commandsStorage: PerformedCommandStorage?) {
         val manager = PsiDocumentManager.getInstance(psiTree.project)
-        val document = manager.getDocument(psiTree.containingFile)!!
+        val document = manager.getDocument(psiTree.containingFile)
+            ?: error("The document for the PSI file is not found.")
         val emptyLines = PsiTreeUtil.collectElementsOfType(psiTree, PsiWhiteSpace::class.java).filter {
             // Check that PsiWhiteSpace element consists of at least one empty line
             val prevSibLine = document.getLineNumber(it.prevSibling?.endOffset ?: 0)
