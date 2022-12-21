@@ -7,8 +7,8 @@ fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
     java
-    kotlin("jvm") version "1.6.20" apply true
-    id("org.jetbrains.intellij") version "1.5.2" apply true
+    kotlin("jvm") version "1.7.21" apply true
+    id("org.jetbrains.intellij") version "1.10.0" apply true
     id("org.jetbrains.dokka") version "1.7.0" apply true
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0" apply true
 }
@@ -45,11 +45,11 @@ allprojects {
 
     tasks {
         withType<JavaCompile> {
-            sourceCompatibility = "11"
-            targetCompatibility = "11"
+            sourceCompatibility = "17"
+            targetCompatibility = "17"
         }
         withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = "11"
+            kotlinOptions.jvmTarget = "17"
         }
         // According to this topic:
         // https://intellij-support.jetbrains.com/hc/en-us/community/posts/360010164960-Build-Intellij-plugin-in-IDEA-2019-1-2020-3?page=1#community_comment_360002517940
