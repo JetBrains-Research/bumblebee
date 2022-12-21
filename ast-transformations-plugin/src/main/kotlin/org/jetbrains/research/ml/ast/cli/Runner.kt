@@ -24,7 +24,9 @@ object Runner : ApplicationStarter {
     private var project: Project? = null
     private val logger = Logger.getInstance(this::class.java)
 
-    override fun getCommandName(): String = "python-transformations"
+    @Deprecated("Specify it as `id` for extension definition in a plugin descriptor")
+    override val commandName: String
+        get() = "python-transformations"
 
     class TransformationsRunnerArgs(parser: ArgParser) {
         val input by parser.storing(
