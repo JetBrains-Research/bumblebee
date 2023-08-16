@@ -1,7 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.*
+
+val projectVersion = "1.0.0"
 
 group = "org.jetbrains.research.ml.ast.transformations"
-version = "1.0-SNAPSHOT"
+version = projectVersion
 
 fun properties(key: String) = project.findProperty(key).toString()
 
@@ -11,6 +14,7 @@ plugins {
     id("org.jetbrains.intellij") version "1.10.0" apply true
     id("org.jetbrains.dokka") version "1.7.0" apply true
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0" apply true
+    `maven-publish`
 }
 
 allprojects {
@@ -55,5 +59,47 @@ allprojects {
         // https://intellij-support.jetbrains.com/hc/en-us/community/posts/360010164960-Build-Intellij-plugin-in-IDEA-2019-1-2020-3?page=1#community_comment_360002517940
         withType<org.jetbrains.intellij.tasks.BuildSearchableOptionsTask>()
             .forEach { it.enabled = false }
+    }
+}
+
+fun getLocalProperty(key: String, file: String = "local.properties"): String? {
+    val properties = Properties()
+
+    File("local.properties")
+        .takeIf { it.isFile }
+        ?.let { properties.load(it.inputStream()) }
+        ?: println("File $file with properties not found")
+
+    return properties.getProperty(key, null)
+}
+
+val spaceUsername = getLocalProperty("spaceUsername")
+val spacePassword = getLocalProperty("spacePassword")
+
+configure(subprojects.filter { it.name != "plugin-utilities-plugin" }) {
+
+    apply(plugin = "maven-publish")
+
+    val subprojectName = this.name
+
+    publishing {
+        publications {
+            register<MavenPublication>("maven") {
+                groupId = "org.jetbrains.research.ml.ast.transformations"
+                artifactId = subprojectName
+                version = projectVersion
+                from(components["java"])
+            }
+        }
+
+        repositories {
+            maven {
+                url = uri("https://packages.jetbrains.team/maven/p/bumblebee/bumblebee")
+                credentials {
+                    username = spaceUsername
+                    password = spacePassword
+                }
+            }
+        }
     }
 }
