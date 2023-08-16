@@ -1,8 +1,8 @@
 [![JetBrains Research](https://jb.gg/badges/research.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
-[![Actions Status](https://github.com/nbirillo/ast-transformations/workflows/build/badge.svg)](https://github.com/nbirillo/ast-transformations/actions)
+[![Build](https://github.com/JetBrains-Research/bumblebee/actions/workflows/build.yml/badge.svg)](https://github.com/JetBrains-Research/bumblebee/actions/workflows/build.yml)
 
 
-# AST-transformations
+# Bumblebee
 
 An IntelliJ-based IDE plugin for performing Python AST transformations using PSI elements. 
 You can use this plugin as a library or as a tool to work with Python PSI. 
